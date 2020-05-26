@@ -2,13 +2,11 @@
   "name": "releasetrain",
   "version": "1.0.0",
   "description": "releasetrain client",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
     "build": "grunt",
-    "dev": "./node_modules/.bin/nodemon src/app.js",
-    "prod": "./node_modules/.bin/nodemon dist/app.min.js",
-    "releasetrainDev": "npm run dev",
-    "releasetrainProd": "npm run build && npm run prod"
+    "dev": " http-server src",
+    "prod": "npm run build && http-server dist"
   },
   "repository": {
     "type": "git",
@@ -24,8 +22,9 @@
   "license": "ISC",
   "devDependencies": {
     "grunt": "^1.1.0",
+    "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-uglify-es": "^3.3.0",
-    "http-server": "^0.12.3",
-    "nodemon": "^2.0.4"
+    "grunt-minify-html": "^3.0.0",
+    "http-server": "^0.12.3"
   }
 }

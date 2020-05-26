@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>releasetrain.io v2.0</title>
+	<script type="text/javascript" src="lib/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript" src="lib/select2.min.js"></script>
+	<link href="lib/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+<h1>releasetrain.io</h1>
+
+<select style="width: 100%;" class="component-names" name="names[]" multiple="multiple"></select>
+<ol class="version-names"></ol>
+
+<script type="text/javascript">
+	$(document).ready(function() { 
+
+		$.ajax({
+			url: "http://localhost:3000/api/v",
+			type: 'GET',
+			dataType: 'json',
+			success: function(res) {
+				$(".version-names").empty();
+				for (var i = 0; i < res.length; i++) {
+					var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ") released on " + res[i].versionReleaseDate; 
+					var versionReleaseNotes = res[i].versionReleaseNotes;
+					$(".version-names").append('<li><a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+				}
+			}
+		});
+
+		$('.component-names').on("change", function(e) { 
+			var select2DataObjsArr = $(this).select2('data');
+			var dataParam = "";
+			for (var i = 0; i < select2DataObjsArr.length; i++) {
+				if (i == 0) {
+					dataParam = select2DataObjsArr[i].text
+				} else {
+					dataParam +=","+select2DataObjsArr[i].text;
+				} 
+			}
+			$.ajax({
+				url: "http://localhost:3000/api/v?name="+dataParam,
+				type: 'GET',
+				dataType: 'json',
+				success: function(res) {
+					$(".version-names").empty();
+					for (var i = 0; i < res.length; i++) {
+						var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ") released on " + res[i].versionReleaseDate; 
+						var versionReleaseNotes = res[i].versionReleaseNotes;
+						$(".version-names").append('<li><a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+					}
+				}
+			});
+		});
+
+		$('.component-names').select2({
+		    tags: true,
+		    multiple: true,
+		    tokenSeparators: [',', ' '],
+		    minimumInputLength: 2,
+		    minimumResultsForSearch: 4,
+		    ajax: {
+		        url: "http://localhost:3000/api/c/names",
+		        dataType: "json",
+		        type: "GET",
+		        data: function (params) {
+		            var queryParameters = {
+		                term: params.term
+		            }
+		            return queryParameters;
+		        },
+		        processResults: function (data) {
+		            return {
+		                results: $.map(data, function (item) {
+		                    return {
+		                        text: item.versionProductName,
+		                        id: item.versionProductName
+		                    }
+		                })
+		            };
+		        }
+		    }
+		});
+	})
+</script>
+
+</body>
+</html>
