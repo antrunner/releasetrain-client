@@ -1,0 +1,21 @@
+{
+  "name": "releasetrain",
+  "version": "1.0.0",
+  "description": "releasetrain client",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node app.js"
+  },
+  "keywords": [
+    "client",
+    "version",
+    "release",
+    "tracking"
+  ],
+  "author": "berhes",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^0.12.3"
+  }
+}
