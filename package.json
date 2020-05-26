@@ -4,8 +4,15 @@
   "description": "releasetrain client",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node app.js"
+    "build": "grunt",
+    "dev": "./node_modules/.bin/nodemon src/app.js",
+    "prod": "./node_modules/.bin/nodemon dist/app.min.js",
+    "releasetrainDev": "npm run dev",
+    "releasetrainProd": "npm run build && npm run prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antrunner/releasetrain-client.git"
   },
   "keywords": [
     "client",
@@ -16,6 +23,9 @@
   "author": "berhes",
   "license": "ISC",
   "devDependencies": {
-    "http-server": "^0.12.3"
+    "grunt": "^1.1.0",
+    "grunt-contrib-uglify-es": "^3.3.0",
+    "http-server": "^0.12.3",
+    "nodemon": "^2.0.4"
   }
 }
