@@ -14,6 +14,6 @@ span.select2-container {color: #333}
 	nav {display: flex; margin: 10px;}
 	section {margin: 10px 4%;}
 	a {font-size: 10pt; color: #aaa}
-	ol {margin: 4px auto; width: 100%; list-style: none;}
-	li {height: 30px;}
+	ol {margin: 10px auto; width: 100%; list-style: none;}
+	li {margin: 20px;}
 }
