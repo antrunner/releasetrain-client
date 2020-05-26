@@ -1,0 +1,11 @@
+* {font-family: verdana}
+body {background-color: #0a1922; color: white;}
+nav {display: flex; margin: 10px;}
+section {margin: 60px 20%;}
+h1 {margin: 30px; font-size: 14pt}
+h2 {margin: 30px;}
+a {font-size: 12pt; color: #aaa}
+ol {margin: 6px auto; width: 90%; list-style: none;}
+li {height: 30px;}
+button {color: #333}
+span.select2-container {color: #333}
