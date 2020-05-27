@@ -30,10 +30,12 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 
-		// var url =  "http://localhost:3000/api";
-		var url =  "https://releasetrain.io/api";
+		var url =  "http://localhost:3000/api";
+		//var url =  "https://releasetrain.io/api";
 		var pageNum = 1;
 		var dataParam = "";
+
+		$(document.body).on('touchmove', onScroll); // for mobile
 
 		$.ajax({
 			url: url+"/v?pageNum="+pageNum,
