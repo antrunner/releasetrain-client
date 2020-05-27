@@ -3,9 +3,11 @@
 
 		// var url =  "http://localhost:3000/api";
 		var url =  "https://releasetrain.io/api";
+		var pageNum = 1;
+		var dataParam = "";
 
 		$.ajax({
-			url: url+"/v",
+			url: url+"/v?pageNum="+pageNum,
 			type: 'GET',
 			dataType: 'json',
 			success: function(res) {
@@ -15,12 +17,14 @@
 					var versionReleaseNotes = res[i].versionReleaseNotes;
 					$(".version-names").append('<li><a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
 				}
+				pageNum++;
 			}
 		});
 
-		$('.component-names').on("change", function(e) { 
+		$('.component-names').on("change", function(e) {
+			pageNum = 1 // start from scratch after each selection. 
+			dataParam = ""; // start from scratch after each selection. 
 			var select2DataObjsArr = $(this).select2('data');
-			var dataParam = "";
 			for (var i = 0; i < select2DataObjsArr.length; i++) {
 				if (i == 0) {
 					dataParam = select2DataObjsArr[i].text
@@ -28,8 +32,9 @@
 					dataParam +=","+select2DataObjsArr[i].text;
 				} 
 			}
+			// console.log(url+"/v?pageNum="+pageNum+"&name="+dataParam);
 			$.ajax({
-				url: url+"/v?name="+dataParam,
+				url: url+"/v?pageNum="+pageNum+"&name="+dataParam,
 				type: 'GET',
 				dataType: 'json',
 				success: function(res) {
@@ -71,5 +76,26 @@
 		        }
 		    }
 		});
+
+		$(window).scroll(function() {
+    		if($(window).scrollTop() == $(document).height() - $(window).height()) {
+    			// console.log(url+"/v?pageNum="+pageNum+"&name="+dataParam);
+				$.ajax({
+					url: url+"/v?pageNum="+pageNum+"&name="+dataParam,
+					type: 'GET',
+					dataType: 'json',
+					success: function(res) {
+						// $(".version-names").empty();
+						for (var i = 0; i < res.length; i++) {
+							var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ") released on " + res[i].versionReleaseDate; 
+							var versionReleaseNotes = res[i].versionReleaseNotes;
+							$(".version-names").append('<li><a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+						}
+						pageNum++;
+					}
+				});
+	        }
+    	});
+
 	})
 </script></body></html>
