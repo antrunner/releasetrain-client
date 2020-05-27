@@ -36,6 +36,7 @@
 		var dataParam = "";
 
 		$(document.body).on('touchmove', onScroll); // for mobile
+		$(window).on('scroll', onScroll); // for desktop
 
 		$.ajax({
 			url: url+"/v?pageNum="+pageNum,
@@ -107,27 +108,27 @@
 		        }
 		    }
 		});
-
-		$(window).scroll(function() {
-    		if($(window).scrollTop() == $(document).height() - $(window).height()) {
-    			// console.log(url+"/v?pageNum="+pageNum+"&name="+dataParam);
-				$.ajax({
-					url: url+"/v?pageNum="+pageNum+"&name="+dataParam,
-					type: 'GET',
-					dataType: 'json',
-					success: function(res) {
-						// $(".version-names").empty();
-						for (var i = 0; i < res.length; i++) {
-							var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ") released on " + res[i].versionReleaseDate; 
-							var versionReleaseNotes = res[i].versionReleaseNotes;
-							$(".version-names").append('<li><a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+		function onScroll() {
+			$(window).scroll(function() {
+	    		if($(window).scrollTop() == $(document).height() - $(window).height()) {
+	    			// console.log(url+"/v?pageNum="+pageNum+"&name="+dataParam);
+					$.ajax({
+						url: url+"/v?pageNum="+pageNum+"&name="+dataParam,
+						type: 'GET',
+						dataType: 'json',
+						success: function(res) {
+							// $(".version-names").empty();
+							for (var i = 0; i < res.length; i++) {
+								var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ") released on " + res[i].versionReleaseDate; 
+								var versionReleaseNotes = res[i].versionReleaseNotes;
+								$(".version-names").append('<li><a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+							}
+							pageNum++;
 						}
-						pageNum++;
-					}
-				});
-	        }
-    	});
-
+					});
+		        }
+	    	});		
+		}
 	})
 </script>
 
