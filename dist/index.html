@@ -86,7 +86,7 @@
 							var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ")"; 
 							var versionReleaseNotes = res[i].versionReleaseNotes;
 
-							$(".version-names").append('<li style="padding-left: 4px">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+							$(".version-names").append('<li style="padding-left: 4px">'+avatar+'<a target="_blank" href="'+versionReleaseNotes.substring(0,20)+'"><span>'+versionLabel+'</a></li>');
 						}
 						pageNumParam++;
 					}
