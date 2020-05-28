@@ -5,7 +5,7 @@ section {margin: 40px 20%;}
 h1 {margin: 30px; font-size: 14pt}
 h2 {margin: 30px;}
 a {font-size: 12pt; color: #aaa}
-ol {margin: 10px auto; width: 90%; list-style: none;}
+ol {margin: 10px 0px; width: 90%; list-style: none;}
 li {height: 30px;}
 button {color: #333}
 span.select2-container {color: #333}
@@ -15,6 +15,6 @@ span.select2-container {color: #333}
 	h1 {margin: 0px; font-size: 14pt}
 	section {margin: 10px 4%;}
 	a {font-size: 10pt; color: #aaa}
-	ol {margin: 10px auto; width: 100%; list-style: none;}
+	ol {margin: 10px 0px; width: 100%; list-style: none;}
 	li {margin: 15px 0px;}
 }

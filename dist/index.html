@@ -5,6 +5,7 @@
 			var url =  "https://releasetrain.io/api";
 			var pageNumParam = 1;
 			var componentNameParam = "";
+			var currDate = null; // global in order to correctly page version
 
 			$(document.body).on('touchmove', onScroll); // for mobile
 			$(window).on('scroll', onScroll); // for desktop
@@ -65,11 +66,27 @@
 					type: 'GET',
 					dataType: 'json',
 					success: function(res) {
-						// console.log(url+"/v?pageNumParam="+pageNumParam+"&componentNameParam="+componentNameParam);
 						for (var i = 0; i < res.length; i++) {
-							var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ") released on " + res[i].versionReleaseDate; 
+
+							var avatar = res[i].versionProductType;
+							var isCve = res[i].versionReleaseChannel == "cve" ? true : false;
+							if(avatar) {
+								avatar = '<img style="height: 20px; margin-right: 5px;" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
+							} else if (isCve) {
+								avatar = '<img style="height: 20px; margin-right: 5px;" src="https://cdn0.iconfinder.com/data/icons/social-messaging-ui-color-shapes/128/alert-triangle-red-512.png"></img>';
+							} else {
+								avatar = '<img style="height: 20px; margin-right: 5px;" src="https://cdn2.iconfinder.com/data/icons/web2/Icons/Feed_512x512.png"></img>';
+							}
+
+							if (currDate != res[i].versionReleaseDate) {
+								$(".version-names").append('<li><h3>'+formatDate(res[i].versionReleaseDate)+'</h3></li>');
+								currDate = res[i].versionReleaseDate;
+							}
+
+							var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ")"; 
 							var versionReleaseNotes = res[i].versionReleaseNotes;
-							$(".version-names").append('<li><a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+
+							$(".version-names").append('<li style="padding-left: 4px">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
 						}
 						pageNumParam++;
 					}
@@ -102,6 +119,22 @@
 	    		if($(window).scrollTop() == $(document).height() - $(window).height()) {
 					getVersionList()
 		        }
+			}
+			function formatDate(inputDate) {
+				var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+				var today = new Date();
+			    var releaseDate = new Date([inputDate.slice(0, 4), inputDate.slice(4,6), inputDate.slice(6,8)].join('-'));
+			    if (isSameDate(releaseDate, today)) {
+			    	return "Today"
+			    }
+			    else if (!isNaN(releaseDate.getTime())) {
+			        return months[releaseDate.getMonth()] + '/' + releaseDate.getDate() + '/' + releaseDate.getFullYear();
+			    }
+			}
+			function isSameDate(d1,d2) {
+    			return d1.getFullYear() == d2.getFullYear()
+        			&& d1.getMonth() == d2.getMonth()
+        			&& d1.getDate() == d2.getDate();
 			}
 		})
 		</script></body></html>
