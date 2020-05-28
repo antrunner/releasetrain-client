@@ -58,6 +58,7 @@
 						componentNameParam +=","+select2DataObjsArr[i].text;
 					} 
 				}
+				$(".version-names").empty(); // clear version list on change
 				getVersionList();
 			});
 
@@ -95,8 +96,7 @@
 					type: 'GET',
 					dataType: 'json',
 					success: function(res) {
-						console.log(url+"/v?pageNumParam="+pageNumParam+"&componentNameParam="+componentNameParam);
-						// $(".version-names").empty();
+						// console.log(url+"/v?pageNumParam="+pageNumParam+"&componentNameParam="+componentNameParam);
 						for (var i = 0; i < res.length; i++) {
 							var versionLabel = res[i].versionProductName + " (" + res[i].versionNumber + ") released on " + res[i].versionReleaseDate; 
 							var versionReleaseNotes = res[i].versionReleaseNotes;
