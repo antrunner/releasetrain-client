@@ -12,8 +12,9 @@ span.select2-container {color: #333}
 
 @media only screen and (max-width: 600px) {
 	nav {display: flex; margin: 10px;}
+	h1 {margin: 0px; font-size: 14pt}
 	section {margin: 10px 4%;}
 	a {font-size: 10pt; color: #aaa}
 	ol {margin: 10px auto; width: 100%; list-style: none;}
-	li {margin: 15px;}
+	li {margin: 15px 0px;}
 }
