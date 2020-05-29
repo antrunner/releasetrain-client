@@ -22,9 +22,9 @@
 
 	<nav>
 		<h1>releasetrain.io <br>
-			<span class="getTodayDate" style="font-weight: normal;font-size: 8pt"></span><br>
-			<span class="getComponentCount" style="font-weight: normal;font-size: 8pt"></span><br>
-			<span class="getVersionCount" style="font-weight: normal;font-size: 8pt"></span>
+			<span class="h7 getTodayDate"></span><br>
+			<span class="h7 getComponentCount"></span><br>
+			<span class="h7 getVersionCount"></span>
 		</h1>
 		<!-- 
 		<h2><a>documentation</a></h2>
@@ -34,8 +34,8 @@
 	</nav>
 
 	<section>
-		<select style="width: 100%;" class="component-names" name="names[]" multiple="multiple"></select>
-		<ol stlye="list-style-position: inside; padding-left: 0;" class="version-names"></ol>
+		<select class="component-names" name="names[]" multiple="multiple"></select>
+		<ol class="version-names"></ol>
 	</section>
 
 	<script type="text/javascript">
@@ -49,9 +49,7 @@
 
 			$(document.body).on('touchmove', onScroll); // for mobile
 			$(window).on('scroll', onScroll); // for desktop
-
 			
-
 			getVersionList(); // get version list by page number or component name parameter
 			getVersionCount(); // get version count
 			getComponentCount(); // get component count
@@ -111,11 +109,11 @@
 							var avatar = res[i].versionProductType;
 							var isCve = res[i].versionReleaseChannel == "cve" ? true : false;
 							if(avatar) {
-								avatar = '<img style="height: 20px; margin-right: 5px;" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
+								avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
 							} else if (isCve) {
-								avatar = '<img style="height: 20px; margin-right: 5px;" src="https://cdn0.iconfinder.com/data/icons/social-messaging-ui-color-shapes/128/alert-triangle-red-512.png"></img>';
+								avatar = '<img class="avatar" src="./img/cve.png"></img>';
 							} else {
-								avatar = '<img style="height: 20px; margin-right: 5px;" src="https://cdn2.iconfinder.com/data/icons/web2/Icons/Feed_512x512.png"></img>';
+								avatar = '<img class="avatar" src="./img/default.png"></img>';
 							}
 
 							if (currDate != res[i].versionReleaseDate) {
@@ -126,7 +124,7 @@
 							var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
 							var versionReleaseNotes = res[i].versionReleaseNotes;
 
-							$(".version-names").append('<li style="padding-left: 4px">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+							$(".version-names").append('<li class="version-names-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
 						}
 						pageNumParam++;
 					}
@@ -157,13 +155,13 @@
 			}
 			function onScroll() {
 	    		if($(window).scrollTop() == $(document).height() - $(window).height()) {
-					getVersionList()
+					getVersionList();
 		        }
 			}
-			function formatDate(inputDate) {
+			function formatDate(d) {
 				var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 				var today = new Date();
-			    var releaseDate = new Date([inputDate.slice(0, 4), inputDate.slice(4,6), inputDate.slice(6,8)].join('-'));
+			    var releaseDate = new Date([d.slice(0, 4), d.slice(4,6), d.slice(6,8)].join('-'));
 			    if (isSameDate(releaseDate, today)) {
 			    	return "Today"
 			    }
