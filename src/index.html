@@ -29,12 +29,12 @@
 			<span class="h7 getComponentCount"></span><br>
 			<span class="h7 getVersionCount"></span>
 		</h1>
-		<h2><a href="./index.html">home</a></h2>
-		<h2><a href="./acknowledgement.html">acknowledgement</a></h2>
+		<h2><a class="desktopOnly" href="./index.html">home</a></h2>
+		<h2><a class="desktopOnly" href="./acknowledgement.html">acknowledgement</a></h2>
 	</nav>
 
 	<section>
-		<nav>
+		<nav class="desktopOnly">
 			<a href="#" class="versionListClassLink">List</a>&nbsp;|&nbsp;
 			<a href="#" class="versionChartClassLink">Chart</a>
 		</nav>
@@ -42,9 +42,9 @@
 		<div class="loadingClass">
 			<img src="./img/spinner.gif"></img>
 		</div>
-		<canvas class="versionChartClassSection" id="versionWeekChartId" height="150" width="400"></canvas>
-		<canvas class="versionChartClassSection" id="versionMonthChartId" height="150" width="400"></canvas>
-		<canvas class="versionChartClassSection" id="versionYearChartId" height="150" width="400"></canvas>
+		<canvas class="desktopOnly versionChartClassSection" id="versionWeekChartId" height="150" width="400"></canvas>
+		<canvas class="desktopOnly versionChartClassSection" id="versionMonthChartId" height="150" width="400"></canvas>
+		<canvas class="desktopOnly versionChartClassSection" id="versionYearChartId" height="150" width="400"></canvas>
 		<ol class="versionListClassSection"></ol>
 	</section>
 
@@ -103,7 +103,6 @@
 			$(document.body).on('touchmove', onScroll); // for mobile
 			$(window).on('scroll', onScroll); // for desktop
 			$('.component-names').on("change", function(e) {
-				// console.log("component-names change event");
 				pageNumParam = 1 // start from scratch after each selection. 
 				componentNameParam = ""; // start from scratch after each selection. 
 				var select2DataObjsArr = $(this).select2('data');
@@ -202,7 +201,6 @@
 					type: 'GET',
 					dataType: 'json',
 					success: function(res) {
-						// console.log(res);
 						renderVersionList(res);
 					}
 				});
@@ -402,8 +400,6 @@
 						$(".versionListClassSection").append('<li><h3>'+formatDate(res[i].versionReleaseDate)+'</h3></li>');
 						currDate = res[i].versionReleaseDate;
 					}
-
-					console.log(formatDate(res[i].versionReleaseDate));
 
 					if (formatDate(res[i].versionReleaseDate).toLowerCase() == "today") {
 						countToday++;
