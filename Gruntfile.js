@@ -19,6 +19,7 @@ module.exports = function(grunt) {
         dist: {
             files: {
                 'dist/index.html': 'src/index.html',
+                'dist/acknowledgement.html': 'src/acknowledgement.html',
                 'dist/app.css': 'src/app.css',
                 'dist/reset.css': 'src/reset.css'
             }
