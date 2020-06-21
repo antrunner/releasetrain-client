@@ -22,6 +22,8 @@
 			var isDisplayList = true;
 			var isDisplayChart = false;
 
+			var countToday = 0;
+
 			versionChartClassSection.fadeOut();
 
 			var loader = $('.loadingClass');
@@ -386,7 +388,6 @@
 				});	
 			}
 			function renderVersionList(res) {
-				var countToday = 0;
 				for (var i = 0; i < res.length; i++) {
 
 					var avatar = res[i].versionProductType;
