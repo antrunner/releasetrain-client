@@ -465,7 +465,11 @@
 
 					var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
 					var versionReleaseNotes = res[i].versionReleaseNotes;
-					$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
+					var versionSearchTags = "";
+					if ( res[i].versionSearchTags && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
+						versionSearchTags = " &#8594; " + res[i].versionSearchTags[0];
+					} 
+					$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a>'+ versionSearchTags +'</li>');
 					//$(".versionListClassSection").append('<li class="versionListClassSection-item"><a href="#" onclick="$(\'.component-names\').val(\''+res[i].versionProductName+'\').trigger(\'change\')">add</a> '+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a></li>');
 				}
 
