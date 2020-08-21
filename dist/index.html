@@ -414,7 +414,7 @@
 					var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
 					var versionReleaseNotes = res[i].versionReleaseNotes;
 					var versionSearchTags = "";
-					if ( res[i].versionSearchTags && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
+					if ( isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
 						for(var j = 0; j < res[i].versionSearchTags.length; j++) {
 							versionSearchTags += "<br><span style='color: #aaa; font-size:10pt'>&#8594;" + res[i].versionSearchTags[j] + "</span>";
 						}	
