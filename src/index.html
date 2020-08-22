@@ -254,7 +254,7 @@
 			}
 			function getVersionList() {
 				$.ajax({
-					url: url+"/v?pageNumParam="+pageNumParam+"&componentNameParam="+componentNameParam,
+					url: url+"/v?pageNumParam="+pageNumParam+"&q="+componentNameParam,
 					type: 'GET',
 					dataType: 'json',
 					success: function(res) {
