@@ -468,7 +468,9 @@
 					var versionSearchTags = "";
 					if ( isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
 						for(var j = 0; j < res[i].versionSearchTags.length; j++) {
-							versionSearchTags += "<br><span style='color: #aaa; font-size:10pt'>&#8594;" + res[i].versionSearchTags[j] + "</span>";
+							if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
+								versionSearchTags += "<br><span style='color: #aaa; font-size:10pt'>&#8594;" + res[i].versionSearchTags[j] + "</span>";
+							}
 						}	
 					} 
 					$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a>'+ versionSearchTags +'</li>');
