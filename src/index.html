@@ -35,18 +35,10 @@
 	</nav>
 
 	<section>
-		<nav class="desktopOnly">
-			<!-- <a href="#" class="versionListClassLink">List</a>&nbsp;|&nbsp; -->
-			<!-- <a href="#" class="versionChartClassLink">Chart</a> &nbsp;|&nbsp; -->
-			<!-- <a href="#" class="versionRecClassLink">Release Recommendation</a> -->
-		</nav>
 		<select class="component-names" name="names[]" multiple="multiple"></select>
 		<div class="loadingClass">
 			<img src="./img/spinner.gif"></img>
 		</div>
-		<canvas class="desktopOnly versionChartClassSection" id="versionWeekChartId" height="150" width="400"></canvas>
-		<canvas class="desktopOnly versionChartClassSection" id="versionMonthChartId" height="150" width="400"></canvas>
-		<canvas class="desktopOnly versionChartClassSection" id="versionYearChartId" height="150" width="400"></canvas>
 		<ol class="versionListClassSection"></ol>
 	</section>
 
@@ -146,7 +138,6 @@
 			}
 
 			function forecastVersionListByComponent(componentList) {
-				// var forcastTimestamp; = everpolate.linear(c,xWeek,yWeek)[0];
 				var componentForecastList = [];
 				var version = {};
 				var versionTimestamp = [];
@@ -178,16 +169,11 @@
 				    }
 				}
 			}
-
 			function getReleases() {
 				pageNumParam = 1;
 				if (isDisplayList) {
 					$(".versionListClassSection").empty(); // clear version list on change
 					getVersionList(); // display version list
-				} else if (isDisplayChart) {
-					getVersionWeek();
-					getVersionMonth();
-					getVersionYear();
 				} else {
 					console.warn("RT :: Invalid display status.")
 				}
@@ -221,36 +207,6 @@
 				        }
 				    }
 				});
-			}
-			function getVersionWeek() {
-				$.ajax({
-					url: url+"/v/count/dow?componentNameParam="+componentNameParam,
-					type: 'GET',
-					dataType: 'json',
-					success: function(res) {
-						renderVersionWeek(res);
-					}
-				});	
-			}
-			function getVersionMonth() {
-				$.ajax({
-					url: url+"/v/count/dom?componentNameParam="+componentNameParam,
-					type: 'GET',
-					dataType: 'json',
-					success: function(res) {
-						renderVersionMonth(res);
-					}
-				});	
-			}
-			function getVersionYear() {
-				$.ajax({
-					url: url+"/v/count/moy?componentNameParam="+componentNameParam,
-					type: 'GET',
-					dataType: 'json',
-					success: function(res) {
-						renderVersionYear(res);
-					}
-				});	
 			}
 			function getVersionList() {
 				$.ajax({
@@ -294,150 +250,6 @@
 			}
 			function renderComponentCount(res) {
 				$(".getComponentCount").text(res+" components");
-			}
-			function renderVersionWeek(res) {
-				if (weekChart) {
-					weekChart.destroy();
-				}
-				weekChart = new Chart(versionWeekChartId, {
-				    type: 'bar',
-				    data: {
-				        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-				        datasets: [{
-				            label: 'Number or Releases per Day of Week (' + res.reduce((a, b) => a + b, 0) + ' versions)',
-				            data: res,
-				            backgroundColor: [
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)'
-				            ],
-				            borderColor: [
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa'
-				            ],
-				            borderWidth: 1
-				        }]
-				    },
-				    options: {
-				        scales: {
-				            yAxes: [{
-				                ticks: {
-				                    beginAtZero: true
-				                }
-				            }]
-				        }
-				    }
-				});	
-			}
-			function renderVersionMonth(res) {
-				if (monthChart) {
-					monthChart.destroy();
-				}
-				monthChart = new Chart(versionMonthChartId, {
-				    type: 'bar',
-				    data: {
-				        labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 
-				        		'11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
-				        		'21', '22', '23', '24', '25', '26', '27', '28', '29', '20',
-				        		'31'],
-				        datasets: [{
-				            label: 'Number or Releases per Day of Month (' + res.reduce((a, b) => a + b, 0) + ' versions)',
-				            data: res,
-				            backgroundColor: [
-				                'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)',
-								'rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)','rgba(54, 162, 235, 0.2)'		             		
-				            ],
-				            borderColor: [
-				                '#aaa','#aaa','#aaa','#aaa',
-			                	'#aaa','#aaa','#aaa','#aaa',
-				                '#aaa','#aaa','#aaa','#aaa',
-			                	'#aaa','#aaa','#aaa','#aaa',		
-				                '#aaa','#aaa','#aaa','#aaa',
-			                	'#aaa','#aaa','#aaa','#aaa',
-				                '#aaa','#aaa','#aaa','#aaa',
-			                	'#aaa','#aaa','#aaa'                 
-				            ],
-				            borderWidth: 1
-				        }]
-				    },
-				    options: {
-				        scales: {
-				            yAxes: [{
-				                ticks: {
-				                    beginAtZero: true
-				                }
-				            }]
-				        }
-				    }
-				});	
-			}
-			function renderVersionYear(res) {
-				if (yearChart) {
-					yearChart.destroy();
-				}
-				yearChart = new Chart(versionYearChartId, {
-				    type: 'bar',
-				    data: {
-				        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-				        datasets: [{
-				            label: 'Number or Releases per Month of Year (' + res.reduce((a, b) => a + b, 0) + ' versions)',
-				            data: res,
-				            backgroundColor: [
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)',
-				                'rgba(54, 162, 235, 0.2)'
-				            ],
-				            borderColor: [
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa',
-				                '#aaa'
-				            ],
-				            borderWidth: 1
-				        }]
-				    },
-				    options: {
-				        scales: {
-				            yAxes: [{
-				                ticks: {
-				                    beginAtZero: true
-				                }
-				            }]
-				        }
-				    }
-				});	
 			}
 			function renderVersionList(res) {
 				for (var i = 0; i < res.length; i++) {
