@@ -162,7 +162,7 @@
 				var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
 				var versionReleaseNotes = res[i].versionReleaseNotes;
 				var versionSearchTags = "";
-				var versionReleaseComments = res[i].versionReleaseComments;
+				var versionReleaseComments = res[i].versionReleaseComments.replace(/^[^A-Z]+/,'').replace(/_/g,' ');
 
 				if(avatar && avatar != "OS") {
 					avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
