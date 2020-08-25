@@ -162,6 +162,7 @@
 				var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
 				var versionReleaseNotes = res[i].versionReleaseNotes;
 				var versionSearchTags = "";
+				var versionReleaseComments = res[i].versionReleaseComments;
 
 				if(avatar && avatar != "OS") {
 					avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
@@ -180,16 +181,21 @@
 					countToday++;
 				}
 
+				// display version comments
+				if ( versionReleaseComments.trim().length > 0 ) {
+					versionReleaseComments = "<span style='color: #aaa; font-size:10pt'>" + versionReleaseComments + "</span>";
+				}
+
 				// display version tags
 				if ( isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
 					for(var j = 0; j < res[i].versionSearchTags.length; j++) {
 						if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
-							versionSearchTags += "<br><span style='color: #aaa; font-size:10pt'>&#8594;" + res[i].versionSearchTags[j] + "</span>";
+							versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: darkred;border-radius: 4px;padding: 0px 5px; margin: 1px 2px 0px 0px;'>" + res[i].versionSearchTags[j] + "</span>";
 						}
 					}	
 				} 
 
-				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a>'+ versionSearchTags +'</li>');
+				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags+versionReleaseComments+'</div></li>');
 			}
 
 			if (countToday > 0) {
