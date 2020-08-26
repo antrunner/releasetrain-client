@@ -114,6 +114,9 @@
 			$(".getComponentCount").text(res+" components");
 		}
 		function renderVersionList(res) {
+
+			countToday = 0;
+			
 			for (var i = 0; i < res.length; i++) {
 
 				var avatar = res[i].versionProductType;
@@ -121,9 +124,11 @@
 				var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
 				var versionReleaseNotes = res[i].versionReleaseNotes;
 				var versionSearchTags = "";
-				var versionReleaseComments = res[i].versionReleaseComments.replace(/^[^A-Z]+/,'').replace(/_/g,' ');
+				var versionReleaseComments = res[i].versionReleaseComments? res[i].versionReleaseComments.replace(/^[^A-Z]+/,'').replace(/_/g,' ') : "";
 
-				if(avatar && avatar != "OS") {
+				if (res[i].versionProductName.toLowerCase() == "chrome" ) {
+					avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png"></img>';
+				} else if (avatar && avatar != "OS") {
 					avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
 				} else if (isCve) {
 					avatar = '<img class="avatar" src="./img/cve.png"></img>';
@@ -149,7 +154,17 @@
 				if ( isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
 					for(var j = 0; j < res[i].versionSearchTags.length; j++) {
 						if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
-							versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: darkred;border-radius: 4px;padding: 0px 5px; margin: 1px 2px 0px 0px;'>" + res[i].versionSearchTags[j] + "</span>";
+							versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: #ca4141;border-radius: 4px;padding: 0px 5px; margin: 1px 2px 0px 0px;'>" + res[i].versionSearchTags[j] + "</span>";
+						}
+					}	
+				} else {
+					for(var j = 0; j < res[i].versionSearchTags.length; j++) {
+						if (res[i].versionSearchTags[j].trim() != "" && 
+							res[i].versionSearchTags[j].trim() != "prod" && 
+							res[i].versionSearchTags[j].trim() != "production" && 
+							res[i].versionSearchTags[j].trim() != "bypass" && 
+							res[i].versionSearchTags[j].toLowerCase() != res[i].versionProductName.toLowerCase()) {
+							versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: #47863e;border-radius: 4px;padding: 0px 5px; margin: 1px 2px 0px 0px;'>" + res[i].versionSearchTags[j] + "</span>";
 						}
 					}	
 				} 
