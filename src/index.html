@@ -65,6 +65,7 @@
 		$(window).on('scroll', onScroll); // for desktop
 
 		$('.component-names').on("change", function(e) {
+			// console.log("change");
 			pageNumParam = 1 // start from scratch after each selection. 
 			componentNameParam = ""; // start from scratch after each selection. 
 			var select2DataObjsArr = $(this).select2('data');
@@ -242,9 +243,21 @@
     			&& d1.getDate() == d2.getDate();
 		}
 
-		$(document).ready(function() {		
+		$(document).ready(function() {	
+
 			getAndRenderComponentList();
-			getReleases();
+
+			var query = window.location.search.substring(1);
+			if(query) {
+				componentNameParam=query.split("q=")[1];
+				var queryArgs = componentNameParam.split(",");
+				for(var i=0; i<queryArgs.length;i++) {
+					// console.log(queryArgs);
+					$(".component-names").select2("trigger", "select", {data: {id: i,text:queryArgs[i]}});
+				}
+			}	
+
+			// getReleases();
 			getVersionCount(); 
 			getComponentCount(); 
 			getTodayDate();
