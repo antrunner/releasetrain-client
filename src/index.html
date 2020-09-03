@@ -255,9 +255,10 @@
 					// console.log(queryArgs);
 					$(".component-names").select2("trigger", "select", {data: {id: i,text:queryArgs[i]}});
 				}
-			}	
-
-			// getReleases();
+			} else {
+				getReleases();
+			}
+	
 			getVersionCount(); 
 			getComponentCount(); 
 			getTodayDate();
