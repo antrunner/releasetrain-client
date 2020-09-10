@@ -13,6 +13,7 @@
 		<script src="./lib/googleanalytics.js"></script>
 		<script type="text/javascript" src="./lib/jquery-2.2.4.min.js"></script>
 		<script type="text/javascript" src="./lib/select2.min.js"></script>
+		<link href="img/favicon.ico" rel="icon" type="image/x-icon" />
 		<link href="./reset.css" rel="stylesheet" />
 		<link href="./lib/select2.min.css" rel="stylesheet" />
 		<link href="./app.css" rel="stylesheet" />	
@@ -177,6 +178,8 @@
 					avatar = '<img class="avatar" src="./img/firefox.png"></img>';
 				} else if (res[i].versionProductName.toLowerCase() == "safari") {
 					avatar = '<img class="avatar" src="./img/safari.png"></img>';
+				} else if (res[i].versionProductName.toLowerCase() == "eclipse") {
+					avatar = '<img class="avatar" src="./img/eclipse.png"></img>';
 				}else if (avatar && avatar != "OS") {
 					avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
 				} else if (isCve) {
