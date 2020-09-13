@@ -165,7 +165,7 @@
 				if ( isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
 					for(var j = 0; j < res[i].versionSearchTags.length; j++) {
 						if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
-							versionSearchTags += "<span style='display: inline-block; color: #fff; font-size: 10pt; background-color: #ca4141;border-radius: 4px;padding: 2px; margin-right: 2px;'>" + res[i].versionSearchTags[j] + "</span>";
+							versionSearchTags += "<span style='display: inline-block; color: #fff; font-size: 10pt; background-color: #ca4141;border-radius: 4px;padding: 2px; margin: 2px;'>" + res[i].versionSearchTags[j] + "</span>";
 						}
 					}	
 				} else {
