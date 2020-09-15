@@ -135,7 +135,9 @@
 					avatar = '<img class="avatar" src="./img/safari.png"></img>';
 				} else if (res[i].versionProductName.toLowerCase() == "eclipse") {
 					avatar = '<img class="avatar" src="./img/eclipse.png"></img>';
-				}else if (avatar && avatar != "OS") {
+				} else if (res[i].versionProductName.toLowerCase() == "digitalocean") {
+					avatar = '<i class="fas fa-exclamation-triangle"></i>';
+				} else if (avatar && avatar != "OS") {
 					avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
 				} else if (isCve) {
 					avatar = '<img class="avatar" src="./img/cve.png"></img>';
