@@ -122,10 +122,10 @@
 
 				var avatar = res[i].versionProductType;
 				var isCve = res[i].versionReleaseChannel == "cve" ? true : false;					
-				var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
-				var versionReleaseNotes = res[i].versionReleaseNotes;
+				var versionLabel = escapeHTML(res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"); 
+				var versionReleaseNotes = escapeHTML(res[i].versionReleaseNotes);
 				var versionSearchTags = "";
-				var versionReleaseComments = res[i].versionReleaseComments? res[i].versionReleaseComments.replace(/^[^A-Z]+/,'').replace(/_/g,' ') : "";
+				var versionReleaseComments = res[i].versionReleaseComments? escapeHTML(res[i].versionReleaseComments).replace(/^[^A-Z]+/,'').replace(/_/g,' ') : "";
 
 				if (res[i].versionProductName.toLowerCase() == "chrome" ) {
 					avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png"></img>';
@@ -181,8 +181,7 @@
 						}
 					}	
 				} 
-
-				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags+versionReleaseComments+'</div></li>');
+				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</span></a><div style="padding: 2px 0px">'+versionSearchTags+versionReleaseComments+'</div></li>');
 			}
 
 			if (countToday > 0) {
@@ -212,6 +211,16 @@
 			return d1.getFullYear() == d2.getFullYear()
     			&& d1.getMonth() == d2.getMonth()
     			&& d1.getDate() == d2.getDate();
+		}
+
+		function escapeHTML(s) { 
+		    let lookup = {
+		        '&': "&amp;",
+		        '"': "&quot;",
+		        '<': "&lt;",
+		        '>': "&gt;"
+		    };
+		    return s.replace( /[&"<>]/g, (c) => lookup[c] );
 		}
 
 		$(document).ready(function() {	
