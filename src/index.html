@@ -185,7 +185,9 @@
 					avatar = '<img class="avatar" src="./img/letsencrypt.png"></img>';
 				} else if ( res[i].versionProductName.toLowerCase().startsWith("vmware") ) {
 					avatar = '<img class="avatar" src="./img/vmware.png"></img>';
-				}else if (res[i].versionProductName.toLowerCase() == "digitalocean") {
+				} else if ( res[i].versionProductName.toLowerCase().startsWith("oracle") ) {
+					avatar = '<img class="avatar" src="./img/vboracle.png"></img>';
+				} else if (res[i].versionProductName.toLowerCase() == "digitalocean") {
 					avatar = '<i class="fas fa-exclamation-triangle"></i>';
 				} else if (avatar && avatar != "OS") {
 					avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
