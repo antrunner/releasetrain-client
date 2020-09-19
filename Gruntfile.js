@@ -19,8 +19,9 @@ module.exports = function(grunt) {
         dist: {
             files: {
                 'dist/index.html': 'src/index.html',
-                'dist/slack/index.html': 'src/slack/index.html',
-                'dist/acknowledgement/index.html': 'src/acknowledgement/index.html',
+                'dist/manual/index.html': 'src/manual/index.html',
+                'dist/ext/index.html': 'src/ext/index.html',
+                'dist/ack/index.html': 'src/ack/index.html',
                 'dist/app.css': 'src/app.css',
                 'dist/reset.css': 'src/reset.css'
             }

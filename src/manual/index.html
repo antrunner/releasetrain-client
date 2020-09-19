@@ -11,7 +11,7 @@
 		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1"></script>
 		<script src="./../lib/googleanalytics.js"></script>
 		<link href="./../reset.css" rel="stylesheet" />
-		<link href="./../app.css" rel="stylesheet" />	
+		<link href="./../app.css" rel="stylesheet" />
 		<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet" />	
 	</head>
 	<body>
@@ -20,21 +20,19 @@
 			<h1><a style="color: #fff" target="_self" href="https://releasetrain.io">releasetrain.io</a><br>
 				<span class="h7">version 2.1.0</span><br>
 			</h1>
-			<h2><a class="desktopOnly" href="./../">home</a></h2>
-			<h2><a class="desktopOnly" href="./../slack">slack <i class="fab fa-slack"></i></img></a></h2>
-			<h2><a class="desktopOnly" href="./../acknowledgement">acknowledgement</a></h2>
+			<h2><a class="desktopOnly" href="./">manual</a></h2>
+			<h2><a class="desktopOnly" href="./../ext">third party module</a></h2>
+			<h2><a class="desktopOnly" href="./../ack">acknowledgement</a></h2>
 		</nav>
 		<section>
-			<h4>Does your team use slack for communicating devops topics? Then install the slack releasetrain_bot app to get timely software release update notifications directly in slack. Enjoy! </h4>
-			<ol style="list-style-type:decimal; padding-left: 20px;width: 90%;">
-				<li style="margin: 4px">Add slack app <a style="font-size: 12pt; text-decoration: underline;" target="_blank" href="https://slack.com/oauth/v2/authorize?client_id=1358038358513.1351603295972&scope=chat:write,incoming-webhook&user_scope=">releasetraion_bot</a> to your slack account</li>
-				<li style="margin: 4px">Add slack channel #release to your slack account</li>
-				<li style="margin: 4px">Add slack user @releasetrain_bot to channel #release</li>
-			</ol>
 
-			<br>
-
-			For issues, please go here: <a style="font-size: 12pt; text-decoration: underline;" target="_blank" href="https://github.com/antrunner/releasetrain-client/issues/new">https://github.com/antrunner/releasetrain-client/issues</a>
+			<h4>Introduction</h4>
+			<p>
+				Over the past decades the software eco-system witnessed a trend towards an increasing number of software components, dependencies towards third party software components, and software component release cycles. Software teams building software products are more frequently impacted by third party software component updates. Due to this dependency, updating a single third party software component can break an entire software product. Reasons include parallel conflicting updates of third party software components, updating to an unstable version, or updating to a major stable version without an impact analysis. The objective of <b>releasetrain.io</b> is to reduce the risk of breaking updates by timely consolidating from various software release channels and notifiying relevant stakeholders.
+				<br>
+				Enter software components of interest and get the software updates related to these software components, such beta,
+				prod, or cve releases. The page automatically refreshes frequently and displays the number of today's updates in the tab. Ideally, pick a set of software components of interests and keep the tab open as it updates automatically the number of today's updates. You can get updates also via sharing a URL with query parameter, a cURL command, or a Slack app channel (see Third Party Module).
+			</p>
 		</section>
 	</body>
 </html>
