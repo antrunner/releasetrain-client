@@ -170,7 +170,7 @@
 
 				// display version comments
 				if ( versionReleaseComments.trim().length > 0 ) {
-					versionReleaseComments = "<br><span style='color: #797777; font-size:10pt'>" + versionReleaseComments + "</span>";
+					versionReleaseComments = "<span style='color: #797777; font-size:10pt'>" + versionReleaseComments + "</span>";
 				}
 
 				// display version tags
@@ -179,7 +179,8 @@
 						if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
 							versionSearchTags += "<span style='display: inline-block; color: #fff; font-size: 10pt; background-color: #ca4141;border-radius: 4px;padding: 2px; margin: 2px;'>" + res[i].versionSearchTags[j] + "</span>";
 						}
-					}	
+					}
+					versionSearchTags = versionSearchTags + "<br>";	
 				} else {
 					for(var j = 0; j < res[i].versionSearchTags.length; j++) {
 						if (res[i].versionSearchTags[j].trim() != "" && 
@@ -189,7 +190,8 @@
 							res[i].versionSearchTags[j].toLowerCase() != res[i].versionProductName.toLowerCase()) {
 							versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: #47863e;border-radius: 4px;padding: 2px 5px; margin: 1px 2px 1px 0px; display: inline-block;'>" + res[i].versionSearchTags[j] + "</span>";
 						}
-					}	
+					}
+					versionSearchTags = versionSearchTags + "<br>";	
 				} 
 
 				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags+versionReleaseComments+'</div></li>');
