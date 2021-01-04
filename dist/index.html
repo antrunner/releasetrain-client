@@ -125,17 +125,22 @@
 			for (var i = 0; i < res.length; i++) {
 
 				var avatar = res[i].versionProductType;
+				var isSecurityPatch = res[i].versionReleaseChannel == "patch" ? true : false;
 				var isCve = res[i].versionReleaseChannel == "cve" ? true : false;					
 				var versionLabel = res[i].versionProductName.substring(0,20) + " (" + res[i].versionNumber + ")"; 
 				var versionReleaseNotes = res[i].versionReleaseNotes;
 				var versionSearchTags = "";
 				var versionReleaseComments = res[i].versionReleaseComments? res[i].versionReleaseComments.replace(/^[^A-Z]+/,'').replace(/_/g,' ') : "";
+				var versionLinkedUrl = res[i].versionLinkedUrl;
+				var versionLinkedNote = res[i].versionLinkedNote;
 
 				if (res[i].versionProductName.toLowerCase() == "chrome" ) {
 					avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png"></img>';
 				} else if (res[i].versionProductName.toLowerCase() == "firefox") {
 					avatar = '<img class="avatar" src="./img/firefox.png"></img>';
-				} else if (res[i].versionProductName.toLowerCase() == "safari") {
+				} else if (res[i].versionProductName.toLowerCase() == "android studio") {
+					avatar = '<img class="avatar" src="./img/androidStudio.png"></img>';
+				}else if (res[i].versionProductName.toLowerCase() == "safari") {
 					avatar = '<img class="avatar" src="./img/safari.png"></img>';
 				} else if (res[i].versionProductName.toLowerCase() == "eclipse") {
 					avatar = '<img class="avatar" src="./img/eclipse.png"></img>';
@@ -147,13 +152,17 @@
 					avatar = '<img class="avatar" src="./img/vboracle.png"></img>';
 				} else if (res[i].versionProductName.toLowerCase() == "digitalocean") {
 					avatar = '<i class="fas fa-exclamation-triangle"></i>';
-				} else if (avatar && avatar != "OS") {
+				} else if (avatar && avatar != "OS" && avatar != "security") {
 					avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/'+avatar+'"></img>';
 				} else if (isCve) {
 					avatar = '<img class="avatar" src="./img/cve.png"></img>';
+				} else if (isSecurityPatch) {
+					avatar = '<img class="avatar" src="./img/androidSecurityUpdate.png"></img>';
 				} else {
 					avatar = '<img class="avatar" src="./img/default.png"></img>';
 				}
+
+
 
 				if (currDate != res[i].versionReleaseDate) {
 					if(i > 0) {
@@ -192,7 +201,17 @@
 					}
 				} 
 
-				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags+versionReleaseComments+'</div></li>');
+				versionSearchTags = versionSearchTags.trim().length > 0 ? versionSearchTags + "<br>": "";
+
+				if (isSecurityPatch) { 
+					// https://stackoverflow.com/questions/4758103/last-segment-of-url-in-jquery
+					var parts = versionLinkedUrl.split('/');
+					var cveId = parts.pop() || parts.pop(); 
+					versionReleaseComments = "<a style='color:#797777;font-size: 10pt;' href='"+versionLinkedUrl+"' target='_blank'>Security patch for Android for "+versionLinkedNote+" severity "+cveId+" (click)</a>";		
+				} 
+				
+				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags +versionReleaseComments+'</div></li>');
+				
 			}
 
 			if (countToday > 0) {
