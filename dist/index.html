@@ -2,7 +2,7 @@
 			#mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }
 			/* Add your own Mailchimp form style overrides in your site stylesheet or in this style block.
 			   We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
-		</style><div id=mc_embed_signup><form style="background-color: #1b2a33; padding: 15px; margin: 0px; position: fixed; width: 200px; left: 25px; bottom: 25px;" action="https://releasetrain.us7.list-manage.com/subscribe/post?u=2f63cd753747049bb0f470668&amp;id=1efbfe37d5" method=post id=mc-embedded-subscribe-form name=mc-embedded-subscribe-form class=validate target=_blank novalidate><div id=mc_embed_signup_scroll><input style="width: 92%;" type=email name=EMAIL class=email id=mce-EMAIL placeholder="email address" required><div style="position: absolute; left: -5000px;" aria-hidden=true><input type=text name=b_2f63cd753747049bb0f470668_1efbfe37d5 tabindex=-1></div><div class=clear><input style="width: 99%;" type=submit value=Subscribe name=subscribe id=mc-embedded-subscribe class=button></div></div></form></div></section><section><select class=component-names name=names[] multiple></select><div class=loadingClass><img src=./img/spinner.gif></div><ol class=versionListClassSection></ol></section><script type=text/javascript>
+		</style><div id=mc_embed_signup><form style="background-color: #1b2a33; padding: 15px; margin: 0px; position: fixed; width: 200px; left: 25px; bottom: 25px;" action="https://releasetrain.us7.list-manage.com/subscribe/post?u=2f63cd753747049bb0f470668&amp;id=1efbfe37d5" method=post id=mc-embedded-subscribe-form name=mc-embedded-subscribe-form class=validate target=_blank novalidate><div id=mc_embed_signup_scroll><input style="width: 92%;" type=email name=EMAIL class=email id=mce-EMAIL placeholder="email address" required><div style="position: absolute; left: -5000px;" aria-hidden=true><input type=text name=b_2f63cd753747049bb0f470668_1efbfe37d5 tabindex=-1></div><div class=clear><input style="width: 99%;" type=submit value=Subscribe name=subscribe id=mc-embedded-subscribe class=button></div></div></form></div></section><section><select class=component-names name=names[] multiple></select><div class=loadingClass><img src=./img/spinner.gif></div><ol class=versionListClassSection></ol><div class=errorHandling></div></section><script type=text/javascript>
 
 		// var url =  "http://localhost:3000/api";
 		var url =  "https://releasetrain.io/api";
@@ -28,7 +28,6 @@
 		$(window).on('scroll', onScroll); // for desktop
 
 		$('.component-names').on("change", function(e) {
-			// console.log("change");
 			pageNumParam = 1 // start from scratch after each selection. 
 			componentNameParam = ""; // start from scratch after each selection. 
 			var select2DataObjsArr = $(this).select2('data');
@@ -122,6 +121,19 @@
 
 			countToday = 0;
 			
+			if(res.length == 0) {
+				$(".errorHandling").html("No results found for:"+ componentNameParam + "<br><br><br>");
+				$(".errorHandling").append('Please select a component from the dropdown menu or try:<br><br>');
+				$(".errorHandling").append('<ul style="padding-left: 20px;">');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=browser" target="_self">releasetrain.io/?q=browser (Browsers)</a></li>');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=mongo,express,angular,node" target="_self">releasetrain.io/?q=mongo,express,angular,node (MEAN Stack) </a></li>');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=linux,apache,mysql,php" target="_self">releasetrain.io/?q=linux,apache,mysql,php (LAMP Stack)</a></li>');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=elasticsearch,logstach,kibana" target="_self">releasetrain.io/?q=elasticsearch,logstach,kibana (ELK Stack)</a></li>');
+				$(".errorHandling").append('</ul>');
+			} else {
+				$(".errorHandling").empty();
+			}
+
 			for (var i = 0; i < res.length; i++) {
 
 				var avatar = res[i].versionProductType;
@@ -252,7 +264,6 @@
 				componentNameParam=query.split("q=")[1];
 				var queryArgs = componentNameParam.split(",");
 				for(var i=0; i<queryArgs.length;i++) {
-					// console.log(queryArgs);
 					$(".component-names").select2("trigger", "select", {data: {id: i,text:queryArgs[i]}});
 				}
 			} else {
