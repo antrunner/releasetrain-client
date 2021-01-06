@@ -64,6 +64,7 @@
 			<img src="./img/spinner.gif"></img>
 		</div>
 		<ol class="versionListClassSection"></ol>
+		<div class="errorHandling"></div>
 	</section>
 
 	<script type="text/javascript">
@@ -92,7 +93,6 @@
 		$(window).on('scroll', onScroll); // for desktop
 
 		$('.component-names').on("change", function(e) {
-			// console.log("change");
 			pageNumParam = 1 // start from scratch after each selection. 
 			componentNameParam = ""; // start from scratch after each selection. 
 			var select2DataObjsArr = $(this).select2('data');
@@ -186,6 +186,19 @@
 
 			countToday = 0;
 			
+			if(res.length == 0) {
+				$(".errorHandling").html("No results found for:"+ componentNameParam + "<br><br><br>");
+				$(".errorHandling").append('Please select a component from the dropdown menu or try:<br><br>');
+				$(".errorHandling").append('<ul style="padding-left: 20px;">');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=browser" target="_self">releasetrain.io/?q=browser (Browsers)</a></li>');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=mongo,express,angular,node" target="_self">releasetrain.io/?q=mongo,express,angular,node (MEAN Stack) </a></li>');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=linux,apache,mysql,php" target="_self">releasetrain.io/?q=linux,apache,mysql,php (LAMP Stack)</a></li>');
+				$(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=elasticsearch,logstach,kibana" target="_self">releasetrain.io/?q=elasticsearch,logstach,kibana (ELK Stack)</a></li>');
+				$(".errorHandling").append('</ul>');
+			} else {
+				$(".errorHandling").empty();
+			}
+
 			for (var i = 0; i < res.length; i++) {
 
 				var avatar = res[i].versionProductType;
@@ -316,7 +329,6 @@
 				componentNameParam=query.split("q=")[1];
 				var queryArgs = componentNameParam.split(",");
 				for(var i=0; i<queryArgs.length;i++) {
-					// console.log(queryArgs);
 					$(".component-names").select2("trigger", "select", {data: {id: i,text:queryArgs[i]}});
 				}
 			} else {
