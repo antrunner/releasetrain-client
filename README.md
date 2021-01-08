@@ -10,3 +10,6 @@ Install:
 Run:
 - npm run dev
 - http://127.0.0.1:8080
+
+Contact:
+- contact@releasetrain.io
