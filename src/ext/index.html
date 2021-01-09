@@ -34,10 +34,10 @@
 			<p>Use the query string parameter (https://releasetrain.io/?q=query) to share software releases of components of interests to users or to display them on a dashboard. The URL gets automatically refreshed every four hours.</p>
 			<br>
 			<ul style="padding-left: 20px;">
-				<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=browser" target="_blank">releasetrain.io/?q=browser //safari, chrome, firefox browsers</a></li>
-				<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=mongo,express,angular,node" target="_blank">releasetrain.io/?q=mongo,express,angular,node //MEAN stack</a></li>
-				<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=linux,apache,mysql,php" target="_blank">releasetrain.io/?q=linux,apache,mysql,php //LAMP stack</a></li>
-				<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=elasticsearch,logstach,kibana" target="_blank">releasetrain.io/?q=elasticsearch,logstach,kibana //ELK stack</a></li>
+				<li><a style="font-size: 11pt" href="https://releasetrain.io/?q=browser" target="_blank">releasetrain.io/?q=browser //safari, chrome, firefox browsers</a></li>
+				<li><a style="font-size: 11pt" href="https://releasetrain.io/?q=mongo,express,angular,node" target="_blank">releasetrain.io/?q=mongo,express,angular,node //MEAN stack</a></li>
+				<li><a style="font-size: 11pt" href="https://releasetrain.io/?q=linux,apache,mysql,php" target="_blank">releasetrain.io/?q=linux,apache,mysql,php //LAMP stack</a></li>
+				<li><a style="font-size: 11pt" href="https://releasetrain.io/?q=elasticsearch,logstach,kibana" target="_blank">releasetrain.io/?q=elasticsearch,logstach,kibana //ELK stack</a></li>
 			</ul>
 
 			<hr style="height:1px;border:none;color:#333;background-color:#333;">
@@ -45,22 +45,22 @@
 			<h4>cURL <i class="fas fa-code"></i></h4>
 			Add this cURL command to your to your deployment build and publish releases via releasetrain.io.
 
-<pre><code style="font-size: 9pt">
+<pre><code style="font-size: 11pt;">
 curl 
-	-H 'Content-Type: application/json' https://releasetrain.io/api/v 
-	-d '{
-			"versionNumber": (String) '&lt;MAJOR.MINOR.PATCH.BUILD&gt;',
-			"versionProductBrand": (String) e.g., 'Microsoft',
-			"versionProductName": (String) e.g., 'Windows 10',
-			"versionProductType": (Array) e.g., ['operating system'],
-			"versionProductLicense": (String) e.g., 'commercial',
-			"versionReleaseChannel" (String) e.g., 'alpha'/ 'beta' / 'prod',
-			"versionReleaseNotes": (URL String) e.g., '&lt;URL&gt;',
-			"versionReleaseDate":e.g., (Date String) '&lt;YYYYMMDD&gt;',
-			"versionReleaseComments": (String) 'Release notes comments/summary',
-			"versionSearchTags": (Array) e.g., ['operating system'],
-			"versionId": (String) &lt;versionProductName&gt;&lt;versionNumber&gt;&lt;versionReleaseDate&gt;
-		}' 
+-H 'Content-Type: application/json' https://releasetrain.io/api/v 
+-d '{
+		"versionNumber": (String) '&lt;MAJOR.MINOR.PATCH.BUILD&gt;',
+		"versionProductBrand": (String) e.g., 'Microsoft',
+		"versionProductName": (String) e.g., 'Windows 10',
+		"versionProductType": (Array) e.g., ['operating system'],
+		"versionProductLicense": (String) e.g., 'commercial',
+		"versionReleaseChannel" (String) e.g., 'alpha'/ 'beta' / 'prod',
+		"versionReleaseNotes": (URL String) e.g., '&lt;URL&gt;',
+		"versionReleaseDate":e.g., (Date String) '&lt;YYYYMMDD&gt;',
+		"versionReleaseComments": (String) 'Release notes comments/summary',
+		"versionSearchTags": (Array) e.g., ['operating system'],
+		"versionId": (String) &lt;vName&gt;&lt;vNumber&gt;&lt;vRelDate&gt;
+	}' 
 </code></pre>
 
 			<hr style="height:1px;border:none;color:#333;background-color:#333;">
