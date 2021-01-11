@@ -81,6 +81,26 @@
 				}
 			});
 		}
+
+		function getVersionForecast(component) {
+			var fCurl = url+"/v/fc?q="+component;
+			$.ajax({
+				url: fCurl,
+				type: 'GET',
+				dataType: 'text',
+				success: function(res) {
+					if ( res.toLowerCase().startsWith("forecast") ) {
+						//
+					} else if ( res.toLowerCase().startsWith("invalid") ) {
+						//
+					} else {
+						// Tue, 09 Feb 2021 05:00:00 GMT
+						$("."+component).text("Forecast:"+res.substring(0,17));
+					}
+				}
+			});
+		}
+
 		function getVersionCount() {
 			$.ajax({
 				url: url+"/v/count",
@@ -172,8 +192,6 @@
 					avatar = '<img class="avatar" src="./img/default.png"></img>';
 				}
 
-
-
 				if (currDate != res[i].versionReleaseDate) {
 					if(i > 0) {
 						$(".versionListClassSection").append('<hr style="height:1px;border:none;color:#333;background-color:#333;"><li><h3>'+formatDate(res[i].versionReleaseDate)+'</h3></li>');
@@ -220,8 +238,9 @@
 					versionReleaseComments = "<a style='color:#797777;font-size: 10pt;' href='"+versionLinkedUrl+"' target='_blank'>Security patch for Android for "+versionLinkedNote+" severity "+cveId+" (click)</a>";		
 				} 
 				
-				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags +versionReleaseComments+'</div></li>');
-				
+				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags +versionReleaseComments+'<br><span style="color: #797777; font-size:10pt" class="'+res[i].versionProductName+'"></span></div></li>');
+			
+				getVersionForecast(res[i].versionProductName);	
 			}
 
 			if (countToday > 0) {

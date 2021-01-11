@@ -26,5 +26,6 @@
     "grunt-contrib-uglify-es": "^3.3.0",
     "grunt-minify-html": "^3.0.0",
     "http-server": "^0.12.3"
-  }
+  },
+  "dependencies": {}
 }
