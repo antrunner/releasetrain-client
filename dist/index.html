@@ -112,9 +112,20 @@
 				dataType: 'text',
 				success: function(res) {
 					res = JSON.parse(res);
-					// console.log(res["components"], component);
-					if ( res["isCoincideReleaseDate"] && res["components"].indexOf(component) > -1) {
-						$("."+component).append(" <b> may coincide with a " + res["components"].join("").replace(component.toLowerCase(),"") + " update.</b>");
+
+					if ( res["isCoincideReleaseDate"] && res["components"].indexOf(component) >= 0) {
+
+						res["components"] = res["components"].filter(function(item) {
+						    return item !== component
+						})
+
+						var msg = "may coincide with a " + res["components"].join(" and ").replace(component.toLowerCase(),"") + " update.";
+						
+						if ( ! $("."+component).text().includes(msg) ) {
+
+							$("."+component).append("<b>"+msg+"</b>");					
+						
+						}
 					}
 				}
 			});
