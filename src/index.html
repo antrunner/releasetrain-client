@@ -32,29 +32,10 @@
 			<span class="desktopOnly h7 getComponentCount"></span><br>
 			<span class="desktopOnly h7 getVersionCount"></span>
 		</h1>
-		<h2><a class="desktopOnly" href="./../manual">manual</a></h2>
-		<h2><a class="desktopOnly" href="./../ext">third party module</a></h2>
+		<!--<h2><a class="desktopOnly" href="./../manual">manual</a></h2>-->
+		<!--<h2><a class="desktopOnly" href="./../ext">third party module</a></h2>-->
 		<h2><a class="desktopOnly" href="./ack">acknowledgement</a></h2>
 	</nav>
-
-	<!--
-	<section class="desktopOnly">
-		<link href="//cdn-images.mailchimp.com/embedcode/slim-10_7.css" rel="stylesheet" type="text/css">
-		<style type="text/css">
-			#mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }
-		</style>
-
-		<div id="mc_embed_signup">
-		<form style="background-color: #1b2a33; padding: 15px; margin: 0px; position: fixed; width: 200px; left: 25px; bottom: 25px;" action="https://releasetrain.us7.list-manage.com/subscribe/post?u=2f63cd753747049bb0f470668&amp;id=1efbfe37d5" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
-		    <div id="mc_embed_signup_scroll">
-			<input style="width: 92%;" type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
-		    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_2f63cd753747049bb0f470668_1efbfe37d5" tabindex="-1	" value=""></div>
-		    <div class="clear"><input style="width: 99%;" type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
-		    </div>
-		</form>
-		</div>
-	</section>
-	-->
 
 	<section>
 		<select class="component-names" name="names[]" multiple="multiple"></select>
@@ -161,8 +142,27 @@
 					} else if ( res.toLowerCase().startsWith("invalid") ) {
 						//
 					} else {
-						// Tue, 09 Feb 2021 05:00:00 GMT
-						$("."+component).text("Forecast:"+res.substring(0,17));
+						// res = Tue, 09 Feb 2021 05:00:00 GMT
+						$("."+component).text("Next "+component+" update estimation on "+res.substring(0,17));
+						if ( componentNameParam.split(",").length > 1 ) {
+							getCoincideForecast(component);
+						}
+					}
+				}
+			});
+		}
+
+		function getCoincideForecast(component) {
+			var fCurl2 = url+"/v/fcc?q="+componentNameParam;
+			$.ajax({
+				url: fCurl2,
+				type: 'GET',
+				dataType: 'text',
+				success: function(res) {
+					res = JSON.parse(res);
+					// console.log(res["components"], component);
+					if ( res["isCoincideReleaseDate"] && res["components"].indexOf(component) > -1) {
+						$("."+component).append(" <b> may coincide with a " + res["components"].join("").replace(component.toLowerCase(),"") + " update.</b>");
 					}
 				}
 			});
@@ -216,6 +216,8 @@
 			} else {
 				$(".errorHandling").empty();
 			}
+
+			var displayComponents = [];
 
 			for (var i = 0; i < res.length; i++) {
 
@@ -305,9 +307,13 @@
 					versionReleaseComments = "<a style='color:#797777;font-size: 10pt;' href='"+versionLinkedUrl+"' target='_blank'>Security patch for Android for "+versionLinkedNote+" severity "+cveId+" (click)</a>";		
 				} 
 				
-				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags +versionReleaseComments+'<br><span style="color: #797777; font-size:10pt" class="'+res[i].versionProductName+'"></span></div></li>');
+				$(".versionListClassSection").append('<li class="versionListClassSection-item">'+avatar+'<a target="_blank" href="'+versionReleaseNotes+'"><span>'+versionLabel+'</a><div style="padding: 2px 0px">'+versionSearchTags +versionReleaseComments+'<br><span style="color: #797777; font-size:10pt" class="'+res[i].versionProductName.toLowerCase()+'"></span></div></li>');
 			
-				getVersionForecast(res[i].versionProductName);	
+				// Render forecast class only once per components
+				if ( displayComponents.indexOf( res[i].versionProductName ) == -1 ) {
+					displayComponents.push(res[i].versionProductName);
+					getVersionForecast(res[i].versionProductName.toLowerCase());	
+				}
 			}
 
 			if (countToday > 0) {
