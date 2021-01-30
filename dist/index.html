@@ -95,7 +95,7 @@
 						//
 					} else {
 						// res = Tue, 09 Feb 2021 05:00:00 GMT
-						$(".rt-class"+component).text("Next "+component+" update estimation on "+res.substring(0,17));
+						$(".rt-class-"+component).text("Next "+component+" update estimation on "+res.substring(0,17));
 						if ( componentNameParam.split(",").length > 1 ) {
 							getCoincideForecast(component);
 						}
