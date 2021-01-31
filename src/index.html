@@ -57,6 +57,8 @@
 		var currDate = null; // global in order to correctly page version
 		var countToday = 0;
 
+		window.isDone = false;
+
 		var loader = $('.loadingClass');
 		jQuery.ajaxSetup({
 		  beforeSend: function() {
@@ -82,7 +84,15 @@
 					componentNameParam +=","+select2DataObjsArr[i].text;
 				} 
 			}
-			getReleases();
+
+			if (window.isDone) {
+				if ( componentNameParam == window.location.search.substring(1).split("q=")[1] ) {
+					getReleases();
+				} else {
+					// window.location.href="http://localhost:8080?q="+componentNameParam;
+					window.location.href="https://releasetrain.io?q="+componentNameParam;
+				}
+			} 
 		});
 		function getReleases() {
 			pageNumParam = 1;
@@ -361,13 +371,23 @@
 			getAndRenderComponentList();
 
 			var query = window.location.search.substring(1);
-			if(query) {
+			var isQueryWithValue = false;
+
+			if (query) {
+				isQueryWithValue = query.split("q=")[1] != "";
+			}
+
+			if(query && isQueryWithValue) {
 				componentNameParam=query.split("q=")[1];
 				var queryArgs = componentNameParam.split(",");
 				for(var i=0; i<queryArgs.length;i++) {
+					if (i == queryArgs.length-1) {
+						window.isDone = true;
+					}
 					$(".component-names").select2("trigger", "select", {data: {id: i,text:queryArgs[i]}});
 				}
 			} else {
+				window.isDone = true;
 				getReleases();
 			}
 	
