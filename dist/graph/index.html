@@ -5,7 +5,7 @@
         position: absolute;
         margin: 0px
     }
-    </style><nav><h1><a style="color: #fff" target=_self href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.1.0</span><br></h1></nav><section id=container></section><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><script>
+    </style><nav><h1><a style="color: #fff" target=_self href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.1.0</span><br></h1></nav><section style="margin:0px; margin-left: 50px; display: flex;"><div style="width: 20px; height: 20px; background: red; border-radius: 10px;"></div><div style="line-height: 20px; padding-left: 5px;">10+ updates</div></section><section id=container></section><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><script>
     const url = "https://releasetrain.io/api";
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -52,8 +52,8 @@
             } else {
 
                 t = 2 * Math.PI * i / 45;
-                x = Math.round(40  * Math.cos(t));
-                y = Math.round(40  * Math.sin(t));
+                x = Math.round(40 * Math.cos(t));
+                y = Math.round(40 * Math.sin(t));
 
                 item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" && e !== "beta" })
 
@@ -74,7 +74,7 @@
         }
 
         for (var j = 0; j < target.nodes.length; j++) {
-            if (target.nodes[j].count > 5) {
+            if (target.nodes[j].count > 10) {
                 target.nodes[j]["color"] = "red";
             }
         }
