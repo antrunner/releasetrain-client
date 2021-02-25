@@ -4,7 +4,7 @@
         height: 500px;
         position: absolute;
     }
-    </style><nav><h1><a style="color: #fff" target=_self href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.1.0</span><br></h1></nav><section id=container></section><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><script>
+    </style><nav><h1><a style="color: #fff" target=_self href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.1.0</span><br></h1></nav><section style="margin: 0px;" id=container></section><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><script>
     const url = "https://releasetrain.io/api";
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -54,7 +54,7 @@
                 x = Math.round(20 + 7 * Math.cos(t));
                 y = Math.round(20 + 7 * Math.sin(t));
 
-                item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" })
+                item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" && e !== "beta"})
 
                 node = { "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
 

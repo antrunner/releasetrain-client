@@ -25,9 +25,10 @@
         </svg></a></li>
     <style>
         #container {
-        width: 100%;
-        height: 500px;
+        width: 90%;
+        height: 100%;
         position: absolute;
+        margin: 0px
     }
     </style>
     <nav>
@@ -87,13 +88,13 @@
                 }
             } else {
 
-                t = 2 * Math.PI * i / 22;
-                x = Math.round(20 + 7 * Math.cos(t));
-                y = Math.round(20 + 7 * Math.sin(t));
+                t = 2 * Math.PI * i / 45;
+                x = Math.round(40  * Math.cos(t));
+                y = Math.round(40  * Math.sin(t));
 
-                item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" })
+                item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" && e !== "beta" })
 
-                node = { "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
+                node = { color: "grey", "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
 
                 for (var j = 0; j < target.nodes.length; j++) {
                     var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.versionSearchTags.includes(value));
@@ -108,6 +109,14 @@
             }
 
         }
+
+        for (var j = 0; j < target.nodes.length; j++) {
+            if (target.nodes[j].count > 5) {
+                target.nodes[j]["color"] = "red";
+            }
+        }
+
+        console.log(target)
         loadData(target);
     }
 
@@ -124,7 +133,6 @@
                 drawEdgeLabels: true,
                 drawLabels: true,
                 batchEdgesDrawing: true,
-                defaultNodeColor: '#ccc',
                 defaultLabelColor: '#ccc',
                 defaultEdgeColor: "#ccc"
             }
