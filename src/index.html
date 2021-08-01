@@ -285,7 +285,7 @@
 				}
 
 				// tech debt - fix in backend
-				if ( parseInt(res[i].versionReleaseDate.reverse().substr(-4)) > 2022 ) {
+				if ( parseInt(res[i].versionReleaseDate.substr(0,3)) > 2022 ) {
 					continue;
 				}
 
