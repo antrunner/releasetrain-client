@@ -36,9 +36,22 @@
             <span class="h7">version 2.1.0</span><br>
         </h1>
     </nav>
-    <section style="margin:0px; margin-left: 50px; display: flex;">
+    <section style="margin: 0px;margin-left: 25px;width: 350px;position: fixed;">
+        <h3>Ecosystem Uncertainty Score</h3> (max last 50 version releases)<br><br>
+        <div style="line-height: 20px; padding-left: 5px;">Components:<span id="nodeId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;">Links:<span id="edgeId"></span></div><br>
+        <div style="line-height: 20px; padding-left: 5px;">Version (all):<span id="versionAllId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;">Version (major):<span id="versionMajorId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;">Version (minor):<span id="versionMinorId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;">Version (patch):<span id="versionPatchId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;">Version (Error):<span id="versionErrorId"></span></div><br>
+        <div style="line-height: 20px; padding-left: 5px;">Version (CVE):<span id="versionCveId"></span></div><br>
+        <div style="line-height: 20px; padding-left: 5px;">Score:<span id="eScoreId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;">Score normalized:<span id="eScoreNormalizedId"></span></div>
+        <!---
         <div style="width: 20px; height: 20px; background: red; border-radius: 10px;"></div>
         <div style="line-height: 20px; padding-left: 5px;">10+ updates</div>
+        -->
     </section>
     <section id="container">
     </section>
@@ -70,18 +83,46 @@
     function transformData(data) {
         console.log("transformData");
 
-        var target = { "nodes": [], "edges": [] }
-        var edge = undefined;
-        var node = undefined;
-        var item = undefined;
-        var components = [];
-        var x = 0;
-        var y = 0;
-        var t = 0;
+        let target = { "nodes": [], "edges": [] }
+        let edge = 0;
+        let node = 0;
+        let versionsTotal = 0;
+        let versionMajor = 0;
+        let versionMinor = 0;
+        let versionPatch = 0;
+        let versionCve = 0;
+        let versionError = 0;
+        let score_eco = 0;
+        let score_eco_normalized = 0;
+        let item = 0;
+        let components = [];
+        let x = 0;
+        let y = 0;
+        let t = 0;
+        let versionNumber = [];
 
         for (var i = 0; i < data.length; i++) {
 
             item = data[i];
+
+            versionNumber = item.versionNumber.split(".");
+
+            console.log(i, versionNumber)
+
+            if (isNaN(versionNumber[0]) === true && item.versionReleaseChannel !== "patch") {
+                versionError = versionError + 1;
+                continue;
+            }
+
+            versionNumber[1] = versionNumber.length === 1 ? 0 : versionNumber[1];
+            versionNumber[2] = versionNumber.length === 2 ? 0 : versionNumber[2];
+
+            versionNumber = versionNumber.map(v => Number(v));
+
+            versionPatch = item.versionReleaseChannel === "patch" || versionNumber[2] !== 0 ? versionPatch + 1 : versionPatch;
+            versionMinor = versionNumber[1] !== 0 && versionNumber[2] === 0 ? versionMinor + 1 : versionMinor;
+            versionMajor = versionNumber[1] === 0 && versionNumber[2] === 0 ? versionMajor + 1 : versionMajor;
+            versionCve = item.versionReleaseChannel === "cve" ? versionCve + 1 : versionCve;
 
             // Create nodes
             if (components.indexOf(item.versionProductName) !== -1) {
@@ -114,13 +155,31 @@
 
         }
 
+        versionsTotal = data.length;
+
+        score_eco = ((5 * versionCve * target.edges.length) + (3 * versionMajor) + (2 * versionPatch) + versionMinor) / versionsTotal;
+        score_eco_normalized = score_eco / 10000 * 100;
+
+        score_eco = isNaN(score_eco) === true ? 0 : score_eco;
+        score_eco_normalized = isNaN(score_eco_normalized) === true ? 0 : score_eco_normalized;
+
+        document.getElementById("nodeId").innerHTML = target.nodes.length;
+        document.getElementById("edgeId").innerHTML = target.edges.length;
+        document.getElementById("versionAllId").innerHTML = versionsTotal;
+        document.getElementById("versionMajorId").innerHTML = versionMajor;
+        document.getElementById("versionMinorId").innerHTML = versionMinor;
+        document.getElementById("versionPatchId").innerHTML = versionPatch;
+        document.getElementById("versionCveId").innerHTML = versionCve;
+        document.getElementById("versionErrorId").innerHTML = versionError;
+
+        document.getElementById("eScoreId").innerHTML = score_eco.toFixed(2);
+        document.getElementById("eScoreNormalizedId").innerHTML = score_eco_normalized.toFixed(2) + " ( " + getUncertaintyImpact(score_eco_normalized) + " ) ";
+
         for (var j = 0; j < target.nodes.length; j++) {
             if (target.nodes[j].count > 10) {
                 target.nodes[j]["color"] = "red";
             }
         }
-
-        console.log(target)
         loadData(target);
     }
 
@@ -141,6 +200,21 @@
                 defaultEdgeColor: "#ccc"
             }
         });
+    }
+
+    function getUncertaintyImpact(score) {
+
+        if (isNaN(score) === true || score === 0) {
+            return "NO RESULT";
+        }
+
+        if (score < 0.5) {
+            return "INSIGNIFICANT";
+        } else if (score < 5) {
+            return "SIGNIFICANT";
+        } else {
+            return "SEVERE";
+        }
     }
     </script>
 </body>
