@@ -41,11 +41,11 @@
         <div style="line-height: 20px; padding-left: 5px;">Components:<span id="nodeId"></span></div>
         <div style="line-height: 20px; padding-left: 5px;">Links:<span id="edgeId"></span></div><br>
         <div style="line-height: 20px; padding-left: 5px;">Version (all):<span id="versionAllId"></span></div>
-        <div style="line-height: 20px; padding-left: 5px;">Version (major):<span id="versionMajorId"></span></div>
-        <div style="line-height: 20px; padding-left: 5px;">Version (minor):<span id="versionMinorId"></span></div>
-        <div style="line-height: 20px; padding-left: 5px;">Version (patch):<span id="versionPatchId"></span></div>
-        <div style="line-height: 20px; padding-left: 5px;">Version (Error):<span id="versionErrorId"></span></div><br>
-        <div style="line-height: 20px; padding-left: 5px;">Version (CVE):<span id="versionCveId"></span></div><br>
+        <div style="line-height: 20px; padding-left: 5px;"><span class="dot orange"></span>Major:<span id="versionMajorId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;"><span class="dot green"></span>Minor:<span id="versionMinorId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;"><span class="dot yellow"></span>Patch:<span id="versionPatchId"></span></div>
+        <div style="line-height: 20px; padding-left: 5px;"><span class="dot red"></span>CVE:<span id="versionCveId"></span></div><br>
+        <div style="line-height: 20px; padding-left: 5px;">Parsing Error:<span id="versionErrorId"></span></div><br>
         <div style="line-height: 20px; padding-left: 5px;">Score:<span id="eScoreId"></span></div>
         <div style="line-height: 20px; padding-left: 5px;">Score normalized:<span id="eScoreNormalizedId"></span></div>
         <!---
@@ -100,6 +100,7 @@
         let y = 0;
         let t = 0;
         let versionNumber = [];
+        let color = "green"
 
         for (var i = 0; i < data.length; i++) {
 
@@ -139,7 +140,12 @@
 
                 item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" && e !== "beta" })
 
-                node = { color: "grey", "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
+                color = versionNumber[1] !== 0 && versionNumber[2] === 0 ? "green" : color;
+                color = item.versionReleaseChannel === "patch" || versionNumber[2] !== 0 ? "yellow" : color;
+                color = versionNumber[1] === 0 && versionNumber[2] === 0 ? "orange" : color;
+                color = item.versionReleaseChannel === "cve" ? "red" : color;
+
+                node = { "color": color, "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
 
                 for (var j = 0; j < target.nodes.length; j++) {
                     var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.versionSearchTags.includes(value));
@@ -175,11 +181,14 @@
         document.getElementById("eScoreId").innerHTML = score_eco.toFixed(2);
         document.getElementById("eScoreNormalizedId").innerHTML = score_eco_normalized.toFixed(2) + " ( " + getUncertaintyImpact(score_eco_normalized) + " ) ";
 
+        /*
         for (var j = 0; j < target.nodes.length; j++) {
             if (target.nodes[j].count > 10) {
                 target.nodes[j]["color"] = "red";
             }
         }
+        */
+
         loadData(target);
     }
 

@@ -46,6 +46,7 @@
         let y = 0;
         let t = 0;
         let versionNumber = [];
+        let color = "green"
 
         for (var i = 0; i < data.length; i++) {
 
@@ -85,7 +86,12 @@
 
                 item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" && e !== "beta" })
 
-                node = { color: "grey", "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
+                color = versionMinor > 0 ? "green" : color;
+                color = versionPatch > 0 ? "yellow" : color;
+                color = versionMajor > 0 ? "red" : color;
+                color = versionCve > 0 ? "red" : color;
+
+                node = { "color": color, "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
 
                 for (var j = 0; j < target.nodes.length; j++) {
                     var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.versionSearchTags.includes(value));
@@ -121,11 +127,14 @@
         document.getElementById("eScoreId").innerHTML = score_eco.toFixed(2);
         document.getElementById("eScoreNormalizedId").innerHTML = score_eco_normalized.toFixed(2) + " ( " + getUncertaintyImpact(score_eco_normalized) + " ) ";
 
+        /*
         for (var j = 0; j < target.nodes.length; j++) {
             if (target.nodes[j].count > 10) {
                 target.nodes[j]["color"] = "red";
             }
         }
+        */
+
         loadData(target);
     }
 
