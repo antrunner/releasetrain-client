@@ -5,7 +5,7 @@
         position: absolute;
         margin: 0px
     }
-    </style><nav><h1><a style="color: #fff" target=_self href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.1.0</span><br></h1></nav><section style="margin: 0px;margin-left: 25px;width: 350px;position: fixed;"><h3>Ecosystem Uncertainty Score</h3>(max last 50 version releases)<br><br><div style="line-height: 20px; padding-left: 5px;">Components:<span id=nodeId></span></div><div style="line-height: 20px; padding-left: 5px;">Links:<span id=edgeId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Version (all):<span id=versionAllId></span></div><div style="line-height: 20px; padding-left: 5px;">Version (major):<span id=versionMajorId></span></div><div style="line-height: 20px; padding-left: 5px;">Version (minor):<span id=versionMinorId></span></div><div style="line-height: 20px; padding-left: 5px;">Version (patch):<span id=versionPatchId></span></div><div style="line-height: 20px; padding-left: 5px;">Version (Error):<span id=versionErrorId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Version (CVE):<span id=versionCveId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Score:<span id=eScoreId></span></div><div style="line-height: 20px; padding-left: 5px;">Score normalized:<span id=eScoreNormalizedId></span></div></section><section id=container></section><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><script>
+    </style><nav><h1><a style="color: #fff" target=_self href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.1.0</span><br></h1></nav><section style="margin: 0px;margin-left: 25px;width: 350px;position: fixed;"><h3>Ecosystem Uncertainty Score</h3>(max last 50 version releases)<br><br><div style="line-height: 20px; padding-left: 5px;">Components:<span id=nodeId></span></div><div style="line-height: 20px; padding-left: 5px;">Links:<span id=edgeId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Version (all):<span id=versionAllId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot orange"></span>Major:<span id=versionMajorId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot green"></span>Minor:<span id=versionMinorId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot yellow"></span>Patch:<span id=versionPatchId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot red"></span>CVE:<span id=versionCveId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Parsing Error:<span id=versionErrorId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Score:<span id=eScoreId></span></div><div style="line-height: 20px; padding-left: 5px;">Score normalized:<span id=eScoreNormalizedId></span></div></section><section id=container></section><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><script>
     const url = "https://releasetrain.io/api";
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -86,10 +86,10 @@
 
                 item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" && e !== "beta" })
 
-                color = versionMinor > 0 ? "green" : color;
-                color = versionPatch > 0 ? "yellow" : color;
-                color = versionMajor > 0 ? "red" : color;
-                color = versionCve > 0 ? "red" : color;
+                color = versionNumber[1] !== 0 && versionNumber[2] === 0 ? "green" : color;
+                color = item.versionReleaseChannel === "patch" || versionNumber[2] !== 0 ? "yellow" : color;
+                color = versionNumber[1] === 0 && versionNumber[2] === 0 ? "orange" : color;
+                color = item.versionReleaseChannel === "cve" ? "red" : color;
 
                 node = { "color": color, "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
 
