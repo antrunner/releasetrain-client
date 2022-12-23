@@ -42,6 +42,7 @@
         let score_eco_normalized = 0;
         let item = 0;
         let components = [];
+        let componentSize = {};
         let x = 0;
         let y = 0;
         let t = 0;
@@ -54,7 +55,11 @@
 
             versionNumber = item.versionNumber.split(".");
 
-            console.log(i, versionNumber)
+            if (item.versionProductName in componentSize) {
+                componentSize[item.versionProductName] = componentSize[item.versionProductName] + 1;
+            } else {
+                componentSize[item.versionProductName] = 1;
+            }
 
             if (isNaN(versionNumber[0]) === true && item.versionReleaseChannel !== "patch") {
                 versionError = versionError + 1;
@@ -72,10 +77,11 @@
             versionCve = item.versionReleaseChannel === "cve" ? versionCve + 1 : versionCve;
 
             // Create nodes
-            if (components.indexOf(item.versionProductName) !== -1) {
+            if (components.includes(item.versionProductName) === true) {
                 for (var j = 0; j < target.nodes.length; j++) {
                     if (target.nodes[j].label == item.versionProductName) {
                         target.nodes[j].count++;
+                        target.nodes[j].size = 1;
                     }
                 }
             } else {
@@ -93,6 +99,7 @@
 
                 node = { "color": color, "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
 
+                // add edges
                 for (var j = 0; j < target.nodes.length; j++) {
                     var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.versionSearchTags.includes(value));
                     if (tagsArr.length > 0) {

@@ -96,6 +96,7 @@
         let score_eco_normalized = 0;
         let item = 0;
         let components = [];
+        let componentSize = {};
         let x = 0;
         let y = 0;
         let t = 0;
@@ -108,7 +109,11 @@
 
             versionNumber = item.versionNumber.split(".");
 
-            console.log(i, versionNumber)
+            if (item.versionProductName in componentSize) {
+                componentSize[item.versionProductName] = componentSize[item.versionProductName] + 1;
+            } else {
+                componentSize[item.versionProductName] = 1;
+            }
 
             if (isNaN(versionNumber[0]) === true && item.versionReleaseChannel !== "patch") {
                 versionError = versionError + 1;
@@ -126,10 +131,12 @@
             versionCve = item.versionReleaseChannel === "cve" ? versionCve + 1 : versionCve;
 
             // Create nodes
-            if (components.indexOf(item.versionProductName) !== -1) {
+            if (components.includes(item.versionProductName) === true) {
                 for (var j = 0; j < target.nodes.length; j++) {
-                    if (target.nodes[j].label == item.versionProductName) {
-                        target.nodes[j].count++;
+                    if (target.nodes[j].label.split(" ( count: ")[0] == item.versionProductName) {
+                        target.nodes[j].count = target.nodes[j].count + 1;
+                        // target.nodes[j].size = target.nodes[j].size + 1;
+                        target.nodes[j].label = item.versionProductName + " ( count: " + target.nodes[j].count + " ) ";
                     }
                 }
             } else {
@@ -145,14 +152,25 @@
                 color = versionNumber[1] === 0 && versionNumber[2] === 0 ? "orange" : color;
                 color = item.versionReleaseChannel === "cve" ? "red" : color;
 
-                node = { "color": color, "id": item._id, count: 1, "label": item.versionProductName, "x": x, "y": y, "size": 1, "versionSearchTags": item.versionSearchTags }
+                node = {
+                    "color": color,
+                    "id": item._id,
+                    count: 1,
+                    "label": item.versionProductName,
+                    "x": x,
+                    "y": y,
+                    "size": componentSize[item.versionProductName],
+                    "versionSearchTags": item.versionSearchTags
+                }
 
+                // add edges
                 for (var j = 0; j < target.nodes.length; j++) {
                     var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.versionSearchTags.includes(value));
                     if (tagsArr.length > 0) {
-                        edge = { "id": node.id + "-" + target.nodes[j].id, "source": node.id, "target": target.nodes[j].id, label: tagsArr.join(",") }
+                        edge = { "id": node.id + "-" + target.nodes[j].id, "source": node.id, "target": target.nodes[j].id, label: tagsArr.includes("cve") ? "" : tagsArr.join(",") }
                         target.edges.push(edge);
                     }
+
                 }
 
                 target.nodes.push(node);
@@ -208,6 +226,11 @@
                 defaultLabelColor: '#ccc',
                 defaultEdgeColor: "#ccc"
             }
+        });
+
+        s.bind('clickNode', function(e) {
+            let url = "https://releasetrain.io?q=" + e.data.node.label.split(" ( count: ")[0];
+            window.open(url, '_blank').focus();
         });
     }
 
