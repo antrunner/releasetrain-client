@@ -111,7 +111,7 @@
 
                 // add edges
                 for (var j = 0; j < target.nodes.length; j++) {
-                    var tagsArr = target.nodes[j].versionSearchTags.map(value => value.trim().toLowerCase()).filter(value => item.versionSearchTags.includes(value));
+                    var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.trim().toLowerCase().versionSearchTags.includes(value.trim().toLowerCase()));
                     if (tagsArr.length > 0) {
                         edge = { "id": node.id + "-" + target.nodes[j].id, "source": node.id, "target": target.nodes[j].id, label: tagsArr.includes("cve") ? "" : tagsArr.join(",") }
                         target.edges.push(edge);
