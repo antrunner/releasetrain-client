@@ -91,7 +91,8 @@
                 x = Math.round(40 * Math.cos(t));
                 y = Math.round(40 * Math.sin(t));
 
-                item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== q && e !== "production" && e !== "beta" })
+                item.versionSearchTags = item.versionSearchTags.map(v => v.trim().toLowerCase()); // normalize seearch tags
+                item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== "production" && e !== "beta" && q.split(",").includes(e) === false }) // remove production / beta edges
 
                 color = versionNumber[1] !== 0 && versionNumber[2] === 0 ? "green" : color;
                 color = item.versionReleaseChannel === "patch" || versionNumber[2] !== 0 ? "yellow" : color;
@@ -111,7 +112,7 @@
 
                 // add edges
                 for (var j = 0; j < target.nodes.length; j++) {
-                    var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.trim().toLowerCase().versionSearchTags.includes(value.trim().toLowerCase()));
+                    var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.versionSearchTags.includes(value.trim().toLowerCase()));
                     if (tagsArr.length > 0) {
                         edge = { "id": node.id + "-" + target.nodes[j].id, "source": node.id, "target": target.nodes[j].id, label: tagsArr.includes("cve") ? "" : tagsArr.join(",") }
                         target.edges.push(edge);
