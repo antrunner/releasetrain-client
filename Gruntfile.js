@@ -23,7 +23,7 @@ module.exports = function(grunt) {
                     'dist/ext/index.html': 'src/ext/index.html',
                     'dist/ack/index.html': 'src/ack/index.html',
                     'dist/graph/index.html': 'src/graph/index.html',
-                    'dist/conference/index.html': 'src/conference/index.html',
+                    'dist/research/index.html': 'src/research/index.html',
                     'dist/app.css': 'src/app.css',
                     'dist/reset.css': 'src/reset.css'
                 }

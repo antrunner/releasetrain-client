@@ -32,12 +32,15 @@
     }
     </style>
     <nav>
-        <h1><a style="color: #fff" target="_self" href="https://releasetrain.io">releasetrain.io</a><br>
-            <span class="h7">version 2.1.0</span><br>
+        <h1>
+            <a target="_self" style="color: #fff" href="https://releasetrain.io">releasetrain.io</a><br>
+            <span class="h7">version 2.2.0</span><br>
         </h1>
+        <h2><a target="_self" class="desktopOnly" href="./ack">acknowledgement</a></h2>
+        <h2><a target="_self" class="desktopOnly" href="./research">research</a></h2>
     </nav>
     <section style="margin: 0px;margin-left: 25px;width: 350px;position: fixed;">
-        <h3>Ecosystem Uncertainty Score</h3> (max last 50 version releases)<br><br>
+        <h3>Ecosystem Maintenance Cost</h3> (max last 50 version releases)<br><br>
         <div style="line-height: 20px; padding-left: 5px;">Components:<span id="nodeId"></span></div>
         <div style="line-height: 20px; padding-left: 5px;">Links:<span id="edgeId"></span></div><br>
         <div style="line-height: 20px; padding-left: 5px;">Version (all):<span id="versionAllId"></span></div>
@@ -97,11 +100,16 @@
         let item = 0;
         let components = [];
         let componentSize = {};
+        let componentEdges = {};
         let x = 0;
         let y = 0;
         let t = 0;
         let versionNumber = [];
         let color = "green"
+
+        data = data.sort(function(a, b) {
+            return a.versionReleaseDate - b.versionReleaseDate
+        });
 
         for (var i = 0; i < data.length; i++) {
 
@@ -114,6 +122,13 @@
             } else {
                 componentSize[item.versionProductName] = 1;
             }
+
+            if (item.versionProductName in componentEdges) {
+                //
+            } else {
+                componentEdges[item.versionProductName] = 0;
+            }
+
 
             if (isNaN(versionNumber[0]) === true && item.versionReleaseChannel !== "patch") {
                 versionError = versionError + 1;
@@ -130,23 +145,25 @@
             versionMajor = versionNumber[1] === 0 && versionNumber[2] === 0 ? versionMajor + 1 : versionMajor;
             versionCve = item.versionReleaseChannel === "cve" ? versionCve + 1 : versionCve;
 
+            t = 2 * Math.PI * i / 100;
+            x = Math.round(40 * Math.cos(t));
+            y = Math.round(40 * Math.sin(t));
+
             // Create nodes
             if (components.includes(item.versionProductName) === true) {
                 for (var j = 0; j < target.nodes.length; j++) {
                     if (target.nodes[j].label.split(" ( count: ")[0] == item.versionProductName) {
                         target.nodes[j].count = target.nodes[j].count + 1;
                         // target.nodes[j].size = target.nodes[j].size + 1;
-                        target.nodes[j].label = item.versionProductName + " ( count: " + target.nodes[j].count + " ) ";
+                        target.nodes[j].label = item.versionProductName; // + " ( count: " + target.nodes[j].count + " ) ";
                     }
                 }
             } else {
 
-                t = 2 * Math.PI * i / 45;
-                x = Math.round(40 * Math.cos(t));
-                y = Math.round(40 * Math.sin(t));
-
                 item.versionSearchTags = item.versionSearchTags.map(v => v.trim().toLowerCase()); // normalize seearch tags
-                item.versionSearchTags = item.versionSearchTags.filter(function(e) { return e !== "production" && e !== "beta" && q.split(",").includes(e) === false }) // remove production / beta edges
+                item.versionSearchTags = item.versionSearchTags.filter(function(e) {
+                    return e !== "prod" && e !== "production" && e !== "beta" && q.split(",").includes(e) === false
+                }) // remove production / beta edges
 
                 color = versionNumber[1] !== 0 && versionNumber[2] === 0 ? "green" : color;
                 color = item.versionReleaseChannel === "patch" || versionNumber[2] !== 0 ? "yellow" : color;
@@ -165,19 +182,29 @@
                 }
 
                 // add edges
-                for (var j = 0; j < target.nodes.length; j++) {
-                    var tagsArr = target.nodes[j].versionSearchTags.filter(value => item.versionSearchTags.includes(value.trim().toLowerCase()));
+                for (let j = 0; j < target.nodes.length; j++) {
+                    var tagsArr = target.nodes[j].versionSearchTags.filter(value => {
+                        return item.versionSearchTags.includes(value.trim().toLowerCase()) && target.nodes[j].versionSearchTags.includes("cve") === false;
+                    });
+
                     if (tagsArr.length > 0) {
+                        console.log();
                         edge = { "id": node.id + "-" + target.nodes[j].id, "source": node.id, "target": target.nodes[j].id, label: tagsArr.includes("cve") ? "" : tagsArr.join(",") }
                         target.edges.push(edge);
+                        componentEdges[target.nodes[j].label]++;
+
                     }
 
                 }
-
                 target.nodes.push(node);
                 components.push(item.versionProductName);
             }
+        }
 
+        for (let j = 0; j < target.nodes.length; j++) {
+            let cost = Number(componentEdges[target.nodes[j].label]) + Number(target.nodes.length);
+            let costWeight = target.nodes[j].color === "red" ? cost * 3 : target.nodes[j].color === "orange" ? cost * 2 : cost;
+            target.nodes[j].label = target.nodes[j].label + "-> count: " + target.nodes[j].count + " source link: " + componentEdges[target.nodes[j].label] + " cost: " + cost + " cost weight: " + costWeight;
         }
 
         versionsTotal = data.length;
@@ -230,7 +257,7 @@
         });
 
         s.bind('clickNode', function(e) {
-            let url = "https://releasetrain.io?q=" + e.data.node.label.split(" ( count: ")[0];
+            let url = "https://releasetrain.io?q=" + e.data.node.label.split("->")[0];
             window.open(url, '_blank').focus();
         });
     }
