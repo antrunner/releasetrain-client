@@ -1,191 +1,204 @@
-<!DOCTYPE html><html><head><title>releasetrain.io</title><meta name=viewport content="width=device-width, initial-scale=1.0"><meta charset=UTF-8><meta name=description content="Software Component Version Releases"><meta name=keywords content="Version, Release, Agile"><meta name=author content="Solomon Berhe"><meta http-equiv=refresh content=3600><script async src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1"></script><script src=./../lib/googleanalytics.js></script><link href=./../reset.css rel=stylesheet><link href=./../app.css rel=stylesheet><link href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css rel=stylesheet><script type=text/javascript src=./../lib/jquery-2.2.4.min.js></script></head><body><a target=_blank href=https://github.com/antrunner/releasetrain-client class=github-corner aria-label="View source on GitHub"><svg width=80 height=80 viewbox="0 0 250 250" style="fill:#64CEAA; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden=true><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill=currentColor style="transform-origin: 130px 106px;" class=octo-arm></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill=currentColor class=octo-body></path></svg></a><style>
-        #container {
-        width: 90%;
-        height: 100%;
-        position: absolute;
-        margin: 0px
+<!DOCTYPE html><html><head><title>releasetrain.io</title><meta name=viewport content="width=device-width, initial-scale=1.0"><meta charset=UTF-8><meta name=description content="Software Component Version Releases"><meta name=keywords content="Version, Release, Agile"><meta name=author content="Solomon Berhe"><meta http-equiv=refresh content=3600><script async src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1"></script><script src=./../lib/googleanalytics.js></script><link href=./../reset.css rel=stylesheet><link href=./../app.css rel=stylesheet><link href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css rel=stylesheet><script type=text/javascript src=./../lib/jquery-2.2.4.min.js></script><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><style type=text/css>
+    * {
+        margin: 0px;
+        padding: 0px;
     }
-    </style><nav><h1><a target=_self style="color: #fff" href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.2.0</span><br></h1><h2><a target=_self class=desktopOnly href=./ack>acknowledgement</a></h2><h2><a target=_self class=desktopOnly href=./research>research</a></h2></nav><section style="margin: 0px;margin-left: 25px;width: 350px;position: fixed;"><h3>Ecosystem Maintenance Cost</h3>(max last 50 version releases)<br><br><div style="line-height: 20px; padding-left: 5px;">Components:<span id=nodeId></span></div><div style="line-height: 20px; padding-left: 5px;">Links:<span id=edgeId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Version (all):<span id=versionAllId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot orange"></span>Major:<span id=versionMajorId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot green"></span>Minor:<span id=versionMinorId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot yellow"></span>Patch:<span id=versionPatchId></span></div><div style="line-height: 20px; padding-left: 5px;"><span class="dot red"></span>CVE:<span id=versionCveId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Parsing Error:<span id=versionErrorId></span></div><br><div style="line-height: 20px; padding-left: 5px;">Score:<span id=eScoreId></span></div><div style="line-height: 20px; padding-left: 5px;">Score normalized:<span id=eScoreNormalizedId></span></div></section><section id=container></section><script type=text/javascript src=./../lib/sigma.min.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curve.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.curvedArrow.js></script><script type=text/javascript src=./../lib/sigma.canvas.edges.labels.def.js></script><script>
-    const url = "https://releasetrain.io/api";
 
+    body {
+        padding: 0px 15px;
+    }
+
+    table,
+    th,
+    tr,
+    td {
+        border: 1px solid gray;
+        padding: 2px;
+        text-align: left;
+        font-size: 8pt;
+    }
+
+    table {
+        /* width: 100%; */
+    }
+
+    section {
+        margin: 0px;
+        padding: 0px;
+    }
+
+    input[type=number] {
+        width: 30px;
+    }
+
+    .flex-container {
+        height: 80vh;
+        display: flex;
+    }
+
+    .flex-left {
+        width: 250px
+    }
+
+    .flex-right {
+        width: 100%;
+        background-color: transparent;
+    }
+
+    .circle {
+        height: 10px;
+        width: 10px;
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+    }
+    </style></head><body><a target=_blank href=https://github.com/antrunner/releasetrain-client class=github-corner aria-label="View source on GitHub"><svg width=80 height=80 viewbox="0 0 250 250" style="fill:#64CEAA; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden=true><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill=currentColor style="transform-origin: 130px 106px;" class=octo-arm></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill=currentColor class=octo-body></path></svg></a><nav><h1><a target=_self style="color: #fff" href=https://releasetrain.io>releasetrain.io</a><br><span class=h7>version 2.2.0</span><br></h1><h2><a target=_self class=desktopOnly href=./../ack>acknowledgement</a></h2><h2><a target=_self class=desktopOnly href=./../research>research</a></h2></nav><section class=flex-container><section class=flex-left><table><tr><th style="width: 150px">Attribute</th><th style="width: 20px">Weight</th><th style="width: 40px;">Value</th></tr><tr><td>Components</td><td><input id=componentWeightId type=number value=1 onchange=extractData()></td><td><span id=nodeId></span></td></tr><tr><td>Links</td><td><input id=linkWeightId type=number value=1 onchange=extractData()></td><td><span id=edgeId></span></td></tr><tr><td>Version Count</td><td><input id=versionWeightId type=number value=1 onchange=extractData()></td><td><span id=versionAllId></span></td></tr><tr><td><span id=iconMajorUpdateId class=circle></span>Version Major</td><td><input id=factorMajorUpdateId type=number value=1 onchange=extractData()></td><td><span id=versionMajorId></span></td></tr><tr><td><span id=iconMinorUpdateId class=circle></span>Version Minor</td><td><input id=factorMinorUpdateId type=number value=1 onchange=extractData()></td><td><span id=versionMinorId></span></td></tr><tr><td><span id=iconPatchUpdateId class=circle></span>Version Patch</td><td><input id=factorPatchUpdateId type=number value=1 onchange=extractData()></td><td><span id=versionPatchId></span></td></tr><tr><td><span id=iconCveUpdateId class=circle></span>Version CVE</td><td><input id=factorCveUpdateId type=number value=1 onchange=extractData()></td><td><span id=versionCveId></span></td></tr><tr><td>Version Invalid</td><td>&nbsp;</td><td><span id=versionErrorId></span></td></tr><tr><td>Maintenance Cost</td><td colspan=2><span id=maintenanceCostId></span></td></tr></table></section><section id=container class=flex-right></section></section><script>
+    console.log("start");
+
+    const url = "https://releasetrain.io/api";
     const urlParams = new URLSearchParams(window.location.search);
     const q = urlParams.get('q');
+    const versionChannel = {
+        major: "major",
+        minor: "minor",
+        patch: "patch",
+        cve: "cve",
+        error: "error"
+    }
+
+    var ecosystem = {}
 
     extractData();
 
     function extractData() {
         console.log("extractData");
-
         $.ajax({
             url: url + "/v?q=" + q,
             type: 'GET',
             dataType: 'json',
             success: function(data) {
+                data = data.sort(function(a, b) {
+                    return a.versionReleaseDate - b.versionReleaseDate
+                });
                 transformData(data);
             }
         });
     }
 
     function transformData(data) {
-        console.log("transformData");
+        console.log("transformDataModel");
 
-        let target = { "nodes": [], "edges": [] }
-        let edge = 0;
-        let node = 0;
-        let versionsTotal = 0;
-        let versionMajor = 0;
-        let versionMinor = 0;
-        let versionPatch = 0;
-        let versionCve = 0;
-        let versionError = 0;
-        let score_eco = 0;
-        let score_eco_normalized = 0;
-        let item = 0;
-        let components = [];
-        let componentSize = {};
-        let componentEdges = {};
-        let x = 0;
-        let y = 0;
-        let t = 0;
-        let versionNumber = [];
-        let color = "green"
+        // Create ecosystem model
+        resetEcosystemModel();
 
-        data = data.sort(function(a, b) {
-            return a.versionReleaseDate - b.versionReleaseDate
-        });
+        ecosystem.version.major.weight = Number(document.getElementById("factorMajorUpdateId").value);
+        ecosystem.version.minor.weight = Number(document.getElementById("factorMinorUpdateId").value);
+        ecosystem.version.cve.weight = Number(document.getElementById("factorCveUpdateId").value);
+        ecosystem.version.patch.weight = Number(document.getElementById("factorPatchUpdateId").value);
+        ecosystem.link.weight = Number(document.getElementById("linkWeightId").value);
+        ecosystem.component.weight = Number(document.getElementById("componentWeightId").value);
+        ecosystem.version.weight = Number(document.getElementById("versionWeightId").value);
 
-        for (var i = 0; i < data.length; i++) {
+        data.forEach(version => {
 
-            item = data[i];
-
-            versionNumber = item.versionNumber.split(".");
-
-            if (item.versionProductName in componentSize) {
-                componentSize[item.versionProductName] = componentSize[item.versionProductName] + 1;
-            } else {
-                componentSize[item.versionProductName] = 1;
+            if (isValidVersion(version) === false) {
+                ecosystem.version_count_parse_error = ecosystem.version_count_parse_error + 1;
             }
 
-            if (item.versionProductName in componentEdges) {
-                //
-            } else {
-                componentEdges[item.versionProductName] = 0;
-            }
+            version.versionReleaseChannel = getChannelByVersion(version);
 
+            ecosystem.components[version.versionProductName] = version.versionProductName in ecosystem.components ? ecosystem.components[version.versionProductName] : createComponentModel(version);
+            ecosystem.components[version.versionProductName].version_count = ecosystem.components[version.versionProductName].version_count + 1;
+            ecosystem.components[version.versionProductName].color = ecosystem.version[version.versionReleaseChannel].color;
+            ecosystem.components[version.versionProductName].cost_component = ecosystem.components[version.versionProductName].cost_component + getCostByVersion(version);
+            ecosystem.components[version.versionProductName].cost_version = getCostByVersion(version);
+            ecosystem.components[version.versionProductName].count = ecosystem.components[version.versionProductName].count + 1;
+            ecosystem.version[version.versionReleaseChannel].count = ecosystem.version[version.versionReleaseChannel].count + 1;
 
-            if (isNaN(versionNumber[0]) === true && item.versionReleaseChannel !== "patch") {
-                versionError = versionError + 1;
-                continue;
-            }
+            version.versionSearchTags.forEach(tag => ecosystem.components[version.versionProductName].tags.add(tag.trim().toLowerCase()));
 
-            versionNumber[1] = versionNumber.length === 1 ? 0 : versionNumber[1];
-            versionNumber[2] = versionNumber.length === 2 ? 0 : versionNumber[2];
+            ecosystem.maintanence_cost = ecosystem.maintanence_cost + getCostByVersion(version);
+            ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.version.weight;
 
-            versionNumber = versionNumber.map(v => Number(v));
+            ecosystem.version_count = ecosystem.version_count + 1;
+            ecosystem.component.count = Object.keys(ecosystem.components).length;
+        })
 
-            versionPatch = item.versionReleaseChannel === "patch" || versionNumber[2] !== 0 ? versionPatch + 1 : versionPatch;
-            versionMinor = versionNumber[1] !== 0 && versionNumber[2] === 0 ? versionMinor + 1 : versionMinor;
-            versionMajor = versionNumber[1] === 0 && versionNumber[2] === 0 ? versionMajor + 1 : versionMajor;
-            versionCve = item.versionReleaseChannel === "cve" ? versionCve + 1 : versionCve;
+        ecosystem.maintanence_cost = ecosystem.maintanence_cost + Object.keys(ecosystem.components).length * ecosystem.component.weight;
 
-            t = 2 * Math.PI * i / 100;
-            x = Math.round(40 * Math.cos(t));
-            y = Math.round(40 * Math.sin(t));
+        for (let componentA in ecosystem.components) {
+            for (let componentB in ecosystem.components) {
 
-            // Create nodes
-            if (components.includes(item.versionProductName) === true) {
-                for (var j = 0; j < target.nodes.length; j++) {
-                    if (target.nodes[j].label.split(" ( count: ")[0] == item.versionProductName) {
-                        target.nodes[j].count = target.nodes[j].count + 1;
-                        // target.nodes[j].size = target.nodes[j].size + 1;
-                        target.nodes[j].label = item.versionProductName; // + " ( count: " + target.nodes[j].count + " ) ";
+                if (componentA === componentB) {
+                    continue;
+                }
+
+                let intersection = [];
+                intersection = Array.from(ecosystem.components[componentA].tags).filter(tag => Array.from(ecosystem.components[componentB].tags).includes(tag));
+                intersection = intersection.filter(tag => q.includes(tag) === false);
+                intersection = intersection.filter(tag => ["cve", "production", "beta"].includes(tag) === false);
+                intersection = intersection.filter(tag => isNaN(tag) === true);
+
+                if (intersection.length > 0) {
+                    edge = {
+                        "id": componentA + componentB,
+                        "source": componentA,
+                        "target": componentB,
+                        "label": intersection.join(",")
+                    }
+                    if ((componentA + componentB in ecosystem.edges) === false) {
+                        ecosystem.edges[componentA + componentB] = edge;
+                        ecosystem.link.count = ecosystem.link.count + 1;
+                        ecosystem.components[componentA].count_link = ecosystem.components[componentA].count_link + 1;
+                        ecosystem.components[componentA].cost_component = ecosystem.components[componentA].cost_component + ecosystem.components[componentA].count_link;
+                        ecosystem.components[componentA].cost_component = ecosystem.components[componentA].cost_component + +ecosystem.link.weight;
+
+                        ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.link.weight;
                     }
                 }
-            } else {
-
-                item.versionSearchTags = item.versionSearchTags.map(v => v.trim().toLowerCase()); // normalize seearch tags
-                item.versionSearchTags = item.versionSearchTags.filter(function(e) {
-                    return e !== "prod" && e !== "production" && e !== "beta" && q.split(",").includes(e) === false
-                }) // remove production / beta edges
-
-                color = versionNumber[1] !== 0 && versionNumber[2] === 0 ? "green" : color;
-                color = item.versionReleaseChannel === "patch" || versionNumber[2] !== 0 ? "yellow" : color;
-                color = versionNumber[1] === 0 && versionNumber[2] === 0 ? "orange" : color;
-                color = item.versionReleaseChannel === "cve" ? "red" : color;
-
-                node = {
-                    "color": color,
-                    "id": item._id,
-                    count: 1,
-                    "label": item.versionProductName,
-                    "x": x,
-                    "y": y,
-                    "size": componentSize[item.versionProductName],
-                    "versionSearchTags": item.versionSearchTags
-                }
-
-                // add edges
-                for (let j = 0; j < target.nodes.length; j++) {
-                    var tagsArr = target.nodes[j].versionSearchTags.filter(value => {
-                        return item.versionSearchTags.includes(value.trim().toLowerCase()) && target.nodes[j].versionSearchTags.includes("cve") === false;
-                    });
-
-                    if (tagsArr.length > 0) {
-                        console.log();
-                        edge = { "id": node.id + "-" + target.nodes[j].id, "source": node.id, "target": target.nodes[j].id, label: tagsArr.includes("cve") ? "" : tagsArr.join(",") }
-                        target.edges.push(edge);
-                        componentEdges[target.nodes[j].label]++;
-
-                    }
-
-                }
-                target.nodes.push(node);
-                components.push(item.versionProductName);
             }
         }
 
-        for (let j = 0; j < target.nodes.length; j++) {
-            let cost = Number(componentEdges[target.nodes[j].label]) + Number(target.nodes.length);
-            let costWeight = target.nodes[j].color === "red" ? cost * 3 : target.nodes[j].color === "orange" ? cost * 2 : cost;
-            target.nodes[j].label = target.nodes[j].label + "-> count: " + target.nodes[j].count + " source link: " + componentEdges[target.nodes[j].label] + " cost: " + cost + " cost weight: " + costWeight;
-        }
+        ecosystem.maintanence_cost = getNormalizedCost();
 
-        versionsTotal = data.length;
-
-        score_eco = ((5 * versionCve * target.edges.length) + (3 * versionMajor) + (2 * versionPatch) + versionMinor) / versionsTotal;
-        score_eco_normalized = score_eco / 10000 * 100;
-
-        score_eco = isNaN(score_eco) === true ? 0 : score_eco;
-        score_eco_normalized = isNaN(score_eco_normalized) === true ? 0 : score_eco_normalized;
-
-        document.getElementById("nodeId").innerHTML = target.nodes.length;
-        document.getElementById("edgeId").innerHTML = target.edges.length;
-        document.getElementById("versionAllId").innerHTML = versionsTotal;
-        document.getElementById("versionMajorId").innerHTML = versionMajor;
-        document.getElementById("versionMinorId").innerHTML = versionMinor;
-        document.getElementById("versionPatchId").innerHTML = versionPatch;
-        document.getElementById("versionCveId").innerHTML = versionCve;
-        document.getElementById("versionErrorId").innerHTML = versionError;
-
-        document.getElementById("eScoreId").innerHTML = score_eco.toFixed(2);
-        document.getElementById("eScoreNormalizedId").innerHTML = score_eco_normalized.toFixed(2) + " ( " + getUncertaintyImpact(score_eco_normalized) + " ) ";
-
-        /*
-        for (var j = 0; j < target.nodes.length; j++) {
-            if (target.nodes[j].count > 10) {
-                target.nodes[j]["color"] = "red";
-            }
-        }
-        */
-
-        loadData(target);
+        loadGraphData();
+        loadTableData();
     }
 
-    function loadData(data) {
+    function loadGraphData() {
         console.log("loadData");
 
+        let target = { "nodes": [], "edges": [] }
+        let counter = 0;
+
+        document.getElementById('container').innerHTML = "";
+
+        for (let component in ecosystem.components) {
+            ecosystem.components[component].t = 3 * Math.PI * counter / 100;
+            ecosystem.components[component].x = Math.round(30 * Math.cos(ecosystem.components[component].t));
+            ecosystem.components[component].y = Math.round(30 * Math.sin(ecosystem.components[component].t));
+            ecosystem.components[component].label = component
+                .concat(", Count Version: ")
+                .concat(ecosystem.components[component].count)
+                .concat(", Count Links: ")
+                .concat(ecosystem.components[component].count_link)
+                .concat(", Cost: ")
+                .concat(ecosystem.components[component].cost_version)
+                .concat(" (latest), ")
+                .concat(ecosystem.components[component].cost_component)
+                .concat(" (all)");
+
+            target.nodes.push(ecosystem.components[component]);
+            counter = counter + 4;
+        }
+
+        for (let edge in ecosystem.edges) {
+            target.edges.push(ecosystem.edges[edge]);
+        }
+
         s = new sigma({
-            graph: data,
+            graph: target,
             renderer: {
                 container: document.getElementById('container'),
                 type: sigma.renderers.canvas,
@@ -200,9 +213,122 @@
         });
 
         s.bind('clickNode', function(e) {
-            let url = "https://releasetrain.io?q=" + e.data.node.label.split("->")[0];
+            let url = "https://releasetrain.io?q=" + e.data.node.label.split(",")[0];
             window.open(url, '_blank').focus();
         });
+    }
+
+    function loadTableData() {
+
+        document.getElementById("iconMajorUpdateId").style.backgroundColor = ecosystem.version.major.color;
+        document.getElementById("iconMinorUpdateId").style.backgroundColor = ecosystem.version.minor.color;
+        document.getElementById("iconPatchUpdateId").style.backgroundColor = ecosystem.version.patch.color;
+        document.getElementById("iconCveUpdateId").style.backgroundColor = ecosystem.version.cve.color;
+
+        document.getElementById("nodeId").innerHTML = ecosystem.component.count;
+        document.getElementById("edgeId").innerHTML = ecosystem.link.count;
+        document.getElementById("versionAllId").innerHTML = ecosystem.version_count;
+        document.getElementById("versionMajorId").innerHTML = ecosystem.version.major.count;
+        document.getElementById("versionMinorId").innerHTML = ecosystem.version.minor.count;
+        document.getElementById("versionPatchId").innerHTML = ecosystem.version.patch.count;
+        document.getElementById("versionCveId").innerHTML = ecosystem.version.cve.count;
+        document.getElementById("versionErrorId").innerHTML = ecosystem.version.error.count;
+        document.getElementById("maintenanceCostId").innerHTML = ecosystem.maintanence_cost;
+    }
+
+    function resetEcosystemModel() {
+        ecosystem = {
+            label: "",
+            components: {},
+            edges: {},
+            maintanence_cost: 0,
+            component: {
+                count: 0,
+                weight: 1
+            },
+            link: {
+                count: 0,
+                weight: 1
+            },
+            version_count: 0,
+            version: {
+                weight: 1,
+                major: {
+                    count: 0,
+                    color: "orange",
+                    weight: 1
+                },
+                minor: {
+                    count: 0,
+                    color: "green",
+                    weight: 1
+                },
+                patch: {
+                    count: 0,
+                    color: "gray",
+                    weight: 1
+                },
+                cve: {
+                    count: 0,
+                    color: "red",
+                    weight: 1
+                },
+                error: {
+                    count: 0,
+                    color: "red",
+                    weight: 1
+                }
+            }
+        }
+    }
+
+    function isValidVersion(version) {
+        versionNumber = version.versionNumber.split(".");
+        if (isNaN(versionNumber[0]) === true && version.versionReleaseChannel !== "patch") {
+            return false;
+        }
+        return true;
+    }
+
+    function getCostByEcosystem() {
+        //
+    }
+
+    function getCostByComponent() {
+
+    }
+
+    function getChannelByVersion(version) {
+        let versionNumber = version.versionNumber.split(".");
+        version.versionChannel = versionChannel.error;
+        version.versionChannel = versionNumber[1] != 0 && versionNumber[2] == 0 ? versionChannel.minor : version.versionChannel;
+        version.versionChannel = version.versionReleaseChannel === versionChannel.patch || versionNumber[2] != 0 ? versionChannel.patch : version.versionChannel;
+        version.versionChannel = versionNumber[1] == 0 && versionNumber[2] == 0 ? versionChannel.major : version.versionChannel;
+        version.versionChannel = version.versionReleaseChannel == versionChannel.cve ? versionChannel.cve : version.versionChannel;
+        return version.versionChannel;
+    }
+
+    function getCostByVersion(version) {
+        return Number(ecosystem.version[version.versionChannel].weight);
+    }
+
+    function createComponentModel(version) {
+        let component = {
+            id: version.versionProductName,
+            label: version.versionProductName,
+            version_count: 0,
+            color: "black",
+            count: 1,
+            x: 0,
+            y: 0,
+            size: 1,
+            cost_component: 0,
+            cost_version: 0,
+            count: 0,
+            tags: new Set(),
+            count_link: 0
+        }
+        return component;
     }
 
     function getUncertaintyImpact(score) {
@@ -218,5 +344,12 @@
         } else {
             return "SEVERE";
         }
+    }
+
+    function getNormalizedCost() {
+        let min = 0;
+        let max = 200;
+        let x = ecosystem.maintanence_cost;
+        return (max - min) / (max - min) * (x - max) + max;
     }
     </script></body></html>
