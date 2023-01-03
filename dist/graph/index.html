@@ -149,11 +149,12 @@
                     }
                     if ((componentA + componentB in ecosystem.edges) === false) {
                         ecosystem.edges[componentA + componentB] = edge;
+                        
+                        // Increment links +1
                         ecosystem.link.count = ecosystem.link.count + 1;
                         ecosystem.components[componentA].count_link = ecosystem.components[componentA].count_link + 1;
-                        ecosystem.components[componentA].cost_component = ecosystem.components[componentA].cost_component + ecosystem.components[componentA].count_link;
-                        ecosystem.components[componentA].cost_component = ecosystem.components[componentA].cost_component + +ecosystem.link.weight;
 
+                        ecosystem.components[componentA].cost_component = ecosystem.components[componentA].cost_component + ecosystem.link.weight;
                         ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.link.weight;
                     }
                 }
