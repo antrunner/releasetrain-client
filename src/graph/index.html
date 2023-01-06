@@ -96,9 +96,12 @@
         <section class="flex-left">
             <table>
                 <tr>
+                    <th colspan="3" id="ecosystemTitleTableId"></th>
+                </tr>
+                <tr>
                     <th style="width: 150px">Attribute</th>
                     <th style="width: 20px">Weight</th>
-                    <th style="width: 40px;">Value</th>
+                    <th style="width: 100px;">Count</th>
                 </tr>
                 <tr>
                     <td>Components</td>
@@ -142,7 +145,33 @@
                 </tr>
                 <tr>
                     <td>Maintenance Cost</td>
-                    <td colspan="2"><span id="maintenanceCostId"></span></td>
+                    <td>&nbsp;</td>
+                    <td><span id="maintenanceCostId"></span></td>
+                </tr>
+            </table>
+            <table style="margin-top: 10px; width: 100%;">
+                <tr>
+                    <th colspan="3" id="componentTitleTableId">Please click a component node</th>
+                </tr>
+                <tr>
+                    <th style="width: 120px">Attribute</th>
+                    <th style="width: 130px;">Count</th>
+                </tr>
+                <tr>
+                    <td>Version Count</td>
+                    <td><span id="versionComponentCountId"></span></td>
+                </tr>
+                <tr>
+                    <td>Link Count</td>
+                    <td><span id="linkComponentCountId"></span></td>
+                </tr>
+                <tr>
+                    <td>Cost Component</td>
+                    <td><span id="costComponentId"></span></td>
+                </tr>
+                <tr>
+                    <td>Cost Latest Version</td>
+                    <td><span id="costComponentVersionId"></span></td>
                 </tr>
             </table>
         </section>
@@ -162,6 +191,8 @@
         cve: "cve",
         error: "error"
     }
+
+    document.getElementById("ecosystemTitleTableId").innerHTML = "Ecosystem: " + q;
 
     var ecosystem = {}
 
@@ -245,7 +276,7 @@
                     }
                     if ((componentA + componentB in ecosystem.edges) === false) {
                         ecosystem.edges[componentA + componentB] = edge;
-                        
+
                         // Increment links +1
                         ecosystem.link.count = ecosystem.link.count + 1;
                         ecosystem.components[componentA].count_link = ecosystem.components[componentA].count_link + 1;
@@ -275,16 +306,7 @@
             ecosystem.components[component].t = 3 * Math.PI * counter / 100;
             ecosystem.components[component].x = Math.round(30 * Math.cos(ecosystem.components[component].t));
             ecosystem.components[component].y = Math.round(30 * Math.sin(ecosystem.components[component].t));
-            ecosystem.components[component].label = component
-                .concat(", Count Version: ")
-                .concat(ecosystem.components[component].count)
-                .concat(", Count Links: ")
-                .concat(ecosystem.components[component].count_link)
-                .concat(", Cost: ")
-                .concat(ecosystem.components[component].cost_version)
-                .concat(" (latest), ")
-                .concat(ecosystem.components[component].cost_component)
-                .concat(" (all)");
+            ecosystem.components[component].label = component + " ( " + ecosystem.components[component].cost_component + " ) ";
 
             target.nodes.push(ecosystem.components[component]);
             counter = counter + 4;
@@ -310,8 +332,18 @@
         });
 
         s.bind('clickNode', function(e) {
-            let url = "https://releasetrain.io?q=" + e.data.node.label.split(",")[0];
-            window.open(url, '_blank').focus();
+
+            let component = e.data.node.label.split(" ( ")[0];
+
+            document.getElementById("componentTitleTableId").innerHTML = "Component: " + component;
+            document.getElementById("versionComponentCountId").innerHTML = ecosystem.components[component].count + " (x " + document.getElementById("versionWeightId").value + " weight)";
+            document.getElementById("linkComponentCountId").innerHTML = ecosystem.components[component].count_link + " (x " + document.getElementById("linkWeightId").value + " weight)";
+            document.getElementById("costComponentVersionId").innerHTML = ecosystem.components[component].cost_version;
+            document.getElementById("costComponentId").innerHTML = ecosystem.components[component].cost_component;
+
+
+            // let url = "https://releasetrain.io?q=" + e.data.node.label.split(",")[0];
+            // window.open(url, '_blank').focus();
         });
     }
 
@@ -406,7 +438,7 @@
     }
 
     function getCostByVersion(version) {
-        return Number(ecosystem.version[version.versionChannel].weight);
+        return Number(ecosystem.version[version.versionChannel].weight) * Number(ecosystem.version.weight);
     }
 
     function createComponentModel(version) {
