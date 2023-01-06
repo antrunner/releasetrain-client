@@ -40,7 +40,8 @@
     }
 
     table {
-        /* width: 100%; */
+        width: 100%;
+        margin-bottom: 40px;
     }
 
     section {
@@ -58,7 +59,7 @@
     }
 
     .flex-left {
-        width: 250px
+        width: 275px
     }
 
     .flex-right {
@@ -93,10 +94,19 @@
         <h2><a target="_self" class="desktopOnly" href="./../ack">acknowledgement</a></h2>
     </nav>
     <section class="flex-container">
-        <section class="flex-left">
+        <section class="flex-left" style="font-size:9pt">
+            Instructions Ecosystem:
+            <ul style="padding-inline-start: 15px;">
+                <li>Customize table ecosystem weights</li>
+                <li>View / Zoom ecosystem graph</li>
+                <li>View ecosystem component ( cost )</li>
+                <li>View ecosystem maintenance cost</li>
+            </ul>
+            <br>
             <table>
                 <tr>
-                    <th colspan="3" id="ecosystemTitleTableId"></th>
+                    <th>Ecosystem:</th>
+                    <th colspan="2" id="ecosystemTitleTableId"></th>
                 </tr>
                 <tr>
                     <th style="width: 150px">Attribute</th>
@@ -104,12 +114,12 @@
                     <th style="width: 100px;">Count</th>
                 </tr>
                 <tr>
-                    <td>Components</td>
+                    <td>Component Count</td>
                     <td><input id="componentWeightId" type="number" value="1" onchange="extractData()"></td>
                     <td><span id="nodeId"></span></td>
                 </tr>
                 <tr>
-                    <td>Links</td>
+                    <td>Link Count</td>
                     <td><input id="linkWeightId" type="number" value="1" onchange="extractData()"></td>
                     <td><span id="edgeId"></span></td>
                 </tr>
@@ -119,23 +129,23 @@
                     <td><span id="versionAllId"></span></td>
                 </tr>
                 <tr>
-                    <td><span id="iconMajorUpdateId" class="circle"></span>Version Major</td>
-                    <td><input id="factorMajorUpdateId" type="number" value="1" onchange="extractData()"></td>
+                    <td><span name="iconMajorUpdateName" class="circle"></span>Version Major</td>
+                    <td><input id="factorMajorUpdateId" type="number" value="0" onchange="extractData()"></td>
                     <td><span id="versionMajorId"></span></td>
                 </tr>
                 <tr>
-                    <td><span id="iconMinorUpdateId" class="circle"></span>Version Minor</td>
-                    <td><input id="factorMinorUpdateId" type="number" value="1" onchange="extractData()"></td>
+                    <td><span name="iconMinorUpdateName" class="circle"></span>Version Minor</td>
+                    <td><input id="factorMinorUpdateId" type="number" value="0" onchange="extractData()"></td>
                     <td><span id="versionMinorId"></span></td>
                 </tr>
                 <tr>
-                    <td><span id="iconPatchUpdateId" class="circle"></span>Version Patch</td>
-                    <td><input id="factorPatchUpdateId" type="number" value="1" onchange="extractData()"></td>
+                    <td><span name="iconPatchUpdateName" class="circle"></span>Version Patch</td>
+                    <td><input id="factorPatchUpdateId" type="number" value="0" onchange="extractData()"></td>
                     <td><span id="versionPatchId"></span></td>
                 </tr>
                 <tr>
-                    <td><span id="iconCveUpdateId" class="circle"></span>Version CVE</td>
-                    <td><input id="factorCveUpdateId" type="number" value="1" onchange="extractData()"></td>
+                    <td><span name="iconCveUpdateName" class="circle"></span>Version CVE</td>
+                    <td><input id="factorCveUpdateId" type="number" value="0" onchange="extractData()"></td>
                     <td><span id="versionCveId"></span></td>
                 </tr>
                 <tr>
@@ -149,21 +159,44 @@
                     <td><span id="maintenanceCostId"></span></td>
                 </tr>
             </table>
+            Instructions Component:
+            <ul style="padding-inline-start: 15px;">
+                <li>Click graph component node</li>
+                <li>View component maintenance cost</li>
+                <li>View latest update maintenance cost</li>
+            </ul>
             <table style="margin-top: 10px; width: 100%;">
                 <tr>
-                    <th colspan="3" id="componentTitleTableId">Please click a component node</th>
+                    <th>Component:</th>
+                    <th colspan="2" id="componentTitleTableId">&nbsp;</th>
                 </tr>
                 <tr>
                     <th style="width: 125px">Attribute</th>
                     <th style="width: 125px;">Count</th>
                 </tr>
                 <tr>
+                    <td>Link Count</td>
+                    <td><span id="linkComponentCountId"></span></td>
+                </tr>
+                <tr>
                     <td>Version Count</td>
                     <td><span id="versionComponentCountId"></span></td>
                 </tr>
                 <tr>
-                    <td>Link Count</td>
-                    <td><span id="linkComponentCountId"></span></td>
+                    <td><span name="iconMajorUpdateName" class="circle"></span>Version Major</td>
+                    <td><span id="versionComponentMajorId"></span></td>
+                </tr>
+                <tr>
+                    <td><span name="iconMinorUpdateName" class="circle"></span>Version Minor</td>
+                    <td><span id="versionComponentMinorId"></span></td>
+                </tr>
+                <tr>
+                    <td><span name="iconPatchUpdateName" class="circle"></span>Version Patch</td>
+                    <td><span id="versionComponentPatchId"></span></td>
+                </tr>
+                <tr>
+                    <td><span name="iconCveUpdateName" class="circle"></span>Version CVE</td>
+                    <td><span id="versionComponentCveId"></span></td>
                 </tr>
                 <tr>
                     <td>Cost Component</td>
@@ -192,7 +225,7 @@
         error: "error"
     }
 
-    document.getElementById("ecosystemTitleTableId").innerHTML = "Ecosystem: " + q;
+    document.getElementById("ecosystemTitleTableId").innerHTML = q;
 
     var ecosystem = {}
 
@@ -236,6 +269,8 @@
             version.versionReleaseChannel = getChannelByVersion(version);
 
             ecosystem.components[version.versionProductName] = version.versionProductName in ecosystem.components ? ecosystem.components[version.versionProductName] : createComponentModel(version);
+
+            ecosystem.components[version.versionProductName].version[version.versionReleaseChannel].count += 1;
             ecosystem.components[version.versionProductName].version_count = ecosystem.components[version.versionProductName].version_count + 1;
             ecosystem.components[version.versionProductName].color = ecosystem.version[version.versionReleaseChannel].color;
             ecosystem.components[version.versionProductName].cost_component = ecosystem.components[version.versionProductName].cost_component + getCostByVersion(version);
@@ -291,7 +326,11 @@
         ecosystem.maintanence_cost = getNormalizedCost();
 
         loadGraphData();
-        loadTableData();
+        loadTableEcosystemData();
+
+        let component = document.getElementById("componentTitleTableId").innerHTML;
+
+        loadTableComponentData(component);
     }
 
     function loadGraphData() {
@@ -332,27 +371,20 @@
         });
 
         s.bind('clickNode', function(e) {
-
             let component = e.data.node.label.split(" ( ")[0];
-
-            document.getElementById("componentTitleTableId").innerHTML = "Component: " + component;
-            document.getElementById("versionComponentCountId").innerHTML = ecosystem.components[component].count + " (x " + document.getElementById("versionWeightId").value + " weight)";
-            document.getElementById("linkComponentCountId").innerHTML = ecosystem.components[component].count_link + " (x " + document.getElementById("linkWeightId").value + " weight)";
-            document.getElementById("costComponentVersionId").innerHTML = ecosystem.components[component].cost_version;
-            document.getElementById("costComponentId").innerHTML = ecosystem.components[component].cost_component;
-
-
+            loadTableComponentData(component);
             // let url = "https://releasetrain.io?q=" + e.data.node.label.split(",")[0];
             // window.open(url, '_blank').focus();
         });
     }
 
-    function loadTableData() {
+    function loadTableEcosystemData() {
 
-        document.getElementById("iconMajorUpdateId").style.backgroundColor = ecosystem.version.major.color;
-        document.getElementById("iconMinorUpdateId").style.backgroundColor = ecosystem.version.minor.color;
-        document.getElementById("iconPatchUpdateId").style.backgroundColor = ecosystem.version.patch.color;
-        document.getElementById("iconCveUpdateId").style.backgroundColor = ecosystem.version.cve.color;
+        Object.values(versionChannel).forEach(channel => {
+            document.getElementsByName("icon" + capitalizeFirstLetter(channel) + "UpdateName").forEach(element => {
+                element.style.backgroundColor = ecosystem.version[channel].color;
+            })
+        })
 
         document.getElementById("nodeId").innerHTML = ecosystem.component.count;
         document.getElementById("edgeId").innerHTML = ecosystem.link.count;
@@ -363,6 +395,32 @@
         document.getElementById("versionCveId").innerHTML = ecosystem.version.cve.count;
         document.getElementById("versionErrorId").innerHTML = ecosystem.version.error.count;
         document.getElementById("maintenanceCostId").innerHTML = ecosystem.maintanence_cost;
+    }
+
+    function loadTableComponentData(component) {
+
+        if ((component !== undefined) && (ecosystem.components[component] !== undefined)) {
+
+            let versionWeight = Number(document.getElementById("versionWeightId").value);
+            let linkWeight = document.getElementById("linkWeightId").value;
+
+            let majorWeight = Number(document.getElementById("factorMajorUpdateId").value);
+            let minorWeight = Number(document.getElementById("factorMinorUpdateId").value);
+            let patchWeight = Number(document.getElementById("factorPatchUpdateId").value);
+            let cveWeight = Number(document.getElementById("factorCveUpdateId").value);
+
+            document.getElementById("componentTitleTableId").innerHTML = component;
+            document.getElementById("versionComponentCountId").innerHTML = ecosystem.components[component].count + " (x " + versionWeight + " weight)";
+            document.getElementById("linkComponentCountId").innerHTML = ecosystem.components[component].count_link + " (x " + linkWeight + " weight)";
+
+            document.getElementById("versionComponentMajorId").innerHTML = ecosystem.components[component].version.major.count + " (x " + majorWeight + " weight)";
+            document.getElementById("versionComponentMinorId").innerHTML = ecosystem.components[component].version.minor.count + " (x " + minorWeight + " weight)";
+            document.getElementById("versionComponentPatchId").innerHTML = ecosystem.components[component].version.patch.count + " (x " + patchWeight + " weight)";
+            document.getElementById("versionComponentCveId").innerHTML = ecosystem.components[component].version.cve.count + " (x " + cveWeight + " weight)";
+
+            document.getElementById("costComponentVersionId").innerHTML = ecosystem.components[component].cost_version;
+            document.getElementById("costComponentId").innerHTML = ecosystem.components[component].cost_component;
+        }
     }
 
     function resetEcosystemModel() {
@@ -438,7 +496,7 @@
     }
 
     function getCostByVersion(version) {
-        return Number(ecosystem.version[version.versionChannel].weight) * Number(ecosystem.version.weight);
+        return Number(ecosystem.version[version.versionChannel].weight) + Number(ecosystem.version.weight);
     }
 
     function createComponentModel(version) {
@@ -455,7 +513,24 @@
             cost_version: 0,
             count: 0,
             tags: new Set(),
-            count_link: 0
+            count_link: 0,
+            version: {
+                major: {
+                    count: 0
+                },
+                minor: {
+                    count: 0
+                },
+                patch: {
+                    count: 0
+                },
+                cve: {
+                    count: 0
+                },
+                error: {
+                    count: 0
+                }
+            }
         }
         return component;
     }
@@ -480,6 +555,10 @@
         let max = 200;
         let x = ecosystem.maintanence_cost;
         return (max - min) / (max - min) * (x - max) + max;
+    }
+
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
     }
     </script>
 </body>
