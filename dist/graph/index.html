@@ -131,7 +131,8 @@
             ecosystem.components[version.versionProductName].cost_component = ecosystem.components[version.versionProductName].cost_component + getCostByVersion(version);
             ecosystem.components[version.versionProductName].cost_version = getCostByVersion(version);
             ecosystem.components[version.versionProductName].count = ecosystem.components[version.versionProductName].count + 1;
-            ecosystem.version[version.versionReleaseChannel].count = ecosystem.version[version.versionReleaseChannel].count + 1;
+
+            ecosystem.version[version.versionReleaseChannel].count = Number(ecosystem.version[version.versionReleaseChannel].count) + Number(ecosystem.version[version.versionReleaseChannel].weight);
 
             version.versionSearchTags.forEach(tag => ecosystem.components[version.versionProductName].tags.add(tag.trim().toLowerCase()));
 
