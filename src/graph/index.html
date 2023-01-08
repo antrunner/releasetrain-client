@@ -293,7 +293,7 @@
             version.versionSearchTags.forEach(tag => ecosystem.components[version.versionProductName].tags.add(tag.trim().toLowerCase()));
 
             ecosystem.maintanence_cost = ecosystem.maintanence_cost + getCostByVersion(version);
-            ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.version.weight;
+            // ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.version.weight;
 
             ecosystem.version_count = ecosystem.version_count + 1;
             ecosystem.component.count = Object.keys(ecosystem.components).length;
