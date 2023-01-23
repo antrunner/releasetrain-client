@@ -34,7 +34,8 @@ module.exports = function(grunt) {
                 files: [
                     { expand: true, cwd: 'src/lib', src: ['./*'], dest: 'dist/lib', filter: 'isFile' },
                     { expand: true, cwd: 'src/img', src: ['./*'], dest: 'dist/img', filter: 'isFile' },
-                    { expand: true, cwd: 'src/edi40-2023/data', src: ['./*'], dest: 'dist/edi40-2023/data', filter: 'isFile' }
+                    { expand: true, cwd: 'src/edi40-2023/data', src: ['./*'], dest: 'dist/edi40-2023/data', filter: 'isFile' },
+                    { expand: true, cwd: 'src/docs/paper/edi40_2020', src: ['./*'], dest: 'dist/docs/paper/edi40_2020', filter: 'isFile' }
                 ],
             },
         }

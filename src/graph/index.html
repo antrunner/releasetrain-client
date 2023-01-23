@@ -287,7 +287,7 @@
             ecosystem.components[version.versionProductName].color = ecosystem.version[version.versionReleaseChannel].color;
             ecosystem.components[version.versionProductName].cost_component = ecosystem.components[version.versionProductName].cost_component + getCostByVersion(version);
             ecosystem.components[version.versionProductName].cost_version = getCostByVersion(version);
-            ecosystem.components[version.versionProductName].count = ecosystem.components[version.versionProductName].count + 1;
+            ecosystem.components[version.versionProductName].count = (ecosystem.components[version.versionProductName].count + 1) * ecosystem.component.count;
 
             ecosystem.version[version.versionReleaseChannel].count = Number(ecosystem.version[version.versionReleaseChannel].count) + Number(ecosystem.version[version.versionReleaseChannel].weight);
 
@@ -297,10 +297,10 @@
             // ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.version.weight;
 
             ecosystem.version_count = ecosystem.version_count + 1;
-            ecosystem.component.count = Object.keys(ecosystem.components).length;
+            ecosystem.component.count = Object.keys(ecosystem.components).length * ecosystem.component.weight;
         })
 
-        ecosystem.maintanence_cost = ecosystem.maintanence_cost + Object.keys(ecosystem.components).length * ecosystem.component.weight;
+        ecosystem.maintanence_cost = ecosystem.maintanence_cost + Object.keys(ecosystem.components).length + ecosystem.component.count;
 
         for (let componentA in ecosystem.components) {
             for (let componentB in ecosystem.components) {
