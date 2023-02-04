@@ -71,11 +71,11 @@
     }
 
     .flex-left {
-        width: 285px
+        width: 350px;
     }
 
     .flex-right {
-        width: 100%;
+        width: calc(100% - 350px);
         background-color: transparent;
     }
 
@@ -127,37 +127,37 @@
                 </tr>
                 <tr>
                     <td>Component Count</td>
-                    <td><input id="componentWeightId" type="number" value="1" onchange="extractData()"></td>
+                    <td><input id="componentWeightId" type="number" value="1" onchange="extractData()" min="0"></td>
                     <td><span id="nodeId"></span></td>
                 </tr>
                 <tr>
                     <td>Link Count</td>
-                    <td><input id="linkWeightId" type="number" value="1" onchange="extractData()"></td>
+                    <td><input id="linkWeightId" type="number" value="1" onchange="extractData()" min="0"></td>
                     <td><span id="edgeId"></span></td>
                 </tr>
                 <tr>
                     <td>Version Count</td>
-                    <td><input id="versionWeightId" type="number" value="1" onchange="extractData()"></td>
+                    <td><input id="versionWeightId" type="number" value="1" onchange="extractData()" min="0"></td>
                     <td><span id="versionAllId"></span></td>
                 </tr>
                 <tr>
                     <td><span name="iconMajorUpdateName" class="circle"></span>Version Major</td>
-                    <td><input id="factorMajorUpdateId" type="number" value="0" onchange="extractData()"></td>
+                    <td><input id="factorMajorUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
                     <td><span id="versionMajorId"></span></td>
                 </tr>
                 <tr>
                     <td><span name="iconMinorUpdateName" class="circle"></span>Version Minor</td>
-                    <td><input id="factorMinorUpdateId" type="number" value="0" onchange="extractData()"></td>
+                    <td><input id="factorMinorUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
                     <td><span id="versionMinorId"></span></td>
                 </tr>
                 <tr>
                     <td><span name="iconPatchUpdateName" class="circle"></span>Version Patch</td>
-                    <td><input id="factorPatchUpdateId" type="number" value="0" onchange="extractData()"></td>
+                    <td><input id="factorPatchUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
                     <td><span id="versionPatchId"></span></td>
                 </tr>
                 <tr>
                     <td><span name="iconCveUpdateName" class="circle"></span>Version CVE</td>
-                    <td><input id="factorCveUpdateId" type="number" value="0" onchange="extractData()"></td>
+                    <td><input id="factorCveUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
                     <td><span id="versionCveId"></span></td>
                 </tr>
                 <tr>
@@ -297,10 +297,10 @@
             // ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.version.weight;
 
             ecosystem.version_count = ecosystem.version_count + 1;
-            ecosystem.component.count = Object.keys(ecosystem.components).length * ecosystem.component.weight;
+            ecosystem.component.count = Object.keys(ecosystem.components).length;
         })
 
-        ecosystem.maintanence_cost = ecosystem.maintanence_cost + Object.keys(ecosystem.components).length + ecosystem.component.count;
+        ecosystem.maintanence_cost = ecosystem.component.count * ecosystem.component.weight;
 
         for (let componentA in ecosystem.components) {
             for (let componentB in ecosystem.components) {
@@ -397,8 +397,16 @@
             })
         })
 
-        document.getElementById("nodeId").innerHTML = ecosystem.component.count;
-        document.getElementById("edgeId").innerHTML = ecosystem.link.count;
+        let versionWeight = Number(document.getElementById("versionWeightId").value);
+        let linkWeight = document.getElementById("linkWeightId").value;
+
+        let majorWeight = Number(document.getElementById("factorMajorUpdateId").value);
+        let minorWeight = Number(document.getElementById("factorMinorUpdateId").value);
+        let patchWeight = Number(document.getElementById("factorPatchUpdateId").value);
+        let cveWeight = Number(document.getElementById("factorCveUpdateId").value);
+
+        document.getElementById("nodeId").innerHTML = ecosystem.component.count + " ( x " + ecosystem.component.weight + " )";
+        document.getElementById("edgeId").innerHTML = ecosystem.link.count + " ( x " + ecosystem.link.weight + " )";
         document.getElementById("versionAllId").innerHTML = ecosystem.version_count;
         document.getElementById("versionMajorId").innerHTML = ecosystem.version.major.count;
         document.getElementById("versionMinorId").innerHTML = ecosystem.version.minor.count;
@@ -503,6 +511,7 @@
         version.versionChannel = version.versionReleaseChannel === versionChannel.patch || versionNumber[2] != 0 ? versionChannel.patch : version.versionChannel;
         version.versionChannel = versionNumber[1] == 0 && versionNumber[2] == 0 ? versionChannel.major : version.versionChannel;
         version.versionChannel = version.versionReleaseChannel == versionChannel.cve ? versionChannel.cve : version.versionChannel;
+
         return version.versionChannel;
     }
 
