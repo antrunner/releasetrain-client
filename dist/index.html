@@ -202,12 +202,14 @@
 
         for (var i = 0; i < res.length; i++) {
 
-            if (res[i].versionProductName === undefined) {
+            if (res[i].versionProductName === undefined || res[i].versionProductName === null) {
 
                 console.warn(res[i]);
                 continue;
 
             }
+
+            console.log(res[i].versionProductName);
 
             var avatar = res[i].versionProductType;
             var isSecurityPatch = res[i].versionReleaseChannel == "patch" ? true : false;
