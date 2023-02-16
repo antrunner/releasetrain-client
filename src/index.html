@@ -142,6 +142,7 @@
             dataType: 'json',
             success: function(res) {
                 renderVersionList(res);
+                console.log(url, res);
             }
         });
     }
@@ -253,16 +254,6 @@
         var displayComponents = [];
 
         for (var i = 0; i < res.length; i++) {
-
-            if (res[i].versionProductName === undefined || res[i].versionProductName === null) {
-
-                console.warn(res[i]);
-                continue;
-
-            }
-
-            console.log(res[i]);
-            console.log(res[i].versionProductName);
 
             var avatar = res[i].versionProductType;
             var isSecurityPatch = res[i].versionReleaseChannel == "patch" ? true : false;
