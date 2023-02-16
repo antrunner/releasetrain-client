@@ -254,6 +254,13 @@
 
         for (var i = 0; i < res.length; i++) {
 
+            if (res[i].versionProductName === undefined) {
+
+                console.warn(res[i]);
+                continue;
+
+            }
+
             var avatar = res[i].versionProductType;
             var isSecurityPatch = res[i].versionReleaseChannel == "patch" ? true : false;
             var isCve = res[i].versionReleaseChannel == "cve" ? true : false;
