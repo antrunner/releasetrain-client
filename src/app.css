@@ -1,173 +1,184 @@
-/* Ensure sufficient contrast */
-body,
-button,
-input,
-select,
-textarea {
-    background-color: #f0f0f0;
-    /* Light gray background */
-    color: #333;
-    /* Dark gray text */
-}
-
-/* Use distinct and high-contrast colors for links */
-a {
-    color: #007acc;
-    /* Bright blue */
-}
-
-/* Avoid relying solely on color for conveying information */
-/* Use patterns, labels, or other visual cues */
-.warning {
-    background-color: #ffcc00;
-    /* Yellow background */
-    border: 1px solid #cc9900;
-    /* Dark yellow border */
-    padding: 10px;
-    text-align: center;
-}
-
-/* Consider adding underlines or other indicators to links */
-a:visited {
-    text-decoration: underline;
-}
-
-/* Ensure text has good readability */
-h1,
-h2,
-h3,
-p {
-    font-family: Arial, sans-serif;
-    line-height: 1.5;
-}
-
-nav {
-    display: flex;
-    padding: 5px 0px;
-}
-
-section {
-    margin: 20px 20%;
-}
-
-h1 {
-    margin: 30px;
-    font-size: 14pt;
-    height: 80px;
-}
-
-h2 {
-    margin: 30px;
-}
-
-h3 {
-    margin: 12px 0px 5px 0px;
-}
-
-a {
-    font-size: 14pt;
-    text-decoration: none;
-    vertical-align: 2px;
-}
-
-ol {
-    margin: 10px 0px;
-    width: 90%;
-    list-style: none;
-}
-
-select {
-    width: 100%;
-}
-
-span.select2-container {
-}
-
-img.avatar {
-    height: 20px;
-    margin-right: 5px;
-}
-
-ol.version-names {
-    list-style-position: inside;
-    padding-left: 0;
-}
-
-li.version-names-item {
-    padding-left: 4px
-}
-
-span.h7 {
-    font-weight: normal;
-    font-size: 8pt
-}
-
-p {
-    line-height: 25px;
-}
-
-.versionListClassSection-item {
-    padding: 5px;
-}
-
-.dot {
-    height: 15px;
-    width: 15px;
-    border-radius: 50%;
-    display: inline-block;
-    margin: 0px 2px;
-}
-
-.red {
-    background-color: red;
-}
-
-.orange {
-    background-color: orange;
-}
-
-.yellow {
-    background-color: yellow;
-}
-
-.green {
-    background-color: green;
-}
-
-.loadingClass {
-    text-align: center;
-}
-
-@media only screen and (max-width: 600px) {
-    nav {
-        display: flex;
-        margin: 10px;
+    * {
+        margin: 0px;
+        padding: 0px;
     }
 
-    h1 {
-        margin: 0px;
-        font-size: 14pt
+    body {
+        padding: 0px 15px;
+    }
+
+
+    /* Ensure sufficient contrast */
+    body,
+    button,
+    input,
+    select,
+    textarea {
+        background-color: #f0f0f0;
+        /* Light gray background */
+        color: #333;
+        /* Dark gray text */
+    }
+
+    /* Use distinct and high-contrast colors for links */
+    a {
+        color: #007acc;
+        /* Bright blue */
+    }
+
+    /* Avoid relying solely on color for conveying information */
+    /* Use patterns, labels, or other visual cues */
+    .warning {
+        background-color: #ffcc00;
+        /* Yellow background */
+        border: 1px solid #cc9900;
+        /* Dark yellow border */
+        padding: 10px;
+        text-align: center;
+    }
+
+    /* Consider adding underlines or other indicators to links */
+    a:visited {
+        text-decoration: underline;
+    }
+
+    /* Ensure text has good readability */
+    h1,
+    h2,
+    h3,
+    p {
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+    }
+
+
+
+    nav {
+        display: flex;
+        padding: 5px 0px;
     }
 
     section {
-        margin: 10px 4%;
+        margin: 20px 20%;
+    }
+
+    h1 {
+        margin: 30px;
+        font-size: 14pt;
+        height: 80px;
+    }
+
+    h2 {
+        margin: 30px;
+    }
+
+    h3 {
+        margin: 12px 0px 5px 0px;
     }
 
     a {
-        font-size: 12pt
+        font-size: 14pt;
+        text-decoration: none;
+        vertical-align: 2px;
     }
 
     ol {
         margin: 10px 0px;
-        width: 100%;
+        width: 90%;
         list-style: none;
     }
 
-    li {
-        margin: 15px 0px;
+    select {
+        width: 100%;
     }
 
-    .desktopOnly {
-        display: none
+    span.select2-container {}
+
+    img.avatar {
+        height: 20px;
+        margin-right: 5px;
     }
-}
+
+    ol.version-names {
+        list-style-position: inside;
+        padding-left: 0;
+    }
+
+    li.version-names-item {
+        padding-left: 4px
+    }
+
+    span.h7 {
+        font-weight: normal;
+        font-size: 8pt
+    }
+
+    p {
+        line-height: 25px;
+    }
+
+    .versionListClassSection-item {
+        padding: 5px;
+    }
+
+    .dot {
+        height: 15px;
+        width: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0px 2px;
+    }
+
+    .red {
+        background-color: red;
+    }
+
+    .orange {
+        background-color: orange;
+    }
+
+    .yellow {
+        background-color: yellow;
+    }
+
+    .green {
+        background-color: green;
+    }
+
+    .loadingClass {
+        text-align: center;
+    }
+
+    @media only screen and (max-width: 600px) {
+        nav {
+            display: flex;
+            margin: 10px;
+        }
+
+        h1 {
+            margin: 0px;
+            font-size: 14pt
+        }
+
+        section {
+            margin: 10px 4%;
+        }
+
+        a {
+            font-size: 12pt
+        }
+
+        ol {
+            margin: 10px 0px;
+            width: 100%;
+            list-style: none;
+        }
+
+        li {
+            margin: 15px 0px;
+        }
+
+        .desktopOnly {
+            display: none
+        }
+    }
