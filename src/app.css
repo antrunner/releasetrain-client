@@ -1,11 +1,26 @@
-* {
-    font-family: verdana
+/* Use distinct and high-contrast colors for links */
+a {
+    color: #007acc;
+    /* Bright blue */
 }
 
-body {
-    background-color: #0a1922;
-    color: white;
+/* Avoid relying solely on color for conveying information */
+/* Use patterns, labels, or other visual cues */
+.warning {
+    background-color: #ffcc00;
+    /* Yellow background */
+    border: 1px solid #cc9900;
+    /* Dark yellow border */
+    padding: 10px;
+    text-align: center;
 }
+
+/* Consider adding underlines or other indicators to links */
+a:visited {
+    text-decoration: underline;
+}
+
+/* Ensure text has good readability */
 
 nav {
     display: flex;
