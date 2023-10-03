@@ -1,3 +1,15 @@
+/* Ensure sufficient contrast */
+body,
+button,
+input,
+select,
+textarea {
+    background-color: #f0f0f0;
+    /* Light gray background */
+    color: #333;
+    /* Dark gray text */
+}
+
 /* Use distinct and high-contrast colors for links */
 a {
     color: #007acc;
@@ -21,6 +33,13 @@ a:visited {
 }
 
 /* Ensure text has good readability */
+h1,
+h2,
+h3,
+p {
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+}
 
 nav {
     display: flex;
