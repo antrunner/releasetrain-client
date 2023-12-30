@@ -109,12 +109,34 @@
         display: inline-block;
         margin-right: 4px;
     }
+
+    /* CSS for mobile devices */
+    @media only screen and (max-width: 767px) {
+        #container {
+            display: none;
+        }
+
+        .flex-left {
+            width: 100%;
+        }
+    }
+
+    /* CSS for tablet devices */
+    @media only screen and (min-width: 768px) and (max-width: 1024px) {
+        #container {
+            display: none;
+        }
+
+        .flex-left {
+            width: 100%;
+        }
+    }
     </style>
 </head>
 
 <body>
     <section class="flex-container">
-        <section class="flex-left">
+        <section id="containerLeftId" class="flex-left">
             <table id="ecoTableId">
                 <tr>
                     <th>Ecosystem:</th>
@@ -305,7 +327,7 @@
             r = g = b = 250;
         } else {
             // The higher the cost, the closer to black (0, 0, 0)
-            var value = Math.max(0, 255 - (cost * 10)); // Ensure value doesn't go below 0
+            var value = Math.max(0, 255 - (cost * 30)); // Ensure value doesn't go below 0
             r = g = b = value;
         }
 
