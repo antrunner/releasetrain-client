@@ -131,8 +131,8 @@
                     <th style="width: 100px;">Count</th>
                 </tr>
             </table>
-            <!---
-            <table style="margin-top: 10px; width: 100%;">
+            <br>
+            <table id="ecoComponentTableId" style="margin-top: 10px; width: 100%;">
                 <tr>
                     <th>Component:</th>
                     <th colspan="2" id="componentTitleTableId">&nbsp;</th>
@@ -140,30 +140,6 @@
                 <tr>
                     <th style="width: 125px">Attribute</th>
                     <th style="width: 125px;">Count</th>
-                </tr>
-                <tr>
-                    <td>Link Count</td>
-                    <td><span id="linkComponentCountId"></span></td>
-                </tr>
-                <tr>
-                    <td>Version Count</td>
-                    <td><span id="versionComponentCountId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconMajorUpdateName" class="circle"></span>Version Major</td>
-                    <td><span id="versionComponentMajorId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconMinorUpdateName" class="circle"></span>Version Minor</td>
-                    <td><span id="versionComponentMinorId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconPatchUpdateName" class="circle"></span>Version Patch</td>
-                    <td><span id="versionComponentPatchId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconCveUpdateName" class="circle"></span>Version CVE</td>
-                    <td><span id="versionComponentCveId"></span></td>
                 </tr>
                 <tr>
                     <td>Cost Component</td>
@@ -174,7 +150,6 @@
                     <td><span id="costComponentVersionId"></span></td>
                 </tr>
             </table>
-            --->
         </section>
         <section id="container" class="flex-right">
         </section>
@@ -244,9 +219,13 @@
 
         eco.cost = 0;
 
+        let versionRelevantAttributes = ['major', 'minor', 'patch', 'cve', 'version'];
+
         for (component in eco.components) {
 
             eco.components[component].cost = 0;
+
+            eco.components[component].costLatestVersion = 0;
 
         }
 
@@ -260,6 +239,11 @@
 
                 eco.components[component].cost += eco.components[component].attributeObjectList[attribute].count * eco.attributeObjectList[attribute].factor;
 
+                if (versionRelevantAttributes.includes(attribute)) {
+
+                    eco.components[component].costLatestVersion += eco.components[component].attributeObjectList[attribute].count * eco.attributeObjectList[attribute].factor;
+
+                }
             }
 
         });
@@ -271,9 +255,7 @@
 
         loadTableEcosystemData();
 
-        // let component = document.getElementById("componentTitleTableId").innerHTML;
-
-        // loadTableComponentData(component);
+        loadTableComponentData();
 
     }
 
@@ -382,14 +364,14 @@
 
         eco.attributeArrayList.forEach(attribute => {
 
-            document.getElementById(attribute + "AllId").innerHTML = prettyCountOutputHTML(attribute);
+            document.getElementById(attribute + "AllId").innerHTML = prettyEcoCountOutputHTML(attribute);
 
         })
 
         document.getElementById("maintenanceCostId").innerHTML = eco.cost;
     }
 
-    function prettyCountOutputHTML(attribute) {
+    function prettyEcoCountOutputHTML(attribute) {
 
         const count = eco.attributeObjectList[attribute].count;
         const factor = eco.attributeObjectList[attribute].factor;
@@ -411,29 +393,63 @@
         return '<div>' + count + ' x ' + factor + ' = ' + result + '</div>';
     }
 
+    function prettyCompCountOutputHTML(attribute, component) {
+
+        const count = eco.components[component].attributeObjectList[attribute].count;
+        const factor = eco.attributeObjectList[attribute].factor;
+
+        const result = count * factor;
+
+        if (result === 0) {
+
+            document.getElementById(attribute + "RowId").style.backgroundColor = "#e5e5e5";
+            document.getElementById(attribute + "RowId").style.color = "#9e9e9e";
+
+        } else {
+
+            document.getElementById(attribute + "RowId").style.backgroundColor = "#ffffff";
+            document.getElementById(attribute + "RowId").style.color = "#000000";
+
+        }
+
+        return '<div>' + count + ' x ' + factor + ' = ' + result + '</div>';
+    }
+
+
     function loadTableComponentData(component) {
 
         if ((component !== undefined) && (eco.components[component] !== undefined)) {
 
-            eco.version.factor = Number(document.getElementById("versionWeightId").value);
-            let linkWeight = document.getElementById("linkWeightId").value;
+            var table = document.getElementById('ecoComponentTableId');
 
-            let majorWeight = Number(document.getElementById("factorMajorUpdateId").value);
-            let minorWeight = Number(document.getElementById("factorMinorUpdateId").value);
-            let patchWeight = Number(document.getElementById("factorPatchUpdateId").value);
-            let cveWeight = Number(document.getElementById("factorCveUpdateId").value);
+            var startIndex = 4;
 
-            document.getElementById("componentTitleTableId").innerHTML = component;
-            document.getElementById("versionComponentCountId").innerHTML = eco.components[component].count + " (x " + eco.version.factor + " factor)";
-            document.getElementById("linkComponentCountId").innerHTML = eco.components[component].count_link + " (x " + linkWeight + " factor)";
+            var componentTitleElement = document.getElementById("componentTitleTableId");
 
-            document.getElementById("versionComponentMajorId").innerHTML = eco.components[component].version.major.count + " (x " + majorWeight + " factor)";
-            document.getElementById("versionComponentMinorId").innerHTML = eco.components[component].version.minor.count + " (x " + minorWeight + " factor)";
-            document.getElementById("versionComponentPatchId").innerHTML = eco.components[component].version.patch.count + " (x " + patchWeight + " factor)";
-            document.getElementById("versionComponentCveId").innerHTML = eco.components[component].version.cve.count + " (x " + cveWeight + " factor)";
+            var url = "https://releasetrain.io?q=" + component;
 
-            document.getElementById("costComponentVersionId").innerHTML = eco.components[component].cost_version;
-            document.getElementById("costComponentId").innerHTML = eco.components[component].cost_component;
+            componentTitleElement.innerHTML = '<a href="' + url + '" target="_blank" style="font-size: 10pt">' + component + '</a>';
+
+            // Clear dynamic rows, if any
+            while (table.rows.length > startIndex) {
+
+                table.deleteRow(startIndex);
+
+            }
+
+            eco.attributeArrayList.forEach(attribute => {
+
+                let count = eco.components[component].attributeObjectList[attribute].count;
+
+                if (count > 0) {
+                    let row = table.insertRow();
+                    row.insertCell(0).innerText = attribute;
+                    row.insertCell(1).innerHTML = prettyCompCountOutputHTML(attribute, component);
+                }
+            })
+
+            document.getElementById("costComponentVersionId").innerHTML = eco.components[component].costLatestVersion;
+            document.getElementById("costComponentId").innerHTML = eco.components[component].cost;
         }
     }
 
@@ -447,7 +463,6 @@
             }
 
             eco['attributeArrayList'] = ['component', 'link', 'version', 'major', 'minor', 'patch', 'cve', 'invalid'];
-
 
             // Initialize all attribute candidates
             data.forEach(version => {
@@ -476,6 +491,7 @@
 
                         // Data 
                         eco.attributeObjectList[attribute] = {};
+
                         eco.attributeObjectList[attribute]['factor'] = 1;
                         eco.attributeObjectList[attribute]['factorHtmlElementId'] = 'factor' + capitalizeFirstLetter(attribute) + 'Id';
                         eco.attributeObjectList[attribute]['count'] = 0;
@@ -483,11 +499,9 @@
                         // UI
                         const sliderRow = createSliderRow(attribute);
                         table.appendChild(sliderRow);
-
                     }
                 });
             }
-
 
             // Initialize component attributes by versions
             data.forEach(version => {
@@ -572,14 +586,6 @@
         return true;
     }
 
-    function getCostByEcosystem() {
-        //
-    }
-
-    function getCostByComponent() {
-
-    }
-
     function getChannelByVersion(version) {
         let versionNumber = version.versionNumber.split(".");
         version.versionChannel = versionChannel.error;
@@ -608,10 +614,19 @@
 
     function createSliderRow(categoryKey) {
         const row = document.createElement('tr');
+
+        let value = 1;
+
+        if (categoryKey === 'component' || categoryKey === 'link' || categoryKey === 'major' || categoryKey === 'minor' || categoryKey === 'patch' || categoryKey === 'cve' || categoryKey === 'invalid') {
+
+            value = 0;
+
+        }
+
         row.id = categoryKey + "RowId";
         row.innerHTML = `
         <td>${capitalizeFirstLetter(categoryKey)}</td>
-        <td><input id="factor${capitalizeFirstLetter(categoryKey)}Id" type="range" value="1" onchange="extractData()" min="0" max="2"></td>
+        <td><input id="factor${capitalizeFirstLetter(categoryKey)}Id" type="range" value="${value}" onchange="extractData()" min="0" max="2"></td>
         <td><span id="${categoryKey}AllId"></span></td>`;
         return row;
     }
