@@ -3,6 +3,7 @@
 
 <head>
     <title>releasetrain.io</title>
+    <link rel="icon" href="/img/favicon.png" type="image/png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <meta name="description" content="Software Component Version Releases">
@@ -20,19 +21,37 @@
     <script type="text/javascript" src="./../lib/sigma.canvas.edges.labels.curvedArrow.js"></script>
     <script type="text/javascript" src="./../lib/sigma.canvas.edges.labels.def.js"></script>
     <style type="text/css">
-    table,
-    th,
-    tr,
-    td {
-        border: 1px solid gray;
-        padding: 2px;
-        text-align: left;
+    body {
+        font-family: Arial, sans-serif;
+        color: #333;
+        background-color: #fff;
+        padding: 20px;
+        overflow: hidden;
         font-size: 8pt;
     }
 
     table {
         width: 100%;
-        margin-bottom: 40px;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        color: #333;
+        /* Improved contrast */
+        font-factor: bold;
+        /* Enhance visibility */
+    }
+
+    input[type=range] {
+        width: 100%;
     }
 
     section {
@@ -44,18 +63,42 @@
         width: 30px;
     }
 
+    .container {
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .attribute {
+        border: 1px solid #333;
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+
+    .attribute label {
+        display: block;
+        margin-bottom: 5px;
+        font-factor: bold;
+        /* Enhanced visibility */
+    }
+
+    .slider {
+        width: 100%;
+    }
+
     .flex-container {
-        height: 80vh;
+        height: 95vh;
         display: flex;
     }
 
     .flex-left {
         width: 350px;
+        overflow-y: auto;
     }
 
     .flex-right {
         width: calc(100% - 350px);
         background-color: transparent;
+        max-height: 100vh;
     }
 
     .circle {
@@ -70,92 +113,25 @@
 </head>
 
 <body>
-    <script type="text/javascript">
-    fetch('./../common/navigation.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('snippet-navigation-id').innerHTML = data;
-        });
-    fetch('./../common/github.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('snippet-github-id').innerHTML = data;
-        });
-    </script>
-    <nav id="snippet-navigation-id"></nav>
-    <div id="snippet-github-id"></div>
     <section class="flex-container">
-        <section class="flex-left" style="font-size:9pt">
-            Instructions Ecosystem:
-            <ul style="padding-inline-start: 15px;">
-                <li>Customize table ecosystem weights</li>
-                <li>View / Zoom ecosystem graph</li>
-                <li>View ecosystem component ( cost )</li>
-                <li>View ecosystem maintenance cost</li>
-            </ul>
-            <br>
-            <table>
+        <section class="flex-left">
+            <table id="ecoTableId">
                 <tr>
                     <th>Ecosystem:</th>
-                    <th colspan="2" id="ecosystemTitleTableId"></th>
-                </tr>
-                <tr>
-                    <th style="width: 150px">Attribute</th>
-                    <th style="width: 20px">Weight</th>
-                    <th style="width: 100px;">Count</th>
-                </tr>
-                <tr>
-                    <td>Component Count</td>
-                    <td><input id="componentWeightId" type="number" value="1" onchange="extractData()" min="0"></td>
-                    <td><span id="nodeId"></span></td>
-                </tr>
-                <tr>
-                    <td>Link Count</td>
-                    <td><input id="linkWeightId" type="number" value="1" onchange="extractData()" min="0"></td>
-                    <td><span id="edgeId"></span></td>
-                </tr>
-                <tr>
-                    <td>Version Count</td>
-                    <td><input id="versionWeightId" type="number" value="1" onchange="extractData()" min="0"></td>
-                    <td><span id="versionAllId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconMajorUpdateName" class="circle"></span>Version Major</td>
-                    <td><input id="factorMajorUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
-                    <td><span id="versionMajorId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconMinorUpdateName" class="circle"></span>Version Minor</td>
-                    <td><input id="factorMinorUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
-                    <td><span id="versionMinorId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconPatchUpdateName" class="circle"></span>Version Patch</td>
-                    <td><input id="factorPatchUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
-                    <td><span id="versionPatchId"></span></td>
-                </tr>
-                <tr>
-                    <td><span name="iconCveUpdateName" class="circle"></span>Version CVE</td>
-                    <td><input id="factorCveUpdateId" type="number" value="0" onchange="extractData()" min="0"></td>
-                    <td><span id="versionCveId"></span></td>
-                </tr>
-                <tr>
-                    <td>Version Invalid</td>
-                    <td>&nbsp;</td>
-                    <td><span id="versionErrorId"></span></td>
+                    <th colspan="2" id="ecoTitleTableId"></th>
                 </tr>
                 <tr>
                     <td>Maintenance Cost</td>
-                    <td>&nbsp;</td>
+                    <td><span id="maintenanceEquationId">&sum;(attribute) </span></td>
                     <td><span id="maintenanceCostId"></span></td>
                 </tr>
+                <tr>
+                    <th style="width: 150px">Attribute</th>
+                    <th style="width: 20px">Impact</th>
+                    <th style="width: 100px;">Count</th>
+                </tr>
             </table>
-            Instructions Component:
-            <ul style="padding-inline-start: 15px;">
-                <li>Click graph component node</li>
-                <li>View component maintenance cost</li>
-                <li>View latest update maintenance cost</li>
-            </ul>
+            <!---
             <table style="margin-top: 10px; width: 100%;">
                 <tr>
                     <th>Component:</th>
@@ -198,6 +174,7 @@
                     <td><span id="costComponentVersionId"></span></td>
                 </tr>
             </table>
+            --->
         </section>
         <section id="container" class="flex-right">
         </section>
@@ -213,117 +190,144 @@
         minor: "minor",
         patch: "patch",
         cve: "cve",
-        error: "error"
+        invalid: "invalid"
     }
 
-    document.getElementById("ecosystemTitleTableId").innerHTML = q;
+    const table = document.getElementById('ecoTableId');
 
-    var ecosystem = {}
+    document.getElementById("ecoTitleTableId").innerHTML = q;
+
+    let eco = null;
 
     extractData();
 
     function extractData() {
-        console.log("extractData");
+        console.log("extract");
+
         $.ajax({
-            url: url + "/v?q=" + q,
+            url: url + "/v?q=" + encodeURIComponent(q), // Ensure query is URL encoded
             type: 'GET',
             dataType: 'json',
             success: function(data) {
-                data = data.sort(function(a, b) {
-                    return a.versionReleaseDate - b.versionReleaseDate
+                if (!Array.isArray(data)) {
+                    console.error("Data is not an array");
+                    return;
+                }
+
+                const sortedData = data.sort((a, b) => {
+                    return new Date(a.versionReleaseDate) - new Date(b.versionReleaseDate);
                 });
-                transformData(data);
+
+                transform(sortedData);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Error fetching data:", textStatus, errorThrown);
             }
         });
     }
 
-    function transformData(data) {
-        console.log("transformDataModel");
+    function transform(data) {
+        console.log("transform");
 
-        // Create ecosystem model
-        resetEcosystemModel();
+        // transform data and ui
+        transformEcosystemInitialize(data);
 
-        ecosystem.version.major.weight = Number(document.getElementById("factorMajorUpdateId").value);
-        ecosystem.version.minor.weight = Number(document.getElementById("factorMinorUpdateId").value);
-        ecosystem.version.cve.weight = Number(document.getElementById("factorCveUpdateId").value);
-        ecosystem.version.patch.weight = Number(document.getElementById("factorPatchUpdateId").value);
-        ecosystem.link.weight = Number(document.getElementById("linkWeightId").value);
-        ecosystem.component.weight = Number(document.getElementById("componentWeightId").value);
-        ecosystem.version.weight = Number(document.getElementById("versionWeightId").value);
+        // transform data
+        transformEcosystemUpdate();
 
-        data.forEach(version => {
+        // load data and ui
+        loadEcosystem();
 
-            if (isValidVersion(version) === false) {
-                ecosystem.version_count_parse_error = ecosystem.version_count_parse_error + 1;
-            }
+    }
 
-            version.versionReleaseChannel = getChannelByVersion(version);
+    function transformEcosystemUpdate() {
 
-            ecosystem.components[version.versionProductName] = version.versionProductName in ecosystem.components ? ecosystem.components[version.versionProductName] : createComponentModel(version);
+        eco.cost = 0;
 
-            ecosystem.components[version.versionProductName].version[version.versionReleaseChannel].count += 1;
-            ecosystem.components[version.versionProductName].version_count = ecosystem.components[version.versionProductName].version_count + 1;
-            ecosystem.components[version.versionProductName].color = ecosystem.version[version.versionReleaseChannel].color;
-            ecosystem.components[version.versionProductName].cost_component = ecosystem.components[version.versionProductName].cost_component + getCostByVersion(version);
-            ecosystem.components[version.versionProductName].cost_version = getCostByVersion(version);
-            ecosystem.components[version.versionProductName].count = (ecosystem.components[version.versionProductName].count + 1) * ecosystem.component.count;
+        for (component in eco.components) {
 
-            ecosystem.version[version.versionReleaseChannel].count = Number(ecosystem.version[version.versionReleaseChannel].count) + Number(ecosystem.version[version.versionReleaseChannel].weight);
+            eco.components[component].cost = 0;
 
-            version.versionSearchTags.forEach(tag => ecosystem.components[version.versionProductName].tags.add(tag.trim().toLowerCase()));
-
-            ecosystem.maintanence_cost = ecosystem.maintanence_cost + getCostByVersion(version);
-            // ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.version.weight;
-
-            ecosystem.version_count = ecosystem.version_count + 1;
-            ecosystem.component.count = Object.keys(ecosystem.components).length;
-        })
-
-        ecosystem.maintanence_cost = ecosystem.component.count * ecosystem.component.weight;
-
-        for (let componentA in ecosystem.components) {
-            for (let componentB in ecosystem.components) {
-
-                if (componentA === componentB) {
-                    continue;
-                }
-
-                let intersection = [];
-                intersection = Array.from(ecosystem.components[componentA].tags).filter(tag => Array.from(ecosystem.components[componentB].tags).includes(tag));
-                intersection = intersection.filter(tag => q.includes(tag) === false);
-                intersection = intersection.filter(tag => ["cve", "production", "beta"].includes(tag) === false);
-                intersection = intersection.filter(tag => isNaN(tag) === true);
-
-                if (intersection.length > 0) {
-                    edge = {
-                        "id": componentA + componentB,
-                        "source": componentA,
-                        "target": componentB,
-                        "label": intersection.join(",")
-                    }
-                    if ((componentA + componentB in ecosystem.edges) === false) {
-                        ecosystem.edges[componentA + componentB] = edge;
-
-                        // Increment links +1
-                        ecosystem.link.count = ecosystem.link.count + 1;
-                        ecosystem.components[componentA].count_link = ecosystem.components[componentA].count_link + 1;
-
-                        ecosystem.components[componentA].cost_component = ecosystem.components[componentA].cost_component + ecosystem.link.weight;
-                        ecosystem.maintanence_cost = ecosystem.maintanence_cost + ecosystem.link.weight;
-                    }
-                }
-            }
         }
 
-        ecosystem.maintanence_cost = getNormalizedCost();
+        eco.attributeArrayList.forEach(attribute => {
+
+            eco.attributeObjectList[attribute].factor = Number(document.getElementById(eco.attributeObjectList[attribute].factorHtmlElementId).value);
+
+            eco.cost += eco.attributeObjectList[attribute].count * eco.attributeObjectList[attribute].factor;
+
+            for (component in eco.components) {
+
+                eco.components[component].cost += eco.components[component].attributeObjectList[attribute].count * eco.attributeObjectList[attribute].factor;
+
+            }
+
+        });
+    }
+
+    function loadEcosystem() {
 
         loadGraphData();
+
         loadTableEcosystemData();
 
-        let component = document.getElementById("componentTitleTableId").innerHTML;
+        // let component = document.getElementById("componentTitleTableId").innerHTML;
 
-        loadTableComponentData(component);
+        // loadTableComponentData(component);
+
     }
+
+    function getIntersection(componentA, componentB) {
+        return Array.from(eco.components[componentA].tags)
+            .filter(tag => isTagValidForIntersection(tag, componentB));
+    }
+
+    function isTagValidForIntersection(tag, componentB) {
+        const invalidTags = ["cve", "production", "beta"];
+        return eco.components[componentB].tags.has(tag) &&
+            !q.includes(tag) &&
+            !invalidTags.includes(tag) &&
+            isNaN(tag);
+    }
+
+    function createAndProcessEdge(componentA, componentB, intersection) {
+
+        let edgeId = componentA + componentB;
+
+        if (eco.edges.hasOwnProperty(edgeId) === false) {
+
+            eco.edges[edgeId] = createEdge(componentA, componentB, intersection);
+            eco.attributeObjectList['link'].count++;
+            eco.components[componentA].attributeObjectList['link'].count++;
+
+        }
+    }
+
+    function createEdge(componentA, componentB, intersection) {
+        return {
+            "id": componentA + componentB,
+            "source": componentA,
+            "target": componentB,
+            "label": intersection.join(",")
+        };
+    }
+
+    function calculateRGB(eco, component) {
+        var cost = eco.components[component].cost;
+        var r, g, b;
+
+        if (cost === 0) {
+            // If cost is 0, set RGB to almost white (250, 250, 250)
+            r = g = b = 250;
+        } else {
+            // The higher the cost, the closer to black (0, 0, 0)
+            var value = Math.max(0, 255 - (cost * 10)); // Ensure value doesn't go below 0
+            r = g = b = value;
+        }
+
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
 
     function loadGraphData() {
         console.log("loadData");
@@ -333,18 +337,24 @@
 
         document.getElementById('container').innerHTML = "";
 
-        for (let component in ecosystem.components) {
-            ecosystem.components[component].t = 3 * Math.PI * counter / 100;
-            ecosystem.components[component].x = Math.round(30 * Math.cos(ecosystem.components[component].t));
-            ecosystem.components[component].y = Math.round(30 * Math.sin(ecosystem.components[component].t));
-            ecosystem.components[component].label = component + " ( " + ecosystem.components[component].cost_component + " ) ";
+        let componentToRemove = [];
 
-            target.nodes.push(ecosystem.components[component]);
+        for (let component in eco.components) {
+            eco.components[component].t = 3 * Math.PI * counter / 100;
+            eco.components[component].x = Math.round(30 * Math.cos(eco.components[component].t));
+            eco.components[component].y = Math.round(30 * Math.sin(eco.components[component].t));
+            eco.components[component].label = component + " ( " + eco.components[component].cost + " ) ";
+
+            eco.components[component].color = calculateRGB(eco, component);
+
+            target.nodes.push(eco.components[component]);
             counter = counter + 4;
         }
 
-        for (let edge in ecosystem.edges) {
-            target.edges.push(ecosystem.edges[edge]);
+        for (let edge in eco.edges) {
+
+            target.edges.push(eco.edges[edge]);
+
         }
 
         s = new sigma({
@@ -370,36 +380,42 @@
 
     function loadTableEcosystemData() {
 
-        Object.values(versionChannel).forEach(channel => {
-            document.getElementsByName("icon" + capitalizeFirstLetter(channel) + "UpdateName").forEach(element => {
-                element.style.backgroundColor = ecosystem.version[channel].color;
-            })
+        eco.attributeArrayList.forEach(attribute => {
+
+            document.getElementById(attribute + "AllId").innerHTML = prettyCountOutputHTML(attribute);
+
         })
 
-        let versionWeight = Number(document.getElementById("versionWeightId").value);
-        let linkWeight = document.getElementById("linkWeightId").value;
+        document.getElementById("maintenanceCostId").innerHTML = eco.cost;
+    }
 
-        let majorWeight = Number(document.getElementById("factorMajorUpdateId").value);
-        let minorWeight = Number(document.getElementById("factorMinorUpdateId").value);
-        let patchWeight = Number(document.getElementById("factorPatchUpdateId").value);
-        let cveWeight = Number(document.getElementById("factorCveUpdateId").value);
+    function prettyCountOutputHTML(attribute) {
 
-        document.getElementById("nodeId").innerHTML = ecosystem.component.count + " ( x " + ecosystem.component.weight + " )";
-        document.getElementById("edgeId").innerHTML = ecosystem.link.count + " ( x " + ecosystem.link.weight + " )";
-        document.getElementById("versionAllId").innerHTML = ecosystem.version_count;
-        document.getElementById("versionMajorId").innerHTML = ecosystem.version.major.count;
-        document.getElementById("versionMinorId").innerHTML = ecosystem.version.minor.count;
-        document.getElementById("versionPatchId").innerHTML = ecosystem.version.patch.count;
-        document.getElementById("versionCveId").innerHTML = ecosystem.version.cve.count;
-        document.getElementById("versionErrorId").innerHTML = ecosystem.version.error.count;
-        document.getElementById("maintenanceCostId").innerHTML = ecosystem.maintanence_cost;
+        const count = eco.attributeObjectList[attribute].count;
+        const factor = eco.attributeObjectList[attribute].factor;
+
+        const result = count * factor;
+
+        if (result === 0) {
+
+            document.getElementById(attribute + "RowId").style.backgroundColor = "#e5e5e5";
+            document.getElementById(attribute + "RowId").style.color = "#9e9e9e";
+
+        } else {
+
+            document.getElementById(attribute + "RowId").style.backgroundColor = "#ffffff";
+            document.getElementById(attribute + "RowId").style.color = "#000000";
+
+        }
+
+        return '<div>' + count + ' x ' + factor + ' = ' + result + '</div>';
     }
 
     function loadTableComponentData(component) {
 
-        if ((component !== undefined) && (ecosystem.components[component] !== undefined)) {
+        if ((component !== undefined) && (eco.components[component] !== undefined)) {
 
-            let versionWeight = Number(document.getElementById("versionWeightId").value);
+            eco.version.factor = Number(document.getElementById("versionWeightId").value);
             let linkWeight = document.getElementById("linkWeightId").value;
 
             let majorWeight = Number(document.getElementById("factorMajorUpdateId").value);
@@ -408,64 +424,145 @@
             let cveWeight = Number(document.getElementById("factorCveUpdateId").value);
 
             document.getElementById("componentTitleTableId").innerHTML = component;
-            document.getElementById("versionComponentCountId").innerHTML = ecosystem.components[component].count + " (x " + versionWeight + " weight)";
-            document.getElementById("linkComponentCountId").innerHTML = ecosystem.components[component].count_link + " (x " + linkWeight + " weight)";
+            document.getElementById("versionComponentCountId").innerHTML = eco.components[component].count + " (x " + eco.version.factor + " factor)";
+            document.getElementById("linkComponentCountId").innerHTML = eco.components[component].count_link + " (x " + linkWeight + " factor)";
 
-            document.getElementById("versionComponentMajorId").innerHTML = ecosystem.components[component].version.major.count + " (x " + majorWeight + " weight)";
-            document.getElementById("versionComponentMinorId").innerHTML = ecosystem.components[component].version.minor.count + " (x " + minorWeight + " weight)";
-            document.getElementById("versionComponentPatchId").innerHTML = ecosystem.components[component].version.patch.count + " (x " + patchWeight + " weight)";
-            document.getElementById("versionComponentCveId").innerHTML = ecosystem.components[component].version.cve.count + " (x " + cveWeight + " weight)";
+            document.getElementById("versionComponentMajorId").innerHTML = eco.components[component].version.major.count + " (x " + majorWeight + " factor)";
+            document.getElementById("versionComponentMinorId").innerHTML = eco.components[component].version.minor.count + " (x " + minorWeight + " factor)";
+            document.getElementById("versionComponentPatchId").innerHTML = eco.components[component].version.patch.count + " (x " + patchWeight + " factor)";
+            document.getElementById("versionComponentCveId").innerHTML = eco.components[component].version.cve.count + " (x " + cveWeight + " factor)";
 
-            document.getElementById("costComponentVersionId").innerHTML = ecosystem.components[component].cost_version;
-            document.getElementById("costComponentId").innerHTML = ecosystem.components[component].cost_component;
+            document.getElementById("costComponentVersionId").innerHTML = eco.components[component].cost_version;
+            document.getElementById("costComponentId").innerHTML = eco.components[component].cost_component;
         }
     }
 
-    function resetEcosystemModel() {
-        ecosystem = {
-            label: "",
-            components: {},
-            edges: {},
-            maintanence_cost: 0,
-            component: {
-                count: 0,
-                weight: 1
-            },
-            link: {
-                count: 0,
-                weight: 1
-            },
-            version_count: 0,
-            version: {
-                weight: 1,
-                major: {
-                    count: 0,
-                    color: "orange",
-                    weight: 1
-                },
-                minor: {
-                    count: 0,
-                    color: "green",
-                    weight: 1
-                },
-                patch: {
-                    count: 0,
-                    color: "gray",
-                    weight: 1
-                },
-                cve: {
-                    count: 0,
-                    color: "red",
-                    weight: 1
-                },
-                error: {
-                    count: 0,
-                    color: "red",
-                    weight: 1
+    function transformEcosystemInitialize(data) {
+
+        if (eco === null) {
+
+            eco = {
+                components: {},
+                edges: {}
+            }
+
+            eco['attributeArrayList'] = ['component', 'link', 'version', 'major', 'minor', 'patch', 'cve', 'invalid'];
+
+
+            // Initialize all attribute candidates
+            data.forEach(version => {
+
+                if (version.hasOwnProperty('versionPredictedComponentType')) {
+
+                    let categoryKey = version['versionPredictedComponentType'].toLowerCase();
+
+                    if (eco['attributeArrayList'].includes(categoryKey) === false) {
+
+                        eco['attributeArrayList'].push(categoryKey);
+
+                    }
+                }
+            });
+
+            // Initialize ecosystem attributes
+            if (eco.hasOwnProperty('attributeObjectList') === false) {
+
+                eco.attributeObjectList = {};
+
+                eco.attributeArrayList.forEach(attribute => {
+
+                    // Create ( on create )
+                    if (eco.attributeObjectList.hasOwnProperty(attribute) === false) {
+
+                        // Data 
+                        eco.attributeObjectList[attribute] = {};
+                        eco.attributeObjectList[attribute]['factor'] = 1;
+                        eco.attributeObjectList[attribute]['factorHtmlElementId'] = 'factor' + capitalizeFirstLetter(attribute) + 'Id';
+                        eco.attributeObjectList[attribute]['count'] = 0;
+
+                        // UI
+                        const sliderRow = createSliderRow(attribute);
+                        table.appendChild(sliderRow);
+
+                    }
+                });
+            }
+
+
+            // Initialize component attributes by versions
+            data.forEach(version => {
+
+                if (!isValidVersion(version)) {
+
+                    eco.attributeObjectList['invalid'].count++;
+                    return;
+                }
+
+                let releaseChannel = getChannelByVersion(version);
+
+                let component = version.versionProductName; // string name, not object
+
+                if (eco.components.hasOwnProperty(component) === false) {
+
+                    eco.components[component] = createComponentModel(version);
+                    eco.components[component].attributeObjectList = {};
+
+                    eco.attributeArrayList.forEach(attribute => {
+                        eco.components[component].attributeObjectList[attribute] = {};
+                        eco.components[component].attributeObjectList[attribute]['count'] = 0;
+                    })
+                }
+
+                eco.components[component].attributeObjectList[releaseChannel]['count']++;
+                eco.components[component].attributeObjectList['version']['count']++;
+                eco.components[component].attributeObjectList['component']['count'] = 1;
+
+                if (version.hasOwnProperty('versionPredictedComponentType')) {
+
+                    eco.components[component].versionPredictedComponentType = version['versionPredictedComponentType'].toLowerCase();
+
+                    eco.components[component].attributeObjectList[eco.components[component].versionPredictedComponentType]['count'] = 1;
+                }
+
+                if (eco.components[component].hasOwnProperty('tags') === false) {
+
+                    eco.components[component].tags = new Set();
+
+                }
+
+                version.versionSearchTags.forEach(tag => eco.components[component].tags.add(tag.trim().toLowerCase()));
+
+                eco.attributeObjectList[releaseChannel]['count'] += 1;
+                eco.attributeObjectList['version']['count'] += 1;
+                eco.attributeObjectList['component']['count'] = Object.keys(eco.components).length;
+
+                if (version.hasOwnProperty('versionPredictedComponentType')) {
+
+                    let categoryKey = version['versionPredictedComponentType'].toLowerCase();
+
+                    eco.attributeObjectList[categoryKey]['count'] += 1;
+                }
+            });
+
+        }
+
+        for (let componentA in eco.components) {
+            for (let componentB in eco.components) {
+
+                if (componentA === componentB) {
+                    continue;
+                }
+
+                let intersection = getIntersection(componentA, componentB);
+
+                if (intersection.length > 0) {
+                    createAndProcessEdge(componentA, componentB, intersection);
                 }
             }
         }
     }
+
+    // Utility functions
 
     function isValidVersion(version) {
         versionNumber = version.versionNumber.split(".");
@@ -494,66 +591,29 @@
         return version.versionChannel;
     }
 
-    function getCostByVersion(version) {
-        return Number(ecosystem.version[version.versionChannel].weight) + Number(ecosystem.version.weight);
-    }
-
     function createComponentModel(version) {
         let component = {
             id: version.versionProductName,
             label: version.versionProductName,
-            version_count: 0,
             color: "black",
             count: 1,
             x: 0,
             y: 0,
             size: 1,
-            cost_component: 0,
-            cost_version: 0,
-            count: 0,
-            tags: new Set(),
-            count_link: 0,
-            version: {
-                major: {
-                    count: 0
-                },
-                minor: {
-                    count: 0
-                },
-                patch: {
-                    count: 0
-                },
-                cve: {
-                    count: 0
-                },
-                error: {
-                    count: 0
-                }
-            }
+            cost: 0,
+            tags: new Set()
         }
         return component;
     }
 
-    function getUncertaintyImpact(score) {
-
-        if (isNaN(score) === true || score === 0) {
-            return "NO RESULT";
-        }
-
-        if (score < 0.5) {
-            return "INSIGNIFICANT";
-        } else if (score < 5) {
-            return "SIGNIFICANT";
-        } else {
-            return "SEVERE";
-        }
-    }
-
-    function getNormalizedCost() {
-        let min = 0;
-        let max = 200;
-        let x = ecosystem.maintanence_cost;
-        return (max - min) / (max - min) * (x - max) + max;
+    function createSliderRow(categoryKey) {
+        const row = document.createElement('tr');
+        row.id = categoryKey + "RowId";
+        row.innerHTML = `
+        <td>${capitalizeFirstLetter(categoryKey)}</td>
+        <td><input id="factor${capitalizeFirstLetter(categoryKey)}Id" type="range" value="1" onchange="extractData()" min="0" max="2"></td>
+        <td><span id="${categoryKey}AllId"></span></td>`;
+        return row;
     }
 
     function capitalizeFirstLetter(string) {
@@ -563,7 +623,7 @@
     <!-- absolute position -->
     <a target="_blank" href="https://github.com/antrunner/releasetrain-client" class="github-corner" aria-label="View source on GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#64CEAA; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
-            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>s
             <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
             <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
         </svg></a>
