@@ -241,7 +241,9 @@
 
                 if (versionRelevantAttributes.includes(attribute)) {
 
-                    eco.components[component].costLatestVersion += eco.components[component].attributeObjectList[attribute].count * eco.attributeObjectList[attribute].factor;
+                    let versionCount = eco.components[component].attributeObjectList[attribute].count > 0 ? 1 : 0;
+
+                    eco.components[component].costLatestVersion += versionCount * eco.attributeObjectList[attribute].factor;
 
                 }
             }
