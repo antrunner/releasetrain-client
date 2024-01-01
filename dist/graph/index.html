@@ -331,6 +331,12 @@
             r = g = b = value;
         }
 
+        if (eco.attributeObjectList['today'].factor === 2 && eco.components[component].attributeObjectList['today'].count > 0) {
+            r = 0;
+            g = 0;
+            b = 0;
+        }
+
         return `rgb(${r}, ${g}, ${b})`;
     }
 
@@ -486,7 +492,7 @@
                 edges: {}
             }
 
-            eco['attributeArrayList'] = ['component', 'link', 'version', 'major', 'minor', 'patch', 'cve', 'invalid'];
+            eco['attributeArrayList'] = ['component', 'link', 'version', 'major', 'minor', 'patch', 'cve', 'invalid', 'today'];
 
             // Initialize all attribute candidates
             data.forEach(version => {
@@ -574,6 +580,11 @@
                 eco.attributeObjectList['version']['count'] += 1;
                 eco.attributeObjectList['component']['count'] = Object.keys(eco.components).length;
 
+                if (isToday(version) === true) {
+                    eco.attributeObjectList['today']['count'] += 1;
+                    eco.components[component].attributeObjectList['today']['count'] += 1;
+                }
+
                 if (version.hasOwnProperty('versionPredictedComponentType')) {
 
                     let categoryKey = version['versionPredictedComponentType'].toLowerCase();
@@ -581,7 +592,6 @@
                     eco.attributeObjectList[categoryKey]['count'] += 1;
                 }
             });
-
         }
 
         for (let componentA in eco.components) {
@@ -601,6 +611,26 @@
     }
 
     // Utility functions
+
+    function isToday(version) {
+
+        var versionReleaseDate = version.versionReleaseDate;
+
+        // Parsing versionReleaseDate
+        var year = parseInt(versionReleaseDate.substring(0, 4));
+        var month = parseInt(versionReleaseDate.substring(4, 6)) - 1; // Month is 0-indexed in JavaScript
+        var day = parseInt(versionReleaseDate.substring(6, 8));
+        var releaseDate = new Date(year, month, day);
+
+        // Getting today's date
+        var today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate comparison
+
+        // Using ternary operator to check if the dates are the same
+        var isToday = releaseDate.getTime() === today.getTime() ? true : false;
+
+        return isToday;
+    }
 
     function isValidVersion(version) {
         versionNumber = version.versionNumber.split(".");
@@ -641,11 +671,18 @@
 
         let value = 1;
 
-        if (categoryKey === 'component' || categoryKey === 'link' || categoryKey === 'major' || categoryKey === 'minor' || categoryKey === 'patch' || categoryKey === 'cve' || categoryKey === 'invalid') {
+        if (categoryKey === 'link' || categoryKey === 'major' || categoryKey === 'minor' || categoryKey === 'patch' || categoryKey === 'cve' || categoryKey === 'invalid' || categoryKey === 'version') {
 
             value = 0;
 
         }
+
+        if (categoryKey === 'today') {
+
+            value = 2;
+
+        }
+
 
         row.id = categoryKey + "RowId";
         row.innerHTML = `
