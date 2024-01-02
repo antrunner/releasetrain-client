@@ -299,7 +299,7 @@
 
             // tech debt - fix in backend
             // console.log(parseInt(res[i].versionReleaseDate)) // 20210630
-            if (parseInt(res[i].versionReleaseDate.substr(0, 4)) > 2024) {
+            if (isNewerThanDayAfterTomorrow(res[i].versionReleaseDate)) {
                 continue;
             }
 
@@ -366,6 +366,8 @@
         pageNumParam++;
     }
 
+
+
     function onScroll() {
         if ($(window).scrollTop() == $(document).height() - $(window).height()) {
             getVersionList();
@@ -381,6 +383,21 @@
         } else if (!isNaN(releaseDate.getTime())) {
             return months[releaseDate.getMonth()] + '/' + releaseDate.getDate() + '/' + releaseDate.getFullYear();
         }
+    }
+
+    function isNewerThanDayAfterTomorrow(dateString) {
+        // Parse year, month, and day from the date string
+        const year = parseInt(dateString.substring(0, 4));
+        const month = parseInt(dateString.substring(4, 6)) - 1; // Month is 0-indexed in JS
+        const day = parseInt(dateString.substring(6, 8));
+
+        // Create date objects
+        const specificDate = new Date(year, month, day);
+        const today = new Date();
+        const dayAfterTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
+
+        // Compare dates
+        return specificDate > dayAfterTomorrow;
     }
 
     function isSameDate(d1, d2) {
