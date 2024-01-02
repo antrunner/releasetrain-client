@@ -200,14 +200,17 @@
     <script>
     console.log("start");
 
+    const URL_API_ENDPOINT = "https://releasetrain.io/api";
+    const URL_HOMEPAGE = "https://releasetrain.io";
+
     $('#mySelect2').select2({
         placeholder: "Select software versions...",
         data: [{ id: 1, text: 'Option1' }, { id: 2, text: 'Option2' }, { id: 3, text: 'Option3' }, { id: 4, text: 'Option4' }]
     });
 
-    const url = "https://releasetrain.io/api";
     const urlParams = new URLSearchParams(window.location.search);
-    const q = urlParams.get('q');
+    const q = urlParams.get('q') === null ? "" : urlParams.get('q');
+
     const versionChannel = {
         major: "major",
         minor: "minor",
@@ -218,7 +221,7 @@
 
     const table = document.getElementById('ecoTableId');
 
-    document.getElementById("ecoTitleTableId").innerHTML = q;
+    document.getElementById("ecoTitleTableId").innerHTML = q === "" ? "Last 50 updates" : q;
 
     let eco = null;
 
@@ -228,7 +231,7 @@
         console.log("extract");
 
         $.ajax({
-            url: url + "/v?q=" + encodeURIComponent(q), // Ensure query is URL encoded
+            url: URL_API_ENDPOINT + "/v?q=" + encodeURIComponent(q), // Ensure query is URL encoded
             type: 'GET',
             dataType: 'json',
             success: function(data) {
@@ -482,9 +485,7 @@
 
             var componentTitleElement = document.getElementById("componentTitleTableId");
 
-            var url = "https://releasetrain.io?q=" + component;
-
-            componentTitleElement.innerHTML = '<a href="' + url + '" target="_blank" style="font-size: 10pt">' + component + '</a>';
+            componentTitleElement.innerHTML = '<a href="' + URL_HOMEPAGE + "?q=" + component + '" target="_blank" style="font-size: 10pt">' + component + '</a>';
 
             // Clear dynamic rows, if any
             while (table.rows.length > startIndex) {
