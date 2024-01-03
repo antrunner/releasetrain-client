@@ -157,7 +157,7 @@
 <body>
     <section class="flex-container">
         <section id="containerLeftId" class="flex-left">
-            <select id="mySelect2" multiple="multiple" style="width: 100%"></select>
+            <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple"></select>
             <table id="ecoTableId" style="margin-top:5px">
                 <tr>
                     <th>Ecosystem:</th>
@@ -201,15 +201,73 @@
     console.log("start");
 
     const URL_API_ENDPOINT = "https://releasetrain.io/api";
+    // const URL_HOMEPAGE = "http://localhost:8080";
     const URL_HOMEPAGE = "https://releasetrain.io";
-
-    $('#mySelect2').select2({
-        placeholder: "Select software versions...",
-        data: [{ id: 1, text: 'Option1' }, { id: 2, text: 'Option2' }, { id: 3, text: 'Option3' }, { id: 4, text: 'Option4' }]
-    });
-
     const urlParams = new URLSearchParams(window.location.search);
     const q = urlParams.get('q') === null ? "" : urlParams.get('q');
+
+    let urlSelectOptions = URL_API_ENDPOINT + '/c/names';
+
+    let counterId = 0;
+
+    q.split(",").forEach(component => {
+        if (q === "") {
+            return;
+        }
+        let initialValue = { id: counterId, text: component };
+        let newOption = new Option(initialValue.text, initialValue.id, true, true);
+        $('#mySelect2').append(newOption).trigger('change');
+        counterId = counterId + 1;
+    })
+
+    $('#mySelect2').select2({
+        ajax: {
+            url: urlSelectOptions,
+            processResults: function(data) {
+                counterId = 1000;
+                let resultsArray = [];
+                data.forEach(version => {
+
+                    if (version.hasOwnProperty('versionProductName') === false) {
+                        return;
+                    }
+
+                    if (isFirstLetterAlphabetic(version.versionProductName) === false) {
+                        return;
+                    }
+
+                    resultsArray.push({ "id": counterId, "text": version.versionProductName })
+
+                    counterId = counterId + 1;
+                })
+
+                return {
+                    results: resultsArray
+                };
+            }
+        }
+    });
+
+    $('#mySelect2').on('change', function() {
+        var selectedTexts = $(this).find(':selected').map(function() {
+            return $(this).text();
+        }).get();
+
+        console.log(selectedTexts);
+
+        // Convert array of values to a string if multiple selection is enabled
+        var valuesAsString = selectedTexts.join(',');
+
+        // Define the URL to call
+        var urlToCall = URL_HOMEPAGE + '/graph?q=' + valuesAsString;
+
+        window.location.href = urlToCall;
+    });
+
+    function isFirstLetterAlphabetic(str) {
+        if (str.length === 0) return false; // Check if the string is empty
+        return /^[A-Za-z]/.test(str.charAt(0));
+    }
 
     const versionChannel = {
         major: "major",
