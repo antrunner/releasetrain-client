@@ -436,7 +436,9 @@
 
         document.getElementById('container').innerHTML = "";
 
-        let componentToRemove = [];
+        let maxValue = 0;
+        let maxNode = null;
+        let node = null
 
         for (let component in eco.components) {
             eco.components[component].t = 3 * Math.PI * counter / 100;
@@ -446,9 +448,22 @@
 
             eco.components[component].color = calculateRGB(eco, component);
 
-            target.nodes.push(eco.components[component]);
+            node = eco.components[component];
+
+            node.size = 1;
+
+            target.nodes.push(node);
+
+
+            if (node.cost > maxValue) {
+                maxValue = node.cost;
+                maxNode = node;
+            }
+
             counter = counter + 4;
         }
+
+        maxNode.size = maxNode.size * 4;
 
         for (let edge in eco.edges) {
 
@@ -469,11 +484,11 @@
             }
         });
 
+
+
         s.bind('clickNode', function(e) {
             let component = e.data.node.label.split(" ( ")[0];
             loadTableComponentData(component);
-            // let url = "https://releasetrain.io?q=" + e.data.node.label.split(",")[0];
-            // window.open(url, '_blank').focus();
         });
     }
 
