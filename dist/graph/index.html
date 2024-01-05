@@ -439,6 +439,7 @@
         let maxValue = 0;
         let maxNode = null;
         let node = null
+        var lightRed = 'rgb(255, 102, 102)';
 
         for (let component in eco.components) {
             eco.components[component].t = 3 * Math.PI * counter / 100;
@@ -463,8 +464,12 @@
             counter = counter + 4;
         }
 
-        maxNode.size = maxNode.size * 4;
-
+        target.nodes.forEach(node => {
+            if (node.cost === maxValue) {
+                node.color = lightRed; // Set the color to light red if the node cost equals maxValue
+            }
+        });
+        
         for (let edge in eco.edges) {
 
             target.edges.push(eco.edges[edge]);
