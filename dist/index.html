@@ -324,56 +324,55 @@
                     }
                 }
             }
-        }
 
-        // display version comments
-        if (versionReleaseComments.trim().length > 0) {
-            versionReleaseComments = "<span style='font-size:10pt'>" + versionReleaseComments + "</span>";
-        }
+            // display version comments
+            if (versionReleaseComments.trim().length > 0) {
+                versionReleaseComments = "<span style='font-size:10pt'>" + versionReleaseComments + "</span>";
+            }
 
-        // display version tags
-        if (isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
-            for (var j = 0; j < res[i].versionSearchTags.length; j++) {
-                if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
-                    versionSearchTags += "<span style='display: inline-block; color: #fff; font-size: 10pt; background-color: #ca4141;border-radius: 4px;padding: 2px; margin: 2px;'>" + res[i].versionSearchTags[j] + "</span>";
+            // display version tags
+            if (isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
+                for (var j = 0; j < res[i].versionSearchTags.length; j++) {
+                    if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
+                        versionSearchTags += "<span style='display: inline-block; color: #fff; font-size: 10pt; background-color: #ca4141;border-radius: 4px;padding: 2px; margin: 2px;'>" + res[i].versionSearchTags[j] + "</span>";
+                    }
+                }
+            } else {
+                for (var j = 0; j < res[i].versionSearchTags.length; j++) {
+                    if (res[i].versionSearchTags[j].trim() != "" &&
+                        res[i].versionSearchTags[j].trim() != "prod" &&
+                        res[i].versionSearchTags[j].trim() != "production" &&
+                        res[i].versionSearchTags[j].trim() != "bypass" &&
+                        res[i].versionSearchTags[j].toLowerCase() != res[i].versionProductName.toLowerCase()) {
+                        versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: #47863e;border-radius: 4px;padding: 2px 5px; margin: 1px 2px 1px 0px; display: inline-block;'>" + res[i].versionSearchTags[j] + "</span>";
+                    }
                 }
             }
+
+            versionSearchTags = versionSearchTags.trim().length > 0 ? versionSearchTags + "<br>" : "";
+
+            if (isSecurityPatch) {
+                // https://stackoverflow.com/questions/4758103/last-segment-of-url-in-jquery
+                var parts = versionLinkedUrl.split('/');
+                var cveId = parts.pop() || parts.pop();
+                versionReleaseComments = "<a style='color:#797777;font-size: 10pt;' href='" + versionLinkedUrl + "' target='_blank'>Security patch for Android for " + versionLinkedNote + " severity " + cveId + " (click)</a>";
+            }
+
+            $(".versionListClassSection").append('<li class="versionListClassSection-item">' + avatar + '<a target="_blank" href="' + versionReleaseNotes + '"><span>' + versionLabel + '</a><div style="padding: 2px 0px">' + versionSearchTags + versionReleaseComments + '<br><span style="color: #797777; font-size:10pt; font-weight:bold" class="rt-class-' + res[i].versionProductName.toLowerCase() + '"></span></div></li>');
+
+            // Render forecast class only once per components
+            if (displayComponents.indexOf(res[i].versionProductName) == -1) {
+                displayComponents.push(res[i].versionProductName);
+                // getVersionForecast(res[i].versionProductName.toLowerCase());
+            }
+        }
+
+        if (countToday > 0) {
+            document.title = "(" + countToday + ") releasetrain.io";
         } else {
-            for (var j = 0; j < res[i].versionSearchTags.length; j++) {
-                if (res[i].versionSearchTags[j].trim() != "" &&
-                    res[i].versionSearchTags[j].trim() != "prod" &&
-                    res[i].versionSearchTags[j].trim() != "production" &&
-                    res[i].versionSearchTags[j].trim() != "bypass" &&
-                    res[i].versionSearchTags[j].toLowerCase() != res[i].versionProductName.toLowerCase()) {
-                    versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: #47863e;border-radius: 4px;padding: 2px 5px; margin: 1px 2px 1px 0px; display: inline-block;'>" + res[i].versionSearchTags[j] + "</span>";
-                }
-            }
+            document.title = "releasetrain.io";
         }
-
-        versionSearchTags = versionSearchTags.trim().length > 0 ? versionSearchTags + "<br>" : "";
-
-        if (isSecurityPatch) {
-            // https://stackoverflow.com/questions/4758103/last-segment-of-url-in-jquery
-            var parts = versionLinkedUrl.split('/');
-            var cveId = parts.pop() || parts.pop();
-            versionReleaseComments = "<a style='color:#797777;font-size: 10pt;' href='" + versionLinkedUrl + "' target='_blank'>Security patch for Android for " + versionLinkedNote + " severity " + cveId + " (click)</a>";
-        }
-
-        $(".versionListClassSection").append('<li class="versionListClassSection-item">' + avatar + '<a target="_blank" href="' + versionReleaseNotes + '"><span>' + versionLabel + '</a><div style="padding: 2px 0px">' + versionSearchTags + versionReleaseComments + '<br><span style="color: #797777; font-size:10pt; font-weight:bold" class="rt-class-' + res[i].versionProductName.toLowerCase() + '"></span></div></li>');
-
-        // Render forecast class only once per components
-        if (displayComponents.indexOf(res[i].versionProductName) == -1) {
-            displayComponents.push(res[i].versionProductName);
-            // getVersionForecast(res[i].versionProductName.toLowerCase());
-        }
-    }
-
-    if (countToday > 0) {
-        document.title = "(" + countToday + ") releasetrain.io";
-    } else {
-        document.title = "releasetrain.io";
-    }
-    pageNumParam++;
+        pageNumParam++;
     }
 
 
