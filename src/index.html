@@ -248,9 +248,7 @@
         var displayComponents = [];
 
         for (var i = 0; i < res.length; i++) {
-
-            console.log(res[i]);
-
+            
             var avatar = res[i].versionProductType;
             var isSecurityPatch = res[i].versionReleaseChannel == "patch" ? true : false;
             var isCve = res[i].versionReleaseChannel == "cve" ? true : false;
@@ -318,6 +316,7 @@
                 const formattedDate = formatDate(res[i].versionReleaseDate);
                 if (formattedDate === null) {
                     console.warn(res[i]);
+                    continue;
                 } else {
                     if (formattedDate.toLowerCase() == "today") {
                         countToday++;
