@@ -312,8 +312,11 @@
                 currDate = res[i].versionReleaseDate;
             }
 
-            if (formatDate(res[i].versionReleaseDate).toLowerCase() == "today") {
-                countToday++;
+            if (res[i].versionReleaseDate) {
+                const formattedDate = formatDate(res[i].versionReleaseDate).toLowerCase();
+                if (formattedDate == "today") {
+                    countToday++;
+                }
             }
 
             // display version comments
