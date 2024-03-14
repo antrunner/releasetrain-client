@@ -1,7 +1,6 @@
-import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
+import plantuml from '../../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
 import versions from './versions.js';
 
-console.log(plantuml);
 let tree = {};
 
 function versionsToTree() {
