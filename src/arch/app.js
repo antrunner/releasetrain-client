@@ -24,6 +24,9 @@
         type: 'GET',
         dataType: 'json',
         success: function(data) {
+
+            // Everything that requires data must here
+
             if (!Array.isArray(data)) {
                 console.error("Data is not an array");
                 return;
