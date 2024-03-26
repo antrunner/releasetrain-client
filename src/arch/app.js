@@ -35,6 +35,14 @@ function getplantuml() {
         if (!addedOsComponents.has(osComponent)) { // Check if osComponent has not been added
             let plantUMLCode = '@startuml\n';
             plantUMLCode += `  package "${osComponent} ${index}" {\n`;
+
+             // Check if the versionReleaseChannel is cve, if so, set color to red
+            if (componentData.version.versionReleaseChannel === 'cve') {
+                plantUMLCode += '    skinparam class {\n';
+                plantUMLCode += '      BackgroundColor red\n';
+                plantUMLCode += '    }\n';
+            }
+
             plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
             plantUMLCode += `      version: ${componentData.version.versionNumber}\n`;
             plantUMLCode += '    }\n';
