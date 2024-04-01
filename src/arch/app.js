@@ -5,16 +5,9 @@ const URL_HOMEPAGE = "https://releasetrain.io";
 
 let versions = [];
 let tree = {};
-// let counterId = 0;
 
 const urlParams = new URLSearchParams(window.location.search);
 const q = urlParams.get('q') || "";
-
-// q.split(",").forEach((component, index) => {
-//     if (q === "") return;
-//     let initialValue = { id: counterId++, text: component };
-//     let newOption = new Option(initialValue.text, initialValue.id, true, true);
-// });
 
 $.ajax({
     url: `${URL_API_ENDPOINT}/v?q=${encodeURIComponent(q)}`,
