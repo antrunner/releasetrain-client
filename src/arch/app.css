@@ -3,3 +3,22 @@
     font-size: 30px;
     color: red;
 }
+
+.select2-container--default .select2-selection--multiple {
+    background-color: #f2f2f2;
+    border: 1px solid #d4d4d4;
+    border-radius: 4px;
+}
+
+.select2-dropdown {
+    background-color: #f9f9f9;
+    border: 1px solid #d4d4d4;
+}
+
+.select2-results__option {
+    color: #333;
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background-color: #e9e9e9;
+}
