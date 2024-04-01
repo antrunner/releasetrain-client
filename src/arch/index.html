@@ -12,68 +12,8 @@
     <link rel="stylesheet" type="text/css" href="./app.css">
 </head>
 <body>
-    <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple"></select>
+    <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple" style="width: 100%"></select>
     <h1>Architecture Generator</h1>
     <div id="plantuml-diagrams"></div>
-    <script type="text/javascript">
-        console.log("start index.html ....");
-        let urlSelectOptions = URL_API_ENDPOINT + '/c/names';
-
-        let counterId = 0;
-
-        q.split(",").forEach(component => {
-            if (q === "") {
-                return;
-            }
-            let initialValue = { id: counterId, text: component };
-            let newOption = new Option(initialValue.text, initialValue.id, true, true);
-            $('#mySelect2').append(newOption).trigger('change');
-            counterId = counterId + 1;
-        })
-
-        $('#mySelect2').select2({
-            ajax: {
-                url: urlSelectOptions,
-                processResults: function(data) {
-                    counterId = 1000;
-                    let resultsArray = [];
-                    data.forEach(version => {
-
-                        if (version.hasOwnProperty('versionProductName') === false) {
-                            return;
-                        }
-
-                        if (isFirstLetterAlphabetic(version.versionProductName) === false) {
-                            return;
-                        }
-
-                        resultsArray.push({ "id": counterId, "text": version.versionProductName })
-
-                        counterId = counterId + 1;
-                    })
-
-                    return {
-                        results: resultsArray
-                    };
-                }
-            }
-        });
-
-        $('#mySelect2').on('change', function() {
-            var selectedTexts = $(this).find(':selected').map(function() {
-                return $(this).text();
-            }).get();
-
-            console.log(selectedTexts);
-
-            // Convert array of values to a string if multiple selection is enabled
-            var valuesAsString = selectedTexts.join(',');
-
-            // Define the URL to call
-            var urlToCall = URL_HOMEPAGE + '/graph?q=' + valuesAsString;
-
-            window.location.href = urlToCall;
-        });
-    </script>
 </body>
 </html>
