@@ -109,9 +109,16 @@ function getplantuml() {
 
 function renderDiagrams(diagrams) {
     let container = document.getElementById('plantuml-diagrams');
-    diagrams.forEach((diagramData, index) => {
-        setTimeout(() => myRender(container, diagramData), 2000 * (index + 1));
-    });
+    if (diagrams.length === 0) {
+        let message = document.createElement('p');
+        message.textContent = 'No OS components found.';
+        message.classList.add('message');
+        container.appendChild(message);
+    } else {
+        diagrams.forEach((diagramData, index) => {
+            setTimeout(() => myRender(container, diagramData), 2000 * (index + 1));
+        });
+    }
 }
 
 function myRender(container, diagramData) {
