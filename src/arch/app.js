@@ -169,11 +169,14 @@ function getplantuml() {
 
 function renderDiagrams(diagrams) {
     let container = document.getElementById('plantuml-diagrams');
+    let loader = document.getElementById('loader');
+    loader.style.display = 'block';
     if (diagrams.length === 0) {
         let message = document.createElement('p');
         message.textContent = 'No OS components found.';
         message.classList.add('message');
         container.appendChild(message);
+        loader.style.display = 'none';
     } else {
         diagrams.forEach((diagramData, index) => {
             setTimeout(() => myRender(container, diagramData), 2000 * (index + 1));
@@ -197,6 +200,7 @@ function myRender(container, diagramData) {
             image.style.margin = '10px';
             image.style.cssFloat = 'left';
             diagramContainer.appendChild(image);
+            loader.style.display = 'none';
     }).catch((error) => {
         console.error('Error rendering PlantUML diagram:', error);
     });
