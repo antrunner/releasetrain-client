@@ -196,10 +196,8 @@ function myRender(container, diagramData) {
             let imageUrl = URL.createObjectURL(blob);
             image.src = imageUrl;
             image.alt = name;
-            image.style.width = '30%';
-            image.style.margin = '10px';
-            image.style.cssFloat = 'left';
             diagramContainer.appendChild(image);
+            image.classList.add('diagram-image');
             loader.style.display = 'none';
     }).catch((error) => {
         console.error('Error rendering PlantUML diagram:', error);
