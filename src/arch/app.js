@@ -10,9 +10,11 @@ const URL_HOMEPAGE = "https://releasetrain.io";
 // DEVELOPMENT
 const URL_API_ENDPOINT = "https://releasetrain.io/api";
 const urlSelectOptions = "https://releasetrain.io/api/c/names";
+const urlSelectOS = "https://releasetrain.io/api/c/os";
 const URL_HOMEPAGE = "http://localhost:8080/src";
 
 let versions = [];
+let osList = [];
 let tree = {};
 let counterId = 0;
 
@@ -28,6 +30,25 @@ $.ajax({
         console.error("Error fetching data:", textStatus, errorThrown);
     }
 });
+
+$.ajax({
+    url: `${urlSelectOS}`,
+    type: 'GET',
+    dataType: 'json',
+    success: handleOsData,
+    error: function(jqXHR, textStatus, errorThrown) {
+        console.error("Error fetching data:", textStatus, errorThrown);
+    }
+});
+
+function handleOsData(data) {
+    if (!Array.isArray(data)) {
+        console.error("Data is not an array");
+        return;
+    }
+    osList = data;
+    console.log('osList:', osList)
+}
 
 function handleData(data) {
     if (!Array.isArray(data)) {
@@ -108,11 +129,21 @@ q.split(",").forEach(component => {
 
 function versionsToTree() {
     versions.forEach(v => {
-        if (v.versionPredictedComponentType.toUpperCase() === "OS") {
+        if (v.hasOwnProperty("versionPredictedComponentType") && v.versionPredictedComponentType.toUpperCase() === "OS") {
             const osKey = `${v.versionProductName}@${v.versionNumber.replace(/\./g, ":")}`;
             if (!tree.hasOwnProperty(osKey)) {
                 tree[osKey] = { version: v };
             }
+        }
+        else {
+            osList.forEach(os => {
+                if (v.versionSearchTags.includes(os.toLowerCase())) {
+                    const osKey = `${os}@${os.replace(/\./g, ":")}`;
+                    if (!tree.hasOwnProperty(osKey)) {
+                        tree[osKey] = { version: os };
+                    }
+                }
+            });
         }
     });
     addLeafToTree();
@@ -121,7 +152,7 @@ function versionsToTree() {
 function addLeafToTree() {
     for (const osKey in tree) {
         versions.forEach(v => {
-            if (v.versionPredictedComponentType.toUpperCase() !== "OS") {
+            if (v.hasOwnProperty("versionPredictedComponentType") && v.versionPredictedComponentType.toUpperCase() !== "OS") {
                 const osComponent = osKey.split("@")[0].toLowerCase();
                 if (v.versionSearchTags.includes(osComponent)) {
                     tree[osKey][`${v.versionProductName}@${v.versionNumber.replace(/\./g, ":")}`] = { version: v };
