@@ -6,7 +6,8 @@
   "scripts": {
     "build": "grunt",
     "dev": " http-server .",
-    "prod": "npm run build && http-server dist"
+    "prod": "npm run build && http-server dist",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -21,11 +22,15 @@
   "author": "berhes",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.24.4",
+    "@babel/preset-env": "^7.24.4",
+    "babel-jest": "^29.7.0",
     "grunt": "^1.1.0",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-uglify-es": "^3.3.0",
     "grunt-minify-html": "^3.0.0",
-    "http-server": "^0.12.3"
+    "http-server": "^0.12.3",
+    "jest": "^29.7.0"
   },
   "dependencies": {
     "@sakirtemel/plantuml.js": "^1.0.1",
