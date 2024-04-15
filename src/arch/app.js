@@ -1,5 +1,6 @@
 import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
-
+import util from './util.js';
+console.log(util);
 // PRODUCTION
 /*
 const URL_API_ENDPOINT = "https://releasetrain.io/api";
@@ -83,7 +84,7 @@ $('#mySelect2').select2({
                     return;
                 }
 
-                if (isFirstLetterAlphabetic(version.versionProductName) === false) {
+                if (util.isFirstLetterAlphabetic(version.versionProductName) === false) {
                     return;
                 }
 
@@ -99,10 +100,10 @@ $('#mySelect2').select2({
     }
 });
 
-function isFirstLetterAlphabetic(str) {
-    if (str.length === 0) return false; // Check if the string is empty
-    return /^[A-Za-z]/.test(str.charAt(0));
-}
+// function isFirstLetterAlphabetic(str) {
+//     if (str.length === 0) return false; // Check if the string is empty
+//     return /^[A-Za-z]/.test(str.charAt(0));
+// }
 
 $('#mySelect2').on('change', function() {
     var selectedTexts = $(this).find(':selected').map(function() {
