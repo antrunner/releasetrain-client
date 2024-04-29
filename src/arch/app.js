@@ -186,7 +186,8 @@ function getplantuml() {
                 if (component !== 'version') {
                     plantUMLCode += `      class ${component} {\n`;
                     plantUMLCode += `        version: ${componentData[component].version.versionNumber}\n`;
-                    plantUMLCode += '       ... (other details)\n';
+                    plantUMLCode += `        date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
+                    // plantUMLCode += '       ... (other details)\n';
                     plantUMLCode += '      }\n';  
                 }
             });
@@ -235,3 +236,31 @@ function myRender(container, diagramData) {
         console.error('Error rendering PlantUML diagram:', error);
     });
 } 
+
+function formatDate(inputDate) {
+    // Convert inputDate from yyyymmdd to a Date object
+    const year = inputDate.slice(0, 4);
+    const month = inputDate.slice(4, 6) - 1; // Months are zero-based in Date objects
+    const day = inputDate.slice(6, 8);
+    const dateObj = new Date(year, month, day);
+
+    // Get current date
+    const currentDate = new Date();
+
+    // Calculate the difference in milliseconds between currentDate and inputDate
+    const timeDiff = currentDate.getTime() - dateObj.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    // If the difference is less than 7 days, return "Less than 7 days"
+    if (daysDiff < 10) {
+        return "Less than 7 days";
+    }
+
+    // Get year, month name, and day
+    const yearStr = dateObj.getFullYear();
+    const monthStr = new Intl.DateTimeFormat('en', { month: 'long' }).format(dateObj);
+    const dayStr = dateObj.getDate();
+
+    // Return the formatted date string
+    return `${monthStr} ${dayStr}, ${yearStr}`;
+}
