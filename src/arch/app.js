@@ -1,6 +1,6 @@
 import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
 import util from './util.js';
-console.log(util);
+// console.log(util);
 // PRODUCTION
 /*
 const URL_API_ENDPOINT = "https://releasetrain.io/api";
@@ -27,7 +27,7 @@ $.ajax({
     type: 'GET',
     dataType: 'json',
     success: handleData,
-    error: function(jqXHR, textStatus, errorThrown) {
+    error: function (jqXHR, textStatus, errorThrown) {
         console.error("Error fetching data:", textStatus, errorThrown);
     }
 });
@@ -37,7 +37,7 @@ $.ajax({
     type: 'GET',
     dataType: 'json',
     success: handleOsData,
-    error: function(jqXHR, textStatus, errorThrown) {
+    error: function (jqXHR, textStatus, errorThrown) {
         console.error("Error fetching data:", textStatus, errorThrown);
     }
 });
@@ -48,7 +48,7 @@ function handleOsData(data) {
         return;
     }
     osList = data;
-    console.log('osList:', osList)
+    // console.log('osList:', osList)
 }
 
 function handleData(data) {
@@ -56,15 +56,15 @@ function handleData(data) {
         console.error("Data is not an array");
         return;
     }
-    
+
     data.sort((a, b) => new Date(a.versionReleaseDate) - new Date(b.versionReleaseDate));
     versions.push(...data);
-    
+
     versionsToTree();
 
     plantuml.initialize('../app/node_modules/@sakirtemel/plantuml.js')
         .then(() => {
-            console.log('PlantUML initialized');
+            // console.log('PlantUML initialized');
             renderDiagrams(getplantuml());
         })
         .catch((error) => {
@@ -75,7 +75,7 @@ function handleData(data) {
 $('#mySelect2').select2({
     ajax: {
         url: urlSelectOptions,
-        processResults: function(data) {
+        processResults: function (data) {
             counterId = 1000;
             let resultsArray = [];
             data.forEach(version => {
@@ -105,18 +105,18 @@ $('#mySelect2').select2({
 //     return /^[A-Za-z]/.test(str.charAt(0));
 // }
 
-$('#mySelect2').on('change', function() {
-    var selectedTexts = $(this).find(':selected').map(function() {
+$('#mySelect2').on('change', function () {
+    var selectedTexts = $(this).find(':selected').map(function () {
         return $(this).text();
     }).get();
     var valuesAsString = selectedTexts.join(',');
     var urlToCall = URL_HOMEPAGE + '/arch?q=' + valuesAsString;
     window.location.href = urlToCall;
 });
-   
+
 q.split(",").forEach(component => {
 
-    console.log(q, component);
+    // console.log(q, component);
 
     if (q === "") {
         return;
@@ -171,6 +171,7 @@ function getplantuml() {
         if (!addedOsComponents.has(osComponent)) {
             let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
 
+            // OS Component Class
             if (componentData.version.versionReleaseChannel === 'cve') {
                 plantUMLCode += '    skinparam class {\n';
                 plantUMLCode += '      BackgroundColor #FFDDDD\n';
@@ -181,19 +182,25 @@ function getplantuml() {
             plantUMLCode += `      version: ${componentData.version.versionNumber}\n`;
             plantUMLCode += '    }\n';
 
+            // OS Sub-Component Package
             plantUMLCode += '    package Subcomponents {\n';
             Object.keys(componentData).forEach((component) => {
-                if (isRecent(componentData[component].version.versionReleaseDate)) {
-                    plantUMLCode += '    skinparam class {\n';
-                    plantUMLCode += '      BackgroundColor #7FFF00\n';
-                    plantUMLCode += '    }\n';
-                }
+
                 if (component !== 'version') {
+
+                    plantUMLCode += '    skinparam class {\n';
+                    if (isRecent(componentData[component].version.versionReleaseDate)) {
+                        plantUMLCode += '      BackgroundColor #7FFF00\n';
+                    } else {
+                        plantUMLCode += '      BackgroundColor transparnt\n';
+                    }
+                    plantUMLCode += '    }\n';
+
                     plantUMLCode += `      class ${component} {\n`;
                     plantUMLCode += `        version: ${componentData[component].version.versionNumber}\n`;
                     plantUMLCode += `        date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
                     // plantUMLCode += '       ... (other details)\n';
-                    plantUMLCode += '      }\n';  
+                    plantUMLCode += '      }\n';
                 }
             });
             plantUMLCode += '    }\n  }\n@enduml';
@@ -223,11 +230,11 @@ function renderDiagrams(diagrams) {
 }
 
 function myRender(container, diagramData) {
-    console.log('diagramData:', diagramData);
+    // console.log('diagramData:', diagramData);
     let { name, code } = diagramData;
     let diagramContainer = document.createElement('div');
-    diagramContainer.id = name; 
-    container.appendChild(diagramContainer); 
+    diagramContainer.id = name;
+    container.appendChild(diagramContainer);
     plantuml.renderPng(code)
         .then((blob) => {
             let image = document.createElement('img');
@@ -237,10 +244,10 @@ function myRender(container, diagramData) {
             diagramContainer.appendChild(image);
             image.classList.add('diagram-image');
             loader.style.display = 'none';
-    }).catch((error) => {
-        console.error('Error rendering PlantUML diagram:', error);
-    });
-} 
+        }).catch((error) => {
+            console.error('Error rendering PlantUML diagram:', error);
+        });
+}
 
 function formatDate(inputDate) {
     // Convert inputDate from yyyymmdd to a Date object
@@ -288,7 +295,7 @@ function isRecent(inputDate) {
     if (daysDiff < 7) {
         return true;
     }
-    else{
+    else {
         return false;
     }
 }
