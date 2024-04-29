@@ -173,7 +173,7 @@ function getplantuml() {
 
             if (componentData.version.versionReleaseChannel === 'cve') {
                 plantUMLCode += '    skinparam class {\n';
-                plantUMLCode += '      BackgroundColor red\n';
+                plantUMLCode += '      BackgroundColor #FFDDDD\n';
                 plantUMLCode += '    }\n';
             }
 
