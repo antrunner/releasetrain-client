@@ -183,6 +183,11 @@ function getplantuml() {
 
             plantUMLCode += '    package Subcomponents {\n';
             Object.keys(componentData).forEach((component) => {
+                if (isRecent(componentData[component].version.versionReleaseDate)) {
+                    plantUMLCode += '    skinparam class {\n';
+                    plantUMLCode += '      BackgroundColor #7FFF00\n';
+                    plantUMLCode += '    }\n';
+                }
                 if (component !== 'version') {
                     plantUMLCode += `      class ${component} {\n`;
                     plantUMLCode += `        version: ${componentData[component].version.versionNumber}\n`;
@@ -252,7 +257,7 @@ function formatDate(inputDate) {
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
     // If the difference is less than 7 days, return "Less than 7 days"
-    if (daysDiff < 10) {
+    if (daysDiff < 7) {
         return "Less than 7 days";
     }
 
@@ -263,4 +268,27 @@ function formatDate(inputDate) {
 
     // Return the formatted date string
     return `${monthStr} ${dayStr}, ${yearStr}`;
+}
+
+function isRecent(inputDate) {
+    // Convert inputDate from yyyymmdd to a Date object
+    const year = inputDate.slice(0, 4);
+    const month = inputDate.slice(4, 6) - 1; // Months are zero-based in Date objects
+    const day = inputDate.slice(6, 8);
+    const dateObj = new Date(year, month, day);
+
+    // Get current date
+    const currentDate = new Date();
+
+    // Calculate the difference in milliseconds between currentDate and inputDate
+    const timeDiff = currentDate.getTime() - dateObj.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    // If the difference is less than 7 days, return "Less than 7 days"
+    if (daysDiff < 7) {
+        return true;
+    }
+    else{
+        return false;
+    }
 }
