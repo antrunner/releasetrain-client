@@ -177,22 +177,20 @@ function getplantuml() {
 
             /***************************************************************************** */
 
-            // OS Component Class
-            if (componentData.version.versionReleaseChannel === 'cve') {
-                plantUMLCode += '    skinparam class {\n';
-                plantUMLCode += '      BackgroundColor #FFDDDD\n';
-                plantUMLCode += '    }\n';
-            }
-
             // OS Component Class Properties
             if (componentData.version.hasOwnProperty("versionNumber")) {
                 plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
+
+                if (componentData.version.versionReleaseChannel === 'cve') {
+                    plantUMLCode += `        Note: <b>Security Update</b>\n`;
+                }
+
                 if (isRecent(componentData.version.versionReleaseDate)) {
                     plantUMLCode += `        Date: <b>${formatDate(componentData.version.versionReleaseDate)}</b>\n`;
                 } else {
                     plantUMLCode += `        Date: ${formatDate(componentData.version.versionReleaseDate)}\n`;
                 }
-                plantUMLCode += `      Version: ${componentData.version.versionNumber}\n`;
+                plantUMLCode += `      Version: ${addMajorTag(componentData.version.versionNumber)}\n`;
                 plantUMLCode += '    }\n';
             }
 
