@@ -56,8 +56,11 @@ function handleData(data) {
         return;
     }
 
-    data.sort((a, b) => new Date(a.versionReleaseDate) - new Date(b.versionReleaseDate));
-    versions.push(...data);
+    const sortedData = sortByDate(data);
+
+    // sortedData.forEach(v => { console.log(v.versionReleaseDate) });
+
+    versions.push(...sortedData);
 
     versionsToTree();
 
@@ -317,4 +320,23 @@ function addMajorTag(version) {
         return version + ' <b>(major)</b>'; // It's a major version
     }
     return version;
+}
+
+function sortByDate(data) {
+    function compareDates(a, b) {
+        const getDateValue = (dateString) => {
+            if (!dateString) return Number.MAX_SAFE_INTEGER;
+            const [year, month, day] = [
+                dateString.substr(0, 4),
+                dateString.substr(4, 2),
+                dateString.substr(6, 2)
+            ];
+            return new Date(year, month - 1, day).getTime();
+        };
+        const dateA = getDateValue(a.versionReleaseDate);
+        const dateB = getDateValue(b.versionReleaseDate);
+        return dateB - dateA;
+    }
+
+    return data.sort((a, b) => compareDates(a, b));
 }
