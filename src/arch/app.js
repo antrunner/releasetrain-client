@@ -48,7 +48,6 @@ function handleOsData(data) {
         return;
     }
     osList = data;
-    // console.log('osList:', osList)
 }
 
 function handleData(data) {
@@ -64,7 +63,6 @@ function handleData(data) {
 
     plantuml.initialize('../app/node_modules/@sakirtemel/plantuml.js')
         .then(() => {
-            // console.log('PlantUML initialized');
             renderDiagrams(getplantuml());
         })
         .catch((error) => {
@@ -169,7 +167,8 @@ function getplantuml() {
 
     Object.entries(tree).forEach(([osComponent, componentData], index) => {
         if (!addedOsComponents.has(osComponent)) {
-            let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
+            // let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
+            let plantUMLCode = `@startuml\n  package "${osComponent}" {\n`;
 
             // OS Component Class
             if (componentData.version.versionReleaseChannel === 'cve') {
@@ -178,9 +177,11 @@ function getplantuml() {
                 plantUMLCode += '    }\n';
             }
 
-            plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
-            plantUMLCode += `      version: ${componentData.version.versionNumber}\n`;
-            plantUMLCode += '    }\n';
+            if (componentData.version.hasOwnProperty("versionNumber")) {
+                plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
+                plantUMLCode += `      version: ${componentData.version.versionNumber}\n`;
+                plantUMLCode += '    }\n';
+            }
 
             // OS Sub-Component Package
             plantUMLCode += '    package Subcomponents {\n';
@@ -188,12 +189,12 @@ function getplantuml() {
 
                 if (component !== 'version') {
                     plantUMLCode += `      class ${component} {\n`;
-                    plantUMLCode += `        version: ${componentData[component].version.versionNumber}\n`;
-                    
+                    plantUMLCode += `        Version: ${addMajorTag(componentData[component].version.versionNumber)}\n`;
+
                     if (isRecent(componentData[component].version.versionReleaseDate)) {
-                        plantUMLCode += `        date: <b>${formatDate(componentData[component].version.versionReleaseDate)}</b>\n`;
+                        plantUMLCode += `        Date: <b>${formatDate(componentData[component].version.versionReleaseDate)}</b>\n`;
                     } else {
-                        plantUMLCode += `        date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
+                        plantUMLCode += `        Date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
                     }
 
                     // plantUMLCode += '       ... (other details)\n';
@@ -298,4 +299,15 @@ function isRecent(inputDate) {
     else {
         return false;
     }
+}
+
+function addMajorTag(version) {
+    const parts = version.split('.');
+    if (parts.length === 1 || (parts.length === 2 && parts[1] === '0')) {
+        return version + ' <b>(major)</b>'; // It's a major version
+    }
+    if (parts.length === 3 && parseInt(parts[0]) > 0 && parseInt(parts[1]) === 0 && parseInt(parts[2]) === 0) {
+        return version + ' <b>(major)</b>'; // It's a major version
+    }
+    return version;
 }
