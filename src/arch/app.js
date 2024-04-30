@@ -137,7 +137,8 @@ function versionsToTree() {
         else {
             osList.forEach(os => {
                 if (v.versionSearchTags.includes(os.toLowerCase())) {
-                    const osKey = `${os}@${os.replace(/\./g, ":")}`;
+                    // const osKey = `${os}@${os.replace(/\./g, ":")}`;
+                    const osKey = `${os}`;
                     if (!tree.hasOwnProperty(osKey)) {
                         tree[osKey] = { version: os };
                     }
