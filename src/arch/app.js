@@ -180,7 +180,13 @@ function getplantuml() {
 
             if (componentData.version.hasOwnProperty("versionNumber")) {
                 plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
-                plantUMLCode += `      version: ${componentData.version.versionNumber}\n`;
+                plantUMLCode += `      Version: ${componentData.version.versionNumber}\n`;
+
+                if (isRecent(componentData.version.versionReleaseDate)) {
+                    plantUMLCode += `        Date: <b>${formatDate(componentData.version.versionReleaseDate)}</b>\n`;
+                } else {
+                    plantUMLCode += `        Date: ${formatDate(componentData.version.versionReleaseDate)}\n`;
+                }
                 plantUMLCode += '    }\n';
             }
 
