@@ -170,9 +170,12 @@ function getplantuml() {
     const addedOsComponents = new Set();
 
     Object.entries(tree).forEach(([osComponent, componentData], index) => {
+
         if (!addedOsComponents.has(osComponent)) {
             // let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
             let plantUMLCode = `@startuml\n  package "${osComponent}" {\n`;
+
+            /***************************************************************************** */
 
             // OS Component Class
             if (componentData.version.versionReleaseChannel === 'cve') {
@@ -181,31 +184,35 @@ function getplantuml() {
                 plantUMLCode += '    }\n';
             }
 
+            // OS Component Class Properties
             if (componentData.version.hasOwnProperty("versionNumber")) {
                 plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
-                plantUMLCode += `      Version: ${componentData.version.versionNumber}\n`;
-
                 if (isRecent(componentData.version.versionReleaseDate)) {
                     plantUMLCode += `        Date: <b>${formatDate(componentData.version.versionReleaseDate)}</b>\n`;
                 } else {
                     plantUMLCode += `        Date: ${formatDate(componentData.version.versionReleaseDate)}\n`;
                 }
+                plantUMLCode += `      Version: ${componentData.version.versionNumber}\n`;
                 plantUMLCode += '    }\n';
             }
 
+            /***************************************************************************** */
+
             // OS Sub-Component Package
             plantUMLCode += '    package Subcomponents {\n';
+
             Object.keys(componentData).forEach((component) => {
 
                 if (component !== 'version') {
                     plantUMLCode += `      class ${component} {\n`;
-                    plantUMLCode += `        Version: ${addMajorTag(componentData[component].version.versionNumber)}\n`;
 
                     if (isRecent(componentData[component].version.versionReleaseDate)) {
                         plantUMLCode += `        Date: <b>${formatDate(componentData[component].version.versionReleaseDate)}</b>\n`;
                     } else {
                         plantUMLCode += `        Date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
                     }
+
+                    plantUMLCode += `        Version: ${addMajorTag(componentData[component].version.versionNumber)}\n`;
 
                     // plantUMLCode += '       ... (other details)\n';
                     plantUMLCode += '      }\n';
@@ -215,6 +222,9 @@ function getplantuml() {
 
                 }
             });
+
+            /***************************************************************************** */
+
             plantUMLCode += '    }\n  }\n@enduml';
             diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
             addedOsComponents.add(osComponent);
