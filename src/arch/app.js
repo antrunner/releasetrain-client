@@ -189,22 +189,22 @@ function getplantuml() {
                 if (component !== 'version') {
                     plantUMLCode += `      class ${component} {\n`;
                     plantUMLCode += `        version: ${componentData[component].version.versionNumber}\n`;
-                    plantUMLCode += `        date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
+                    
+                    if (isRecent(componentData[component].version.versionReleaseDate)) {
+                        plantUMLCode += `        date: <b>${formatDate(componentData[component].version.versionReleaseDate)}</b>\n`;
+                    } else {
+                        plantUMLCode += `        date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
+                    }
+
                     // plantUMLCode += '       ... (other details)\n';
                     plantUMLCode += '      }\n';
 
                     plantUMLCode += '    skinparam class {\n';
-                    if (isRecent(componentData[component].version.versionReleaseDate)) {
-                        plantUMLCode += `      backgroundColor ${component} #7FFF00\n`;
-                    } else {
-                        // plantUMLCode += `      backgroundColor ${component} transparnt\n`;
-                    }
                     plantUMLCode += '    }\n';
 
                 }
             });
             plantUMLCode += '    }\n  }\n@enduml';
-
             diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
             addedOsComponents.add(osComponent);
         }
