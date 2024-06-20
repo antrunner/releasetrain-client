@@ -131,11 +131,12 @@
 
     function getVersionList() {
         $.ajax({
-            url: url + "/v?pageNumParam=" + pageNumParam + "&q=" + componentNameParam,
+            url: url + "/component?pageNumParam=" + pageNumParam + "&q=" + componentNameParam,
             type: 'GET',
             dataType: 'json',
             success: function(res) {
-                renderVersionList(res);
+                console.log(res);
+                renderVersionList(res['q']);
             }
         });
     }
