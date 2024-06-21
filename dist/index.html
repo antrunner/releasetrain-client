@@ -331,7 +331,9 @@
                 versionReleaseComments = "<a style='color:#797777;font-size: 10pt;' href='" + versionLinkedUrl + "' target='_blank'>Security patch for Android for " + versionLinkedNote + " severity " + cveId + " (click)</a>";
             }
 
-            $(".versionListClassSection").append('<li class="versionListClassSection-item">' + avatar + '<a target="_blank" href="' + versionReleaseNotes + '"><span>' + versionLabel + '</a><div style="padding: 2px 0px">' + versionSearchTags + versionReleaseComments + '<br><span style="color: #797777; font-size:10pt; font-weight:bold" class="rt-class-' + res[i].versionProductName.toLowerCase() + '"></span></div></li>');
+            let url = res[i].versionUrl || versionReleaseNotes;
+
+            $(".versionListClassSection").append('<li class="versionListClassSection-item">' + avatar + '<a target="_blank" href="' + url + '"><span>' + versionLabel + '</a><div style="padding: 2px 0px">' + versionSearchTags + versionReleaseComments + '<br><span style="color: #797777; font-size:10pt; font-weight:bold" class="rt-class-' + res[i].versionProductName.toLowerCase() + '"></span></div></li>');
 
             // Render forecast class only once per components
             if (displayComponents.indexOf(res[i].versionProductName) == -1) {
