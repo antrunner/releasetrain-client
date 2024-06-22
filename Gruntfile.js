@@ -30,6 +30,7 @@ module.exports = function(grunt) {
                     'dist/graph/index.html': 'src/graph/index.html',
                     'dist/index.html': 'src/index.html',
                     'dist/arch/index.html': 'src/arch/index.html',
+                    'dist/api/index.html': 'src/api/index.html',
                     'dist/research/index.html': 'src/research/index.html',
                     'dist/reset.css': 'src/reset.css'
                 }
@@ -51,7 +52,8 @@ module.exports = function(grunt) {
                     { expand: true, cwd: 'src/arch', src: ['./*'], dest: 'dist/arch', filter: 'isFile' },
                     { expand: true, cwd: 'src/img', src: ['./*'], dest: 'dist/img', filter: 'isFile' },
                     { expand: true, cwd: 'src/lib', src: ['./*'], dest: 'dist/lib', filter: 'isFile' },
-                    { expand: true, cwd: 'src/research', src: ['./*'], dest: 'dist/research', filter: 'isFile' }
+                    { expand: true, cwd: 'src/research', src: ['./*'], dest: 'dist/research', filter: 'isFile' },
+                    { expand: true, cwd: 'src/api', src: ['./*'], dest: 'dist/api', filter: 'isFile' }
                 ],
             },
         }
