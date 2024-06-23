@@ -29,7 +29,7 @@ module.exports = function(grunt) {
                     'dist/edi40-2023/index.html': 'src/edi40-2023/index.html',
                     'dist/graph/index.html': 'src/graph/index.html',
                     'dist/index.html': 'src/index.html',
-                    'dist/arch/index.html': 'src/arch/index.html',
+                    'dist/doc/index.html': 'src/doc/index.html',
                     'dist/api/index.html': 'src/api/index.html',
                     'dist/research/index.html': 'src/research/index.html',
                     'dist/reset.css': 'src/reset.css'
@@ -41,19 +41,19 @@ module.exports = function(grunt) {
                 files: [
                     { expand: true, cwd: 'src', src: ['./*'], dest: 'dist', filter: 'isFile' },
                     { expand: true, cwd: 'src/ack', src: ['./*'], dest: 'dist/ack', filter: 'isFile' },
+                    { expand: true, cwd: 'src/api', src: ['./*'], dest: 'dist/api', filter: 'isFile' },
+                    { expand: true, cwd: 'src/arch', src: ['./*'], dest: 'dist/arch', filter: 'isFile' },
                     { expand: true, cwd: 'src/common', src: ['./*'], dest: 'dist/common', filter: 'isFile' },
                     { expand: true, cwd: 'src/conference', src: ['./*'], dest: 'dist/conference', filter: 'isFile' },
                     { expand: true, cwd: 'src/developer', src: ['./*'], dest: 'dist/developer', filter: 'isFile' },
-                    { expand: true, cwd: 'src/docs/paper/edi40_2020', src: ['./*'], dest: 'dist/docs/paper/edi40_2020', filter: 'isFile' },
+                    { expand: true, cwd: 'src/doc', src: ['./*'], dest: 'dist/doc', filter: 'isFile' },
                     { expand: true, cwd: 'src/edi40', src: ['./*'], dest: 'dist/edi40', filter: 'isFile' },
                     { expand: true, cwd: 'src/edi40-2023/data', src: ['./*'], dest: 'dist/edi40-2023/data', filter: 'isFile' },
                     { expand: true, cwd: 'src/edi40/2024', src: ['./*'], dest: 'dist/edi40/2024', filter: 'isFile' },
                     { expand: true, cwd: 'src/graph', src: ['./*'], dest: 'dist/graph', filter: 'isFile' },
-                    { expand: true, cwd: 'src/arch', src: ['./*'], dest: 'dist/arch', filter: 'isFile' },
                     { expand: true, cwd: 'src/img', src: ['./*'], dest: 'dist/img', filter: 'isFile' },
                     { expand: true, cwd: 'src/lib', src: ['./*'], dest: 'dist/lib', filter: 'isFile' },
                     { expand: true, cwd: 'src/research', src: ['./*'], dest: 'dist/research', filter: 'isFile' },
-                    { expand: true, cwd: 'src/api', src: ['./*'], dest: 'dist/api', filter: 'isFile' }
                 ],
             },
         }
