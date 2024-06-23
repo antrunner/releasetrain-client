@@ -73,11 +73,11 @@
                 <h3>Get Component by Name and Version</h3>
                 <p><strong>GET /api/c/name/:componentName/:versionNumber?</strong></p>
                 <p>Gets a component by its name and optional version number.</p>
-                <pre><code>curl http://localhost:3000/api/c/name/android/Lollipop.0.0</code></pre>
+                <pre><code>curl releasetrain.io/api/c/name/android/Lollipop.0.0</code></pre>
                 <h4>Python Example</h4>
                 <pre><code>import requests
 
-url = 'http://localhost:3000/api/c/name/android/Lollipop.0.0'
+url = 'releasetrain.io/api/c/name/android/Lollipop.0.0'
 response = requests.get(url)
 if response.status_code == 200:
     print(response.json())
