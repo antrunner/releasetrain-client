@@ -36,17 +36,13 @@ module.exports = function(grunt) {
         copy: {
             dist: {
                 files: [
-                    { expand: true, cwd: 'src/ack/', src: ['index.html'], dest: 'dist/ack/' },
-                    { expand: true, cwd: 'src/', src: ['app.css'], dest: 'dist/' },
-                    { expand: true, cwd: 'src/common/', src: ['github.html', 'navigation.html'], dest: 'dist/common/' },
-                    { expand: true, cwd: 'src/edi40/', src: ['index.html'], dest: 'dist/edi40/' },
-                    { expand: true, cwd: 'src/edi40/2024/', src: ['index.html'], dest: 'dist/edi40/2024/' },
-                    { expand: true, cwd: 'src/edi40-2023/', src: ['index.html'], dest: 'dist/edi40-2023/' },
-                    { expand: true, cwd: 'src/graph/', src: ['index.html'], dest: 'dist/graph/' },
-                    { expand: true, cwd: 'src/', src: ['index.html'], dest: 'dist/' },
-                    { expand: true, cwd: 'src/doc/', src: ['index.html'], dest: 'dist/doc/' },
-                    { expand: true, cwd: 'src/research/', src: ['index.html'], dest: 'dist/research/' },
-                    { expand: true, cwd: 'src/', src: ['reset.css'], dest: 'dist/' }
+                    {
+                        expand: true,      // Enable dynamic expansion
+                        cwd: 'src/',       // Src matches are relative to this path
+                        src: ['**'],       // Pattern to match all files and subfolders
+                        dest: 'dist/',     // Destination path prefix
+                        dot: true          // Include hidden files
+                    }
                 ]
             }
         }
