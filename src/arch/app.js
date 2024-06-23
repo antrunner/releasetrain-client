@@ -1,6 +1,6 @@
 // import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
 
-const plantuml = require('@sakirtemel/plantuml.js');
+import plantuml from '@sakirtemel/plantuml.js';
 import util from './util.js';
 
 // PRODUCTION
