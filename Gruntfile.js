@@ -41,7 +41,7 @@ module.exports = function(grunt) {
                         cwd: 'src/',       // Src matches are relative to this path
                         src: ['**'],       // Pattern to match all files and subfolders
                         dest: 'dist/',     // Destination path prefix
-                        dot: true          // Include hidden files
+                        dot: false          // Include hidden files
                     }
                 ]
             }
@@ -50,7 +50,7 @@ module.exports = function(grunt) {
 
     // Load the plugin that provides the "uglify" task.
     // grunt.loadNpmTasks('grunt-contrib-uglify-es');
-    grunt.loadNpmTasks('grunt-minify-html');
+    // grunt.loadNpmTasks('grunt-minify-html');
     grunt.loadNpmTasks('grunt-contrib-copy');
 
     // Default task(s).
