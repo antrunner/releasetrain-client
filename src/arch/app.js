@@ -1,6 +1,11 @@
-// import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
+import { plantuml } from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
 
-import plantuml from '@sakirtemel/plantuml.js';
+// Usage
+plantuml.initialize().then(() => {
+    console.log("PlantUML has been initialized.");
+    // Additional code to use PlantUML functionalities
+});
+
 import util from './util.js';
 
 // PRODUCTION
