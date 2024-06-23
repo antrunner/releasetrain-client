@@ -134,7 +134,6 @@
             type: 'GET',
             dataType: 'json',
             success: function(res) {
-                console.log(res);
                 renderVersionList(res);
             }
         });
@@ -254,7 +253,6 @@
             if (res[i].versionReleaseDate) {
                 formattedDate = formatDate(res[i].versionReleaseDate);
                 if (formattedDate === null) {
-                    console.warn(`Warning: Failed to format date for record at index ${i}, versionReleaseDate:`, res[i].versionReleaseDate);
                     continue;
                 }
             }
@@ -279,7 +277,6 @@
             avatar = getAvatarHtml(res[i].versionProductName, isCve, isSecurityPatch, avatar);
 
             // tech debt - fix in backend
-            // console.log(parseInt(res[i].versionReleaseDate)) // 20210630
             if (isNewerThanDayAfterTomorrow(res[i].versionReleaseDate)) {
                 continue;
             }
