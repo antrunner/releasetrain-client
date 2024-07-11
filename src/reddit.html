@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Request and Display</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Version Information</h1>
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Number of Updates</th>
+                <th>Reddit Posts Count</th>
+                <th>Reddit with Version</th>
+                <th>Reddit with Version Match</th>
+                <th>Reddit Average Sentiment</th>
+                <th>Predicted Component Type</th>
+                <th>Predicted Component Type (Reddit)</th>
+                <th>Reddit URLs</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        function getQueryParameter(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function fetchData(components) {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = ''; // Clear any existing rows
+
+            components.forEach(component => {
+                if (!component || typeof component !== 'string') {
+                    console.error('Invalid component:', component);
+                    return;
+                }
+
+                const url = `https://releasetrain.io/api/c/name/${component.trim()}`;
+                fetch(url)
+                    .then(response => response.json())
+                    .then(dataArray => {
+                        if (!dataArray || !dataArray[component]) {
+                            console.error('No data found for component:', component);
+                            return;
+                        }
+
+                        let totalUpdates = dataArray[component].length;
+                        let totalRedditPosts = new Set();
+                        let redditWithVersion = 0;
+                        let redditWithVersionUnmatched = 0;
+                        let redditWithMajorVersionMatch = 0;
+                        let redditWithMinorVersionMatch = 0;
+                        let redditWithPatchVersionMatch = 0;
+                        let predictedComponentTypes = {};
+                        let predictedComponentTypesReddit = {};
+                        let redditUrls = new Set();
+
+                        let redditUpvote = 0;
+                        let redditUpvoteCount = 0;
+
+                        let securityTrueCount = 0;
+                        let securityFalseCount = 0;
+                        let breakingTrueCount = 0;
+                        let breakingFalseCount = 0;
+
+                        dataArray[component].forEach(data => {
+                            const redditPosts = data.user_post_reddit || {};
+
+                            if (data.versionPredictedComponentType && data.versionPredictedComponentType.trim() !== '') {
+                                const type = data.versionPredictedComponentType;
+                                if (predictedComponentTypes[type]) {
+                                    predictedComponentTypes[type]++;
+                                } else {
+                                    predictedComponentTypes[type] = 1;
+                                }
+                            }
+
+                            if (data.versionPredictedComponentTypeReddit && data.versionPredictedComponentTypeReddit.trim() !== '') {
+                                const typeReddit = data.versionPredictedComponentTypeReddit;
+                                if (predictedComponentTypesReddit[typeReddit]) {
+                                    predictedComponentTypesReddit[typeReddit]++;
+                                } else {
+                                    predictedComponentTypesReddit[typeReddit] = 1;
+                                }
+                            }
+
+                            Object.values(redditPosts).forEach(post => {
+
+                                post.versionList = post.versionList || [];
+                                post.upvote_ratio = post.upvote_ratio || 0;
+
+                                if (!totalRedditPosts.has(post.post_id)) {
+
+                                    redditWithVersion += post.versionList.length;
+                                    totalRedditPosts.add(post.post_id);
+                                    redditUrls.add(post.url);
+
+                                    redditUpvote += Number(post.upvote_ratio);
+                                    redditUpvoteCount++;
+
+                                    if (data.versionNumber) {
+
+                                        const versionParts = data.versionNumber.split('.');
+                                        const majorVersion = versionParts[0];
+                                        const minorVersion = `${versionParts[0]}.${versionParts[1]}`;
+                                        const patchVersion = data.versionNumber;
+
+                                        let isVersionMatch = false;
+
+                                        post.versionList.forEach(version => {
+                                            if (version.startsWith(majorVersion)) {
+                                                redditWithMajorVersionMatch++;
+                                                isVersionMatch = true;
+                                                if (version.startsWith(minorVersion)) {
+                                                    redditWithMinorVersionMatch++;
+                                                    if (version === patchVersion) {
+                                                        redditWithPatchVersionMatch++;
+                                                    }
+                                                }
+                                            }
+
+                                            if (isVersionMatch === false) {
+                                                redditWithVersionUnmatched++;
+                                            }
+
+                                        });
+                                    }
+                                }
+                            });
+
+                            if (data.isSecurity === true) {
+                                securityTrueCount++;
+                            } else {
+                                securityFalseCount++;
+                            }
+
+                            if (data.isBreaking === true) {
+                                breakingTrueCount++;
+                            } else {
+                                breakingFalseCount++;
+                            }
+                        });
+
+                        const redditUrlsLinks = Array.from(redditUrls).map(url => `<a href="${url}" target="_blank">${url}</a>`).join('<br>');
+
+                        const predictedComponentTypesHTML = Object.entries(predictedComponentTypes)
+                            .map(([key, value]) => `<div>${key}: ${value}</div>`)
+                            .join('');
+
+                        const predictedComponentTypesRedditHTML = Object.entries(predictedComponentTypesReddit)
+                            .map(([key, value]) => `<div>${key}: ${value}</div>`)
+                            .join('');
+
+                        const row = `
+                            <tr>
+                                <td>${component}</td>
+                                <td>${totalUpdates}</td>
+                                <td>${totalRedditPosts.size}</td>
+                                <td>${redditWithVersion}</td>
+                                <td>
+                                    major.x.x: ${redditWithMajorVersionMatch} <br>
+                                    major.minor.x: ${redditWithMinorVersionMatch} <br>
+                                    major.minor.patch: ${redditWithPatchVersionMatch} <br>
+                                    unmatched: ${redditWithVersionUnmatched}
+                                </td>
+                                <td>${redditUpvote} (of ${redditUpvoteCount})</td>
+                                <td>${predictedComponentTypesHTML}</td>
+                                <td>
+                                    ${predictedComponentTypesRedditHTML} <br>
+                                    Security (True): ${securityTrueCount}, Security (False): ${securityFalseCount} <br>
+                                    Breaking (True): ${breakingTrueCount}, Breaking (False): ${breakingFalseCount}
+                                </td>
+                                <td><!--${redditUrlsLinks}--></td>
+                            </tr>
+                        `;
+
+                        tableBody.innerHTML += row;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data for component', component, ':', error);
+                    });
+            });
+        }
+
+        function fetchDefaultComponents() {
+            const url = 'https://releasetrain.io/api/c/os';
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || !Array.isArray(data)) {
+                        console.error('Invalid data received for default components:', data);
+                        return;
+                    }
+                    const components = [...new Set(data.filter(name => typeof name === 'string' && name.trim().length > 0).map(name => name.toLowerCase()))].sort();
+                    fetchData(components);
+                })
+                .catch(error => {
+                    console.error('Error fetching default components:', error);
+                });
+        }
+
+        const componentsParam = getQueryParameter('q');
+        if (componentsParam) {
+            const components = componentsParam.split(',').filter(name => typeof name === 'string' && name.trim().length > 0).map(name => name.toLowerCase()).sort();
+            fetchData(components);
+        } else {
+            fetchDefaultComponents();
+        }
+    </script>
+</body>
+
+</html>

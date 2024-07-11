@@ -1,4 +1,5 @@
 import { plantuml } from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
+// import plantuml from '@sakirtemel/plantuml.js';
 
 // Usage
 plantuml.initialize().then(() => {
@@ -12,7 +13,7 @@ import util from './util.js';
 // const URL_HOMEPAGE = "https://releasetrain.io";
 
 // DEVELOPMENT
-// const URL_HOMEPAGE = "http://localhost:8080/src";
+const URL_HOMEPAGE = "http://localhost:8080/src";
 
 // COMMON
 const URL_API_ENDPOINT = "https://releasetrain.io/api";
