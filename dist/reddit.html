@@ -88,6 +88,7 @@
                 <th>Reddit Post Upvote</th>
                 <th>Predicted Component Type <br> (Release Note)</th>
                 <th>Predicted Component Type <br> (Reddit Post)</th>
+                <th>Average Summary Word Count <br> (Release Notes / Reddit)</th>
             </tr>
         </thead>
         <tbody>
@@ -145,6 +146,10 @@
                         let latestReleaseDate = null;
                         let postTitles = [];
 
+                        let totalReleaseNoteWords = 0;
+                        let totalRedditTitleWords = 0;
+                        let releaseNoteCount = 0;
+
                         dataArray[component].forEach(data => {
                             const redditPosts = data.user_post_reddit || {};
 
@@ -178,6 +183,9 @@
                                 }
                             }
 
+                            totalReleaseNoteWords += data.versionSummary.split(' ').length;
+                            releaseNoteCount++;
+
                             Object.values(redditPosts).forEach(post => {
 
                                 post.versionList = post.versionList || [];
@@ -190,6 +198,8 @@
                                     totalRedditPosts.add(post.post_id);
                                     redditUrls.add(post.url);
                                     postTitles.push(post.title);
+
+                                    totalRedditTitleWords += post.title.split(' ').length;
 
                                     redditUpvote += Number(post.upvote_ratio);
                                     redditUpvoteCount++;
@@ -260,6 +270,9 @@
                         const earliestDateStr = earliestRedditPost ? earliestRedditPost.toISOString() : 'N/A';
                         const latestDateStr = latestRedditPost ? latestRedditPost.toISOString() : 'N/A';
 
+                        const averageReleaseNoteWords = (totalReleaseNoteWords / releaseNoteCount).toFixed(2);
+                        const averageRedditTitleWords = (totalRedditTitleWords / totalRedditPosts.size).toFixed(2);
+
                         const row = `
                             <tr>
                                 <td>${component}</td>
@@ -279,6 +292,7 @@
                                     Security (True): ${securityTrueCount}, Security (False): ${securityFalseCount} <br>
                                     Breaking (True): ${breakingTrueCount}, Breaking (False): ${breakingFalseCount}
                                 </td>
+                                <td>${averageReleaseNoteWords} / ${averageRedditTitleWords}</td>
                             </tr>
                             <tr>
                                 <td colspan="9">
