@@ -6,38 +6,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Request and Display</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            font-size: 9pt;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: auto;
+            word-wrap: break-word;
         }
 
         th,
         td {
-            border: 1px solid black;
-            padding: 8px;
+            border: 1px solid #ddd;
+            padding: 12px;
             text-align: left;
+            white-space: nowrap;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #f4f4f4;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        td {
+            background-color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .collapsible {
+            cursor: pointer;
+            text-align: left;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .content {
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+            background-color: #f9f9f9;
         }
     </style>
 </head>
 
 <body>
-    <h1>Version Information</h1>
+    <h1>Component Data Overview</h1>
     <table id="data-table">
         <thead>
             <tr>
                 <th>Component</th>
-                <th>Number of Updates</th>
-                <th>Reddit Posts Count</th>
+                <th>Release Note Count <br> (Earliest - Latest)</th>
+                <th>Reddit Post Count <br> (Earliest - Latest)</th>
                 <th>Reddit with Version</th>
                 <th>Reddit with Version Match</th>
-                <th>Reddit Average Sentiment</th>
-                <th>Predicted Component Type</th>
-                <th>Predicted Component Type (Reddit)</th>
-                <th>Reddit URLs</th>
+                <th>Reddit Post Upvote</th>
+                <th>Predicted Component Type <br> (Release Note)</th>
+                <th>Predicted Component Type <br> (Reddit Post)</th>
             </tr>
         </thead>
         <tbody>
@@ -89,8 +139,16 @@
                         let breakingTrueCount = 0;
                         let breakingFalseCount = 0;
 
+                        let earliestRedditPost = null;
+                        let latestRedditPost = null;
+                        let earliestReleaseDate = null;
+                        let latestReleaseDate = null;
+                        let postTitles = [];
+
                         dataArray[component].forEach(data => {
                             const redditPosts = data.user_post_reddit || {};
+
+                            data.versionReleaseDate = data.versionReleaseDate ? new Date(data.versionReleaseDate.slice(0, 4) + '-' + data.versionReleaseDate.slice(4, 6) + '-' + data.versionReleaseDate.slice(6, 8)) : 0;
 
                             if (data.versionPredictedComponentType && data.versionPredictedComponentType.trim() !== '') {
                                 const type = data.versionPredictedComponentType;
@@ -110,16 +168,28 @@
                                 }
                             }
 
+                            if (data.versionReleaseDate) {
+                                const releaseDate = new Date(data.versionReleaseDate);
+                                if (!earliestReleaseDate || releaseDate < earliestReleaseDate) {
+                                    earliestReleaseDate = releaseDate;
+                                }
+                                if (!latestReleaseDate || releaseDate > latestReleaseDate) {
+                                    latestReleaseDate = releaseDate;
+                                }
+                            }
+
                             Object.values(redditPosts).forEach(post => {
 
                                 post.versionList = post.versionList || [];
                                 post.upvote_ratio = post.upvote_ratio || 0;
+                                post.created_utc = post.created_utc || 0;
 
                                 if (!totalRedditPosts.has(post.post_id)) {
 
                                     redditWithVersion += post.versionList.length;
                                     totalRedditPosts.add(post.post_id);
                                     redditUrls.add(post.url);
+                                    postTitles.push(post.title);
 
                                     redditUpvote += Number(post.upvote_ratio);
                                     redditUpvoteCount++;
@@ -151,6 +221,14 @@
 
                                         });
                                     }
+
+                                    const postDate = new Date(post.created_utc); // Convert to milliseconds
+                                    if (!earliestRedditPost || postDate < earliestRedditPost) {
+                                        earliestRedditPost = postDate;
+                                    }
+                                    if (!latestRedditPost || postDate > latestRedditPost) {
+                                        latestRedditPost = postDate;
+                                    }
                                 }
                             });
 
@@ -177,11 +255,16 @@
                             .map(([key, value]) => `<div>${key}: ${value}</div>`)
                             .join('');
 
+                        const earliestReleaseDateStr = earliestReleaseDate ? earliestReleaseDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
+                        const latestReleaseDateStr = latestReleaseDate ? latestReleaseDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
+                        const earliestDateStr = earliestRedditPost ? earliestRedditPost.toISOString() : 'N/A';
+                        const latestDateStr = latestRedditPost ? latestRedditPost.toISOString() : 'N/A';
+
                         const row = `
                             <tr>
                                 <td>${component}</td>
-                                <td>${totalUpdates}</td>
-                                <td>${totalRedditPosts.size}</td>
+                                <td><b>${totalUpdates}</b><br><small>(${earliestReleaseDateStr} - ${latestReleaseDateStr})</small></td>
+                                <td><b>${totalRedditPosts.size}</b><br><small>(${earliestRedditPost.toLocaleString('en-US', { month: 'short', year: 'numeric' })} - ${latestRedditPost.toLocaleString('en-US', { month: 'short', year: 'numeric' })})</small></td>
                                 <td>${redditWithVersion}</td>
                                 <td>
                                     major.x.x: ${redditWithMajorVersionMatch} <br>
@@ -189,18 +272,34 @@
                                     major.minor.patch: ${redditWithPatchVersionMatch} <br>
                                     unmatched: ${redditWithVersionUnmatched}
                                 </td>
-                                <td>${redditUpvote} (of ${redditUpvoteCount})</td>
+                                <td>${Math.floor(redditUpvote)} (of ${redditUpvoteCount})</td>
                                 <td>${predictedComponentTypesHTML}</td>
                                 <td>
                                     ${predictedComponentTypesRedditHTML} <br>
                                     Security (True): ${securityTrueCount}, Security (False): ${securityFalseCount} <br>
                                     Breaking (True): ${breakingTrueCount}, Breaking (False): ${breakingFalseCount}
                                 </td>
-                                <td><!--${redditUrlsLinks}--></td>
+                            </tr>
+                            <tr>
+                                <td colspan="9">
+                                    <button class="collapsible">View Post Titles</button>
+                                    <div class="content">
+                                        ${postTitles.map(title => `<p>${title}</p>`).join('')}
+                                    </div>
+                                </td>
                             </tr>
                         `;
 
                         tableBody.innerHTML += row;
+
+                        // Add event listener for collapsible buttons
+                        document.querySelectorAll('.collapsible').forEach(button => {
+                            button.addEventListener('click', function () {
+                                this.classList.toggle('active');
+                                const content = this.nextElementSibling;
+                                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+                            });
+                        });
                     })
                     .catch(error => {
                         console.error('Error fetching data for component', component, ':', error);
