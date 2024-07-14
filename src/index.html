@@ -269,13 +269,12 @@
                 }
 
                 if (res[i].hasOwnProperty("user_post_reddit")) {
-                    versionLabel += " &rarr; + Reddit Post";
 
                     // Pick the first object from the user_post_reddit list
                     const firstRedditPost = Object.values(res[i].user_post_reddit)[0];
 
                     if (firstRedditPost) {
-                        versionLabel += `<br>Recent Reddit Post: <a href="${firstRedditPost.url}" target="_blank">${firstRedditPost.title}</a> by ${firstRedditPost.author} on ${new Date(firstRedditPost.created_utc).toLocaleString()}`;
+                        versionLabel += `<div style="font-size: 10pt;"><img src="https://www.iconpacks.net/icons/2/free-reddit-logo-icon-2436-thumb.png" alt="Reddit Logo" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"> <a href="${firstRedditPost.url}" target="_blank" style="font-size: 10pt;">${firstRedditPost.title.length > 50 ? firstRedditPost.title.substring(0, 50) + '...' : firstRedditPost.title}</a> by ${firstRedditPost.author} on ${new Date(firstRedditPost.created_utc).toLocaleString()}</div>`;
                     }
                 }
 
