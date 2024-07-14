@@ -268,9 +268,15 @@
                     versionLabel += " &rarr; " + res[i].versionPredictedComponentType;
                 }
 
-                // let hasRedditPost = res[i]['user_post_reddit'] ? true : false;
                 if (res[i].hasOwnProperty("user_post_reddit")) {
                     versionLabel += " &rarr; + Reddit Post";
+
+                    // Pick the first object from the user_post_reddit list
+                    const firstRedditPost = Object.values(res[i].user_post_reddit)[0];
+
+                    if (firstRedditPost) {
+                        versionLabel += `<br>Recent Reddit Post: <a href="${firstRedditPost.url}" target="_blank">${firstRedditPost.title}</a> by ${firstRedditPost.author} on ${new Date(firstRedditPost.created_utc).toLocaleString()}`;
+                    }
                 }
 
                 var versionReleaseNotes = res[i].versionReleaseNotes;
