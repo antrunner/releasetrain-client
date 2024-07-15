@@ -128,7 +128,7 @@
                 <th>Reddit Post Count</th>
                 <th>Reddit Version</th>
                 <th>Reddit Version Match</th>
-                <th>Reddit Post Upvote</th>
+                <th>Reddit Post Upvote / Comment</th>
                 <th>Predicted Component<br> (Release Note)</th>
                 <th>Predicted Component<br> (Reddit Post)</th>
                 <th>Average Word Count <br> (Release Notes / Reddit)</th>
@@ -181,6 +181,8 @@
 
                         let redditUpvote = 0;
                         let redditUpvoteCount = 0;
+
+                        let redditCommentCount = 0;
 
                         let earliestRedditPost = null;
                         let latestRedditPost = null;
@@ -249,7 +251,8 @@
                                         isSecurity: post.isSecurity,
                                         isBreaking: post.isBreaking,
                                         componentType: data.versionPredictedComponentTypeReddit,
-                                        url: post.url
+                                        url: post.url,
+                                        numComments: post.num_comments
                                     });
 
                                     totalRedditTitleWords += post.title.split(' ').length;
@@ -286,6 +289,7 @@
                                     }
 
                                     const postDate = new Date(post.created_utc); // Convert to milliseconds
+
                                     if (!earliestRedditPost || postDate < earliestRedditPost) {
                                         earliestRedditPost = postDate;
                                     }
@@ -319,16 +323,28 @@
                             });
                         });
 
+                        redditCommentCount = postTitles.reduce((count, post) => count + ( post.numComments || 0), 0);
+
                         const redditUrlsLinks = Array.from(redditUrls).map(url => `<a href="${url}" target="_blank">${url}</a>`).join('<br>');
 
-                        const predictedComponentTypesHTML =
+                        const totalComponentCount = Object.values(predictedComponentTypes).reduce((sum, count) => sum + count, 0);
 
-                            Object.entries(predictedComponentTypes)
-                                .map(([key, value]) => `<div>${key}: ${value}</div>`)
-                                .join('');
+                        const predictedComponentTypesHTML = Object.entries(predictedComponentTypes)
+                            .sort(([, a], [, b]) => b - a)
+                            .map(([key, value]) => {
+                                const percentage = ((value / totalComponentCount) * 100).toFixed(2);
+                                return `<div>${key}: ${value} (${percentage}%)</div>`;
+                            })
+                            .join('');
+
+                        const totalCount = Object.values(predictedComponentTypesReddit).reduce((sum, count) => sum + count, 0);
 
                         const predictedComponentTypesRedditHTML = Object.entries(predictedComponentTypesReddit)
-                            .map(([key, value]) => `<div>${key}: ${value}</div>`)
+                            .sort(([, a], [, b]) => b - a)
+                            .map(([key, value]) => {
+                                const percentage = ((value / totalCount) * 100).toFixed(2);
+                                return `<div>${key}: ${value} (${percentage}%)</div>`;
+                            })
                             .join('');
 
                         const earliestReleaseDateStr = earliestReleaseDate ? earliestReleaseDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
@@ -351,7 +367,10 @@
                                     major.minor.patch: ${redditWithPatchVersionMatch} <br>
                                     unmatched: ${redditWithVersionUnmatched}
                                 </td>
-                                <td>${Math.floor(redditUpvote)} (of ${redditUpvoteCount})</td>
+                                <td>
+                                    ${Math.floor(redditUpvote)} (of ${redditUpvoteCount}) <br>
+                                    Number of Comments: ${redditCommentCount}
+                                </td>
                                 <td>${predictedComponentTypesHTML}</td>
                                 <td>
                                     ${predictedComponentTypesRedditHTML} <br>
@@ -393,7 +412,7 @@
                                     const versionPattern = /\b(?:v)?(\d+(?:\.\d+){0,2})\b/gi;
                                     const highlightedTitle = post.title.replace(versionPattern, '<span class="highlight">$&</span>');
 
-                                    return `<p>${tags} ${highlightedTitle} <a href="${post.url}" target="_blank">Open Link</a></p>`;
+                                    return `<p>${tags} ${highlightedTitle} <a href="${post.url}" target="_blank">Open Link</a> <span>(${post.numComments} comments)</span></p>`;
                                 }).join('')}
                                     </div>
                                 </td>
