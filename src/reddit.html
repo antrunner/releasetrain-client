@@ -430,7 +430,15 @@
                     })
                     .then(() => {
 
-                        const topCriticalUpdates = criticalUpdates.slice(0, 1);
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                        const filteredPosts = criticalUpdates.filter(post => {
+                            const postDate = new Date(post.date);
+                            return postDate >= thirtyDaysAgo;
+                        });
+
+                        const topCriticalUpdates = filteredPosts.slice(0, 1);
 
                         const criticalUpdatesList = document.querySelector('#critical-updates');
 
