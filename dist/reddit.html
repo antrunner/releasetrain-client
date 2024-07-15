@@ -248,7 +248,8 @@
                                         title: post.title,
                                         isSecurity: post.isSecurity,
                                         isBreaking: post.isBreaking,
-                                        componentType: data.versionPredictedComponentTypeReddit
+                                        componentType: data.versionPredictedComponentTypeReddit,
+                                        url: post.url
                                     });
 
                                     totalRedditTitleWords += post.title.split(' ').length;
@@ -363,7 +364,7 @@
                                 <td colspan="9">
                                     <button class="collapsible">View Post Titles</button>
                                     <div class="content">
-                                ${postTitles
+                                    ${postTitles
                                 .sort((a, b) => {
                                     if (a.isSecurity && !b.isSecurity) {
                                         return -1;
@@ -392,7 +393,7 @@
                                     const versionPattern = /\b(?:v)?(\d+(?:\.\d+){0,2})\b/gi;
                                     const highlightedTitle = post.title.replace(versionPattern, '<span class="highlight">$&</span>');
 
-                                    return `<p>${tags} ${highlightedTitle}</p>`;
+                                    return `<p>${tags} ${highlightedTitle} <a href="${post.url}" target="_blank">Open Link</a></p>`;
                                 }).join('')}
                                     </div>
                                 </td>
