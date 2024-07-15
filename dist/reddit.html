@@ -84,6 +84,29 @@
         .yellow {
             background-color: #ffffcc;
         }
+
+        .tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 5px;
+            display: inline-block;
+        }
+
+        .security {
+            background-color: #ffcccc;
+            color: #cc0000;
+        }
+
+        .breaking {
+            background-color: #ffffcc;
+            color: #cccc00;
+        }
+
+        .highlight {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -159,11 +182,6 @@
                         let redditUpvote = 0;
                         let redditUpvoteCount = 0;
 
-                        let securityTrueCount = 0;
-                        let securityFalseCount = 0;
-                        let breakingTrueCount = 0;
-                        let breakingFalseCount = 0;
-
                         let earliestRedditPost = null;
                         let latestRedditPost = null;
                         let earliestReleaseDate = null;
@@ -174,12 +192,12 @@
                         let totalRedditTitleWords = 0;
                         let releaseNoteCount = 0;
 
-                        dataArray[component].forEach(data => {
+                        securityTrueCount = 0;
+                        securityFalseCount = 0;
+                        breakingTrueCount = 0;
+                        breakingFalseCount = 0;
 
-                            securityTrueCount = data.securityRedditPostCount || 0;
-                            securityFalseCount = data.nonSecurityRedditPostCount || 0;
-                            breakingTrueCount = data.breakingRedditPostCount || 0;
-                            breakingFalseCount = data.nonBreakingRedditPostCount || 0;
+                        dataArray[component].forEach(data => {
 
                             const redditPosts = data.user_post_reddit || {};
 
@@ -194,12 +212,9 @@
                                 }
                             }
 
-                            if (data.versionPredictedComponentTypeReddit && data.versionPredictedComponentTypeReddit.trim() !== '') {
-                                const typeReddit = data.versionPredictedComponentTypeReddit;
-                                if (predictedComponentTypesReddit[typeReddit]) {
-                                    predictedComponentTypesReddit[typeReddit]++;
-                                } else {
-                                    predictedComponentTypesReddit[typeReddit] = 1;
+                            if (data.predictedRedditComponent) {
+                                for (const [typeReddit, count] of Object.entries(data.predictedRedditComponent)) {
+                                    predictedComponentTypesReddit[typeReddit] = count;
                                 }
                             }
 
@@ -277,8 +292,15 @@
                                         latestRedditPost = postDate;
                                     }
 
-                                    if (data.isSecurity && (new Date() - postDate) / (1000 * 60 * 60 * 24) <= 10 && seenUrls.has(post.url) === false) {
+                                    if (data.isSecurity && seenUrls.has(post.url) === false) {
+
                                         seenUrls.add(post.url);
+
+                                        securityTrueCount = post.isSecurity === true ? securityTrueCount + 1 : securityTrueCount;
+                                        breakingTrueCount = post.isBreaking === true ? breakingTrueCount + 1 : breakingTrueCount;
+
+                                        securityFalseCount = post.isSecurity === false ? securityFalseCount + 1 : securityFalseCount;
+                                        breakingFalseCount = post.isBreaking === false ? breakingFalseCount + 1 : breakingFalseCount;
 
                                         criticalUpdates.push({
                                             component: component,
@@ -294,12 +316,6 @@
                                     }
                                 }
                             });
-
-                            if (data.isBreaking === true) {
-                                breakingTrueCount++;
-                            } else {
-                                breakingFalseCount++;
-                            }
                         });
 
                         const redditUrlsLinks = Array.from(redditUrls).map(url => `<a href="${url}" target="_blank">${url}</a>`).join('<br>');
@@ -347,17 +363,37 @@
                                 <td colspan="9">
                                     <button class="collapsible">View Post Titles</button>
                                     <div class="content">
-                                        ${postTitles.map(post => {
-                            let colorClass = '';
-                            if (post.isSecurity && post.componentType === 'OS') {
-                                colorClass = 'red';
-                            } else if (post.isSecurity && post.componentType !== 'OS') {
-                                colorClass = 'orange';
-                            } else if (post.isBreaking) {
-                                colorClass = 'yellow';
-                            }
-                            return `<p class="${colorClass}">${post.title}</p>`;
-                        }).join('')}
+                                ${postTitles
+                                .sort((a, b) => {
+                                    if (a.isSecurity && !b.isSecurity) {
+                                        return -1;
+                                    }
+                                    if (!a.isSecurity && b.isSecurity) {
+                                        return 1;
+                                    }
+                                    if (a.isBreaking && !b.isBreaking) {
+                                        return -1;
+                                    }
+                                    if (!a.isBreaking && b.isBreaking) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                })
+                                .map(post => {
+                                    let tags = '';
+                                    if (post.isSecurity) {
+                                        tags += '<span class="tag security">Security</span>';
+                                    }
+                                    if (post.isBreaking) {
+                                        tags += '<span class="tag breaking">Breaking</span>';
+                                    }
+
+                                    // Highlight version numbers
+                                    const versionPattern = /\b(?:v)?(\d+(?:\.\d+){0,2})\b/gi;
+                                    const highlightedTitle = post.title.replace(versionPattern, '<span class="highlight">$&</span>');
+
+                                    return `<p>${tags} ${highlightedTitle}</p>`;
+                                }).join('')}
                                     </div>
                                 </td>
                             </tr>
@@ -376,38 +412,23 @@
 
                         // Sort and display the top 5 critical updates
                         criticalUpdates.sort((a, b) => {
-
-                            // Highest priority
-                            if ((a.componentType === "OS" && b.componentType !== "OS") && (Number(a.securityPostCount) >= Number(b.securityPostCount))) {
+                            if (a.isSecurity && !b.isSecurity) {
                                 return -1;
                             }
-
-                            // Sort by predictedComponentType, prioritizing "OS"
-                            if ((a.componentType === "OS" && b.componentType !== "OS")) {
-                                return -1;
-                            } else if (a.componentType !== "OS" && b.componentType === "OS") {
+                            if (!a.isSecurity && b.isSecurity) {
                                 return 1;
                             }
-
-                            // Sort by security
-                            if (Number(a.securityPostCount) >= Number(b.securityPostCount)) {
+                            if (a.isBreaking && !b.isBreaking) {
                                 return -1;
-                            } else {
+                            }
+                            if (!a.isBreaking && b.isBreaking) {
                                 return 1;
                             }
-
-                            // Sort by date
-                            const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
-                            if (dateComparison !== 0) {
-                                return dateComparison;
-                            }
-
-                            return 0; // If all criteria are equal
+                            return 0;
                         });
                     })
                     .then(() => {
 
-                        // const topCriticalUpdates = criticalUpdates.filter(a => a.componentType === 'OS').slice(0, 3);
                         const topCriticalUpdates = criticalUpdates.slice(0, 1);
 
                         const criticalUpdatesList = document.querySelector('#critical-updates');
@@ -417,12 +438,27 @@
                                 existingTitles.add(update.title);
 
                                 const listItem = document.createElement('li');
+
+                                const currentDate = new Date();
+                                const postDate = new Date(update.date);
+                                const timeDifference = currentDate - postDate;
+                                const daysAgo = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+                                let dateLabel;
+                                if (daysAgo === 0) {
+                                    dateLabel = 'today';
+                                } else {
+                                    dateLabel = `${daysAgo} days ago`;
+                                }
+
+                                const dateFormatted = postDate.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
                                 listItem.innerHTML = `
-                            <b>Component:</b> ${update.component.toUpperCase()} <br>
-                            <b>Date:</b> ${update.date.toLocaleString('en-US', { month: 'short', year: 'numeric' })} <br>
-                            <b>Title:</b> <a href="${update.url}" target="_blank">${update.title}</a> <br>
-                            <b>Type:</b> ${update.isSecurity ? 'Security' : update.isBreaking ? 'Breaking' : 'Other'}
-                        `;
+                                <b>Component:</b> ${update.component.toUpperCase()} <br>
+                                <b>Date:</b> ${dateFormatted} (${dateLabel}) <br>
+                                <b>Title:</b> <a href="${update.url}" target="_blank">${update.title}</a> <br>
+                                <b>Type:</b> ${update.isSecurity ? 'Security' : update.isBreaking ? 'Breaking' : 'Other'}
+                                `;
                                 criticalUpdatesList.appendChild(listItem);
                             }
                         });
