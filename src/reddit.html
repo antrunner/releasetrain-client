@@ -143,6 +143,7 @@
         const criticalUpdates = [];
         const seenUrls = new Set();
         const existingTitles = new Set();
+        const versionPattern = /\b(?:v)?(\d+)(?:\.(\d+))?(?:\.(\d+))?\b/g;
 
         function getQueryParameter(param) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -194,6 +195,10 @@
                         let totalRedditTitleWords = 0;
                         let releaseNoteCount = 0;
 
+                        let unmatchedMajorCount = 0;
+                        let unmatchedMinorCount = 0;
+                        let unmatchedPatchCount = 0;
+
                         securityTrueCount = 0;
                         securityFalseCount = 0;
                         breakingTrueCount = 0;
@@ -235,7 +240,60 @@
                                 releaseNoteCount++;
                             }
 
+                            unmatchedMajorCount = 0;
+                            unmatchedMinorCount = 0;
+                            unmatchedPatchCount = 0;
+
                             Object.values(redditPosts).forEach(post => {
+
+                                const matches = post.title.matchAll(versionPattern);
+                                post.versionList = [];
+
+                                for (const match of matches) {
+                                    const majorVersion = match[1];
+                                    const minorVersion = match[2];
+                                    const patchVersion = match[3];
+
+                                    if (!majorVersion) continue; // No valid version found
+
+                                    let versionString = majorVersion;
+                                    if (minorVersion) {
+                                        versionString += `.${minorVersion}`;
+                                    }
+                                    if (patchVersion) {
+                                        versionString += `.${patchVersion}`;
+                                    }
+
+                                    post.versionList.push(versionString);
+
+                                    let isVersionMatch = false;
+
+                                    // Logic to check if the version matches with the data.versionNumber (to be defined as per your logic)
+                                    if (data.versionNumber) {
+                                        const dataVersionParts = data.versionNumber.split('.');
+                                        if (majorVersion === dataVersionParts[0]) {
+                                            if (minorVersion === dataVersionParts[1]) {
+                                                if (patchVersion === dataVersionParts[2]) {
+                                                    isVersionMatch = true;
+                                                } else if (!patchVersion) {
+                                                    isVersionMatch = true;
+                                                }
+                                            } else if (!minorVersion) {
+                                                isVersionMatch = true;
+                                            }
+                                        }
+                                    }
+
+                                    if (!isVersionMatch) {
+                                        if (!minorVersion && !patchVersion) {
+                                            unmatchedMajorCount++;
+                                        } else if (!patchVersion) {
+                                            unmatchedMinorCount++;
+                                        } else {
+                                            unmatchedPatchCount++;
+                                        }
+                                    }
+                                }
 
                                 post.versionList = post.versionList || [];
                                 post.upvote_ratio = post.upvote_ratio || 0;
@@ -252,7 +310,8 @@
                                         isBreaking: post.isBreaking,
                                         componentType: data.versionPredictedComponentTypeReddit,
                                         url: post.url,
-                                        numComments: post.num_comments
+                                        numComments: post.num_comments,
+                                        created_utc: post.created_utc
                                     });
 
                                     totalRedditTitleWords += post.title.split(' ').length;
@@ -323,7 +382,7 @@
                             });
                         });
 
-                        redditCommentCount = postTitles.reduce((count, post) => count + ( post.numComments || 0), 0);
+                        redditCommentCount = postTitles.reduce((count, post) => count + (post.numComments || 0), 0);
 
                         const redditUrlsLinks = Array.from(redditUrls).map(url => `<a href="${url}" target="_blank">${url}</a>`).join('<br>');
 
@@ -355,6 +414,13 @@
                         const averageReleaseNoteWords = (totalReleaseNoteWords / releaseNoteCount).toFixed(2);
                         const averageRedditTitleWords = (totalRedditTitleWords / totalRedditPosts.size).toFixed(2);
 
+                        const totalVersionedRedditPosts = redditWithMajorVersionMatch + redditWithMinorVersionMatch + redditWithPatchVersionMatch + redditWithVersionUnmatched;
+
+                        const percentageMajor = totalVersionedRedditPosts ? ((redditWithMajorVersionMatch / totalVersionedRedditPosts) * 100).toFixed(2) : '0.00';
+                        const percentageMinor = totalVersionedRedditPosts ? ((redditWithMinorVersionMatch / totalVersionedRedditPosts) * 100).toFixed(2) : '0.00';
+                        const percentagePatch = totalVersionedRedditPosts ? ((redditWithPatchVersionMatch / totalVersionedRedditPosts) * 100).toFixed(2) : '0.00';
+                        const percentageUnmatched = totalVersionedRedditPosts ? ((redditWithVersionUnmatched / totalVersionedRedditPosts) * 100).toFixed(2) : '0.00';
+
                         const row = `
                             <tr>
                                 <td>${component}</td>
@@ -362,10 +428,11 @@
                                 <td><b>${totalRedditPosts.size}</b><br><small>(${earliestRedditPost.toLocaleString('en-US', { month: 'short', year: 'numeric' })} - ${latestRedditPost.toLocaleString('en-US', { month: 'short', year: 'numeric' })})</small></td>
                                 <td>${redditWithVersion}</td>
                                 <td>
-                                    major.x.x: ${redditWithMajorVersionMatch} <br>
-                                    major.minor.x: ${redditWithMinorVersionMatch} <br>
-                                    major.minor.patch: ${redditWithPatchVersionMatch} <br>
-                                    unmatched: ${redditWithVersionUnmatched}
+                                    major.x.x: ${redditWithMajorVersionMatch} (${percentageMajor}%) <br>
+                                    major.minor.x: ${redditWithMinorVersionMatch} (${percentageMinor}%) <br>
+                                    major.minor.patch: ${redditWithPatchVersionMatch} (${percentagePatch}%) <br>
+                                    unmatched: ${redditWithVersionUnmatched} (${percentageUnmatched}%) <br>
+                                    unmatched details - major: ${unmatchedMajorCount}, minor: ${unmatchedMinorCount}, patch: ${unmatchedPatchCount}
                                 </td>
                                 <td>
                                     ${Math.floor(redditUpvote)} (of ${redditUpvoteCount}) <br>
@@ -409,10 +476,9 @@
                                     }
 
                                     // Highlight version numbers
-                                    const versionPattern = /\b(?:v)?(\d+(?:\.\d+){0,2})\b/gi;
                                     const highlightedTitle = post.title.replace(versionPattern, '<span class="highlight">$&</span>');
 
-                                    return `<p>${tags} ${highlightedTitle} <a href="${post.url}" target="_blank">Open Link</a> <span>(${post.numComments} comments)</span></p>`;
+                                    return `<p>${tags} ${highlightedTitle} <a href="${post.url}" target="_blank">Open Link</a><span class="date"> created on: ${post.created_utc}</span><span> (${post.numComments} comments)</span></p>`;
                                 }).join('')}
                                     </div>
                                 </td>
