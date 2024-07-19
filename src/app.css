@@ -1,184 +1,150 @@
-    * {
-        margin: 0px;
-        padding: 0px;
-    }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    body {
-        padding: 0px 15px;
-    }
+body {
+    padding: 0 15px;
+    background-color: #f0f0f0;
+    color: #333;
+    font-family: Arial, sans-serif;
+}
 
+nav {
+    display: flex;
+    padding: 5px 0;
+}
 
-    /* Ensure sufficient contrast */
-    body,
-    button,
-    input,
-    select,
-    textarea {
-        background-color: #f0f0f0;
-        /* Light gray background */
-        color: #333;
-        /* Dark gray text */
-    }
+section {
+    margin: 20px auto;
+    max-width: 800px;
+}
 
-    /* Use distinct and high-contrast colors for links */
-    a {
-        color: #007acc;
-        /* Bright blue */
-    }
+h1, h2, h3, p {
+    line-height: 1.5;
+}
 
-    /* Avoid relying solely on color for conveying information */
-    /* Use patterns, labels, or other visual cues */
-    .warning {
-        background-color: #ffcc00;
-        /* Yellow background */
-        border: 1px solid #cc9900;
-        /* Dark yellow border */
-        padding: 10px;
-        text-align: center;
-    }
+h1 {
+    margin: 30px 0;
+    font-size: 24px;
+    text-align: center;
+}
 
-    /* Consider adding underlines or other indicators to links */
-    a:visited {
-        text-decoration: underline;
-    }
+h2 {
+    margin: 30px 0;
+    font-size: 20px;
+    text-align: center;
+}
 
-    /* Ensure text has good readability */
-    h1,
-    h2,
-    h3,
-    p {
-        font-family: Arial, sans-serif;
-        line-height: 1.5;
-    }
+h3 {
+    margin: 12px 0 5px 0;
+}
 
+a {
+    font-size: 14px;
+    color: #007acc;
+    text-decoration: none;
+    vertical-align: 2px;
+}
 
+a:visited {
+    text-decoration: underline;
+}
 
-    nav {
-        display: flex;
-        padding: 5px 0px;
-    }
+ol {
+    margin: 10px 0;
+    padding: 0;
+    list-style: none;
+}
 
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+img.avatar {
+    height: 20px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.versionListClassSection-item {
+    padding: 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.versionListClassSection-item a {
+    font-size: 16px;
+    color: #007acc;
+}
+
+.versionListClassSection-item a:hover {
+    text-decoration: underline;
+}
+
+.versionListClassSection-item .info {
+    font-size: 14px;
+    color: #666;
+}
+
+.loadingClass {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.warning {
+    background-color: #ffcc00;
+    border: 1px solid #cc9900;
+    padding: 10px;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.dot {
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 2px;
+}
+
+.red {
+    background-color: red;
+}
+
+.orange {
+    background-color: orange;
+}
+
+.yellow {
+    background-color: yellow;
+}
+
+.green {
+    background-color: green;
+}
+
+@media only screen and (max-width: 600px) {
     section {
-        margin: 20px 20%;
+        margin: 10px 4%;
     }
 
     h1 {
-        margin: 30px;
-        font-size: 14pt;
-        height: 80px;
-    }
-
-    h2 {
-        margin: 30px;
-    }
-
-    h3 {
-        margin: 12px 0px 5px 0px;
+        font-size: 20px;
     }
 
     a {
-        font-size: 14pt;
-        text-decoration: none;
-        vertical-align: 2px;
+        font-size: 12px;
     }
 
-    ol {
-        margin: 10px 0px;
-        width: 90%;
-        list-style: none;
+    .desktopOnly {
+        display: none;
     }
-
-    select {
-        width: 100%;
-    }
-
-    span.select2-container {}
-
-    img.avatar {
-        height: 20px;
-        margin-right: 5px;
-    }
-
-    ol.version-names {
-        list-style-position: inside;
-        padding-left: 0;
-    }
-
-    li.version-names-item {
-        padding-left: 4px
-    }
-
-    span.h7 {
-        font-weight: normal;
-        font-size: 8pt
-    }
-
-    p {
-        line-height: 25px;
-    }
-
-    .versionListClassSection-item {
-        padding: 5px;
-    }
-
-    .dot {
-        height: 15px;
-        width: 15px;
-        border-radius: 50%;
-        display: inline-block;
-        margin: 0px 2px;
-    }
-
-    .red {
-        background-color: red;
-    }
-
-    .orange {
-        background-color: orange;
-    }
-
-    .yellow {
-        background-color: yellow;
-    }
-
-    .green {
-        background-color: green;
-    }
-
-    .loadingClass {
-        text-align: center;
-    }
-
-    @media only screen and (max-width: 600px) {
-        nav {
-            display: flex;
-            margin: 10px;
-        }
-
-        h1 {
-            margin: 0px;
-            font-size: 14pt
-        }
-
-        section {
-            margin: 10px 4%;
-        }
-
-        a {
-            font-size: 12pt
-        }
-
-        ol {
-            margin: 10px 0px;
-            width: 100%;
-            list-style: none;
-        }
-
-        li {
-            margin: 15px 0px;
-        }
-
-        .desktopOnly {
-            display: none
-        }
-    }
+}
