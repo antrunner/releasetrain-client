@@ -15,9 +15,39 @@
     <link href="./lib/select2.min.css" rel="stylesheet">
     <link href="./app.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: #fff;
+            z-index: 1000;
+            padding: 10px 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-bar {
+            font-size: 10pt;
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 10px;
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .content {
+            padding-top: 120px;
+        }
+    </style>
 </head>
 
-<body style="overflow-x: hidden;">
+<body>
     <script src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1" async></script>
     <script src="./lib/googleanalytics.js"></script>
     <script src="./lib/jquery-2.2.4.min.js"></script>
@@ -44,16 +74,26 @@
             window.history.replaceState({}, document.title, `?q=${selectedComponents}`);
         }
     </script>
-    <nav id="snippet-navigation-id"></nav>
-    <div id="snippet-github-id"></div>
-    <section>
+    <div class="top-bar">
+        <div class="info-bar">
+            <div>Releasetrain: v2.0.1</div>
+            <div class="getComponentCount">Components: Loading...</div>
+            <div class="getVersionCount">Versions: Loading...</div>
+            <div><a href="ack.html">Ack</a></div>
+            <div><a href="doc.html">Doc</a></div>
+            <div><a href="https://github.com/releasetrain">Github</a></div>
+        </div>
+        <nav id="snippet-navigation-id"></nav>
+        <div id="snippet-github-id"></div>
         <select class="component-names" name="names[]" multiple="multiple"></select>
+    </div>
+    <div class="content">
         <div class="loadingClass" style="display: none;">
             <img src="./img/spinner.gif" alt="Loading...">
         </div>
         <ol class="versionListClassSection"></ol>
         <div class="errorHandling"></div>
-    </section>
+    </div>
     <script type="text/javascript">
         const apiBaseUrl = "https://releasetrain.io/api";
         let pageNumParam = 1;
@@ -160,7 +200,7 @@
                 url: `${apiBaseUrl}/v/count`,
                 type: 'GET',
                 dataType: 'json',
-                success: res => $(".getVersionCount").text(`${res} versions`),
+                success: res => $(".getVersionCount").text(`Versions: ${res}`),
                 error: error => console.error('Error fetching version count:', error)
             });
         }
@@ -170,7 +210,7 @@
                 url: `${apiBaseUrl}/c/count`,
                 type: 'GET',
                 dataType: 'json',
-                success: res => $(".getComponentCount").text(`${res} components`),
+                success: res => $(".getComponentCount").text(`Components: ${res}`),
                 error: error => console.error('Error fetching component count:', error)
             });
         }
