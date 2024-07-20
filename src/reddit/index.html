@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Request and Display</title>
+    <link href="https://releasetrain.io/img/favicon.ico" rel="icon" type="image/x-icon" />
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -111,13 +113,11 @@
 </head>
 
 <body>
-    <h1>Component Data Overview</h1>
-
     <section>
-        <h2>Recent Most Critical Updates</h2>
-        <ol id="critical-updates">
+        <span>Recent Most Critical Update:</span>
+        <span id="critical-updates">
             <!-- Critical updates will be inserted here -->
-        </ol>
+        </span>
     </section>
 
     <table id="data-table">
@@ -527,35 +527,35 @@
 
                         const criticalUpdatesList = document.querySelector('#critical-updates');
 
-                        topCriticalUpdates.forEach(update => {
-                            if (!existingTitles.has(update.title)) {
-                                existingTitles.add(update.title);
+                        if (topCriticalUpdates.length > 0) {
+                            const update = topCriticalUpdates[0]; // Assuming the first update is the most critical
 
-                                const listItem = document.createElement('li');
+                            const currentDate = new Date();
+                            const postDate = new Date(update.date);
+                            const timeDifference = currentDate - postDate;
+                            const daysAgo = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
-                                const currentDate = new Date();
-                                const postDate = new Date(update.date);
-                                const timeDifference = currentDate - postDate;
-                                const daysAgo = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-
-                                let dateLabel;
-                                if (daysAgo === 0) {
-                                    dateLabel = 'today';
-                                } else {
-                                    dateLabel = `${daysAgo} days ago`;
-                                }
-
-                                const dateFormatted = postDate.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-                                listItem.innerHTML = `
-                                <b>Component:</b> ${update.component.toUpperCase()} <br>
-                                <b>Date:</b> ${dateFormatted} (${dateLabel}) <br>
-                                <b>Title:</b> <a href="${update.url}" target="_blank">${update.title}</a> <br>
-                                <b>Type:</b> ${update.isSecurity ? 'Security' : update.isBreaking ? 'Breaking' : 'Other'}
-                                `;
-                                criticalUpdatesList.appendChild(listItem);
+                            let dateLabel;
+                            if (daysAgo === 0) {
+                                dateLabel = 'today';
+                            } else {
+                                dateLabel = `${daysAgo} days ago`;
                             }
-                        });
+
+                            const dateFormatted = postDate.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                            const updateType = update.isSecurity ? 'Security' : update.isBreaking ? 'Breaking' : 'Other';
+                            const updateColor = update.isSecurity ? 'red' : update.isBreaking ? 'orange' : 'blue';
+
+                            criticalUpdatesList.innerHTML = `
+                                <div style="padding: 10px; background-color: #f9f9f9; border-left: 5px solid ${updateColor}; margin-bottom: 10px;">
+                                    <b>Component:</b> ${update.component.toUpperCase()} |
+                                    <b>Date:</b> ${dateFormatted} (${dateLabel}) |
+                                    <b>Title:</b> <a href="${update.url}" target="_blank">${update.title}</a> |
+                                    <b>Type:</b> <span style="color: ${updateColor};">${updateType}</span>
+                                </div>
+                            `;
+                        }
                     })
                     .catch(error => {
                         console.error('Error fetching data for component', component, ':', error);
