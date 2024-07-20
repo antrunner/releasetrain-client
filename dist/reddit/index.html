@@ -510,7 +510,7 @@
                             if (!a.isBreaking && b.isBreaking) {
                                 return 1;
                             }
-                            return 0;
+                            return new Date(b.date) - new Date(a.date); // Sort by date descending if equal
                         });
                     })
                     .then(() => {
