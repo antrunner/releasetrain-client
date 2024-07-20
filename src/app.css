@@ -9,6 +9,7 @@ body {
     background-color: #f0f0f0;
     color: #333;
     font-family: Arial, sans-serif;
+    overflow-x: hidden;
 }
 
 nav {
@@ -147,4 +148,31 @@ img.avatar {
     .desktopOnly {
         display: none;
     }
+}
+
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 1000;
+    padding: 10px 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-bar {
+    font-size: 10pt;
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 10px;
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.content {
+    padding-top: 120px;
 }
