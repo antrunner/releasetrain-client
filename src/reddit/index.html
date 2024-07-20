@@ -356,7 +356,7 @@
                                         latestRedditPost = postDate;
                                     }
 
-                                    if (data.isSecurity && seenUrls.has(post.url) === false) {
+                                    if (data.isSecurity && post.isSecurity && seenUrls.has(post.url) === false) {
 
                                         seenUrls.add(post.url);
 
@@ -371,8 +371,8 @@
                                             date: postDate,
                                             title: post.title,
                                             url: post.url,
-                                            isSecurity: data.isSecurity,
-                                            isBreaking: data.isBreaking,
+                                            isSecurity: post.isSecurity,
+                                            isBreaking: post.isBreaking,
                                             componentType: data.versionPredictedComponentTypeReddit.toUpperCase() || 'NONE',
                                             securityPostCount: post.securityPostCount,
                                             breakingPostCount: post.breakingPostCount
@@ -381,7 +381,7 @@
                                 }
                             });
                         });
-
+                       
                         redditCommentCount = postTitles.reduce((count, post) => count + (post.numComments || 0), 0);
 
                         const redditUrlsLinks = Array.from(redditUrls).map(url => `<a href="${url}" target="_blank">${url}</a>`).join('<br>');
@@ -516,7 +516,7 @@
                     .then(() => {
 
                         const thirtyDaysAgo = new Date();
-                        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 21);
 
                         const filteredPosts = criticalUpdates.filter(post => {
                             const postDate = new Date(post.date);
