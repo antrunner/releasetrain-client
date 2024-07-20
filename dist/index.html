@@ -23,28 +23,6 @@
     <script src="./lib/googleanalytics.js"></script>
     <script src="./lib/jquery-2.2.4.min.js"></script>
     <script src="./lib/select2.min.js"></script>
-    <script type="text/javascript">
-        // document.addEventListener('DOMContentLoaded', function () {
-        //     fetch('./../common/navigation.html')
-        //         .then(response => response.text())
-        //         .then(data => {
-        //             document.getElementById('snippet-navigation-id').innerHTML = data;
-        //         })
-        //         .catch(error => console.error('Error fetching navigation:', error));
-
-        //     fetch('./../common/github.html')
-        //         .then(response => response.text())
-        //         .then(data => {
-        //             document.getElementById('snippet-github-id').innerHTML = data;
-        //         })
-        //         .catch(error => console.error('Error fetching GitHub:', error));
-        // });
-
-        function updateURLWithSelectedComponents() {
-            const selectedComponents = $('.component-names').select2('data').map(item => item.text).join(',');
-            window.history.replaceState({}, document.title, `?q=${selectedComponents}`);
-        }
-    </script>
     <div class="top-bar">
         <div class="info-bar">
             <div>Releasetrain: v2.0.1</div>
@@ -91,6 +69,11 @@
                 }
             }
         });
+
+        function updateURLWithSelectedComponents() {
+            const selectedComponents = $('.component-names').select2('data').map(item => item.text).join(',');
+            window.history.replaceState({}, document.title, `?q=${selectedComponents}`);
+        }
 
         function getReleases() {
             pageNumParam = 1;
