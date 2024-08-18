@@ -299,7 +299,7 @@
                                 post.upvote_ratio = post.upvote_ratio || 0;
                                 post.created_utc = post.created_utc || 0;
 
-                                if (!totalRedditPosts.has(post.post_id)) {
+                                if (!totalRedditPosts.has(post.post_id) && (post.isSecurity || post.isBreaking)) {
 
                                     redditWithVersion += post.versionList.length;
                                     totalRedditPosts.add(post.post_id);

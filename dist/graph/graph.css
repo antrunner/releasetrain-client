@@ -32,10 +32,27 @@
     section {
         margin: 0px;
         padding: 0px;
+        max-width: 100% !important;
     }
 
     input[type=number] {
         width: 30px;
+    }
+
+    select {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .content {
+        padding-top: 120px;
     }
 
     .container {
