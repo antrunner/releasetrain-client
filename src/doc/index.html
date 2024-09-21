@@ -85,9 +85,25 @@ else:
     print('Failed to fetch data:', response.status_code)</code></pre>
             </li>
         </ol>
-        
+
         <h2>Version Endpoints</h2>
         <ol>
+            <li class="endpoint">
+                <h3>Get Version by ID</h3>
+                <p><strong>GET /api/v/:resourceVersionId</strong></p>
+                <p>Fetches a version by its MongoDB ObjectId.</p>
+                <pre><code>curl https://releasetrain.io/api/v/1234567890abcdef12345678</code></pre>
+                <h4>Python Example</h4>
+                <pre><code>import requests
+
+url = 'https://releasetrain.io/api/v/1234567890abcdef12345678'
+response = requests.get(url)
+if response.status_code == 200:
+    print(response.json())
+else:
+    print('Failed to fetch data:', response.status_code)</code></pre>
+            </li>
+
             <li class="endpoint">
                 <h3>Update Version</h3>
                 <p><strong>PUT /api/v/:id</strong></p>
