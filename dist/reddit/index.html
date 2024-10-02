@@ -356,7 +356,7 @@
                                         latestRedditPost = postDate;
                                     }
 
-                                    if (data.isSecurity && post.isSecurity && seenUrls.has(post.url) === false) {
+                                    if (((data.isBreaking && post.isBreaking) || (data.isSecurity && post.isSecurity)) && seenUrls.has(post.url) === false) {
 
                                         seenUrls.add(post.url);
 
@@ -381,7 +381,7 @@
                                 }
                             });
                         });
-                       
+
                         redditCommentCount = postTitles.reduce((count, post) => count + (post.numComments || 0), 0);
 
                         const redditUrlsLinks = Array.from(redditUrls).map(url => `<a href="${url}" target="_blank">${url}</a>`).join('<br>');
@@ -510,6 +510,7 @@
                             if (!a.isBreaking && b.isBreaking) {
                                 return 1;
                             }
+
                             return new Date(b.date) - new Date(a.date); // Sort by date descending if equal
                         });
                     })
