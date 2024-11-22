@@ -4,15 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Architecture Generator</title>
-    <script src="https://cjrtnc.leaningtech.com/2.3/loader.js"></script>
-    <script type="module" src="./app.js"></script>
+    
+    <!-- External CSS Links -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="./app.css">
+
+    <!-- JavaScript at end of body for improved loading efficiency -->
+    <!-- Loading jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" defer></script>
+    <!-- Loading Select2 library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" defer></script>
+    <!-- Your custom JavaScript -->
+    <script type="module" src="./app.js" defer></script>
+    <!-- External JavaScript loader -->
+    <script src="https://cjrtnc.leaningtech.com/2.3/loader.js" defer></script>
 </head>
 <body>
+    <!-- UI elements -->
     <h1>Architecture Generator</h1>
+    <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple" style="width: 100%"></select>
+    <div class="loader" id="loader"></div>
     <div id="plantuml-diagrams"></div>
-    <script type="text/javascript">
-        console.log("start index.html ....");
-    </script>
 </body>
 </html>

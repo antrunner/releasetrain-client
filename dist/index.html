@@ -1,458 +1,359 @@
 <!DOCTYPE html>
-<html style="overflow-x: hidden;">
+<html lang="en">
 
 <head>
-    <title>releasetrain.io</title>
-    <meta name="google-site-verification" content="e_DoTsZw_SlkIWfECBN2q7FkJBvy8xOvlQZ-ZL38xTk" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
+    <title>releasetrain.io</title>
+    <link href="img/favicon.ico" rel="icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Software Component Version Releases">
     <meta name="keywords" content="Version, Release, Agile">
     <meta name="author" content="Solomon Berhe">
-    <meta http-equiv="refresh" content="3600" />
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1"></script>
-    <script src="./lib/googleanalytics.js"></script>
-    <script type="text/javascript" src="./lib/jquery-2.2.4.min.js"></script>
-    <script type="text/javascript" src="./lib/select2.min.js"></script>
-    <link href="img/favicon.ico" rel="icon" type="image/x-icon" />
-    <link href="./reset.css" rel="stylesheet" />
-    <link href="./lib/select2.min.css" rel="stylesheet" />
-    <link href="./app.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet" />
+    <meta name="google-site-verification" content="e_DoTsZw_SlkIWfECBN2q7FkJBvy8xOvlQZ-ZL38xTk" />
+    <meta http-equiv="refresh" content="3600">
+    <link href="./reset.css" rel="stylesheet">
+    <link href="./lib/select2.min.css" rel="stylesheet">
+    <link href="./app.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet">
+
 </head>
 
-<body style="overflow-x: hidden;">
-    <script type="text/javascript">
-    fetch('./../common/navigation.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('snippet-navigation-id').innerHTML = data;
-        });
-    fetch('./../common/github.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('snippet-github-id').innerHTML = data;
-        });
-    </script>
-    <nav id="snippet-navigation-id"></nav>
-    <div id="snippet-github-id"></div>
-    <section>
+<body>
+    <script src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1" async></script>
+    <script src="./lib/googleanalytics.js"></script>
+    <script src="./lib/jquery-2.2.4.min.js"></script>
+    <script src="./lib/select2.min.js"></script>
+    <div class="top-bar">
+        <div class="info-bar">
+            <div>Releasetrain: v2.0.1</div>
+            <div class="getComponentCount">Components: Loading...</div>
+            <div class="getVersionCount">Versions: Loading...</div>
+            <div><a href="https://github.com/antrunner/releasetrain-client">Github</a></div>
+        </div>
         <select class="component-names" name="names[]" multiple="multiple"></select>
-        <div class="loadingClass">
-            <img src="./img/spinner.gif"></img>
+    </div>
+    <div class="content">
+        <div class="loadingClass" style="display: none;">
+            <img src="./img/spinner.gif" alt="Loading...">
         </div>
         <ol class="versionListClassSection"></ol>
         <div class="errorHandling"></div>
-    </section>
+    </div>
     <script type="text/javascript">
-    // var url =  "http://localhost:3000/api";
-    var url = "https://releasetrain.io/api";
+        const apiBaseUrl = "https://releasetrain.io/api";
+        let pageNumParam = 1;
+        let componentNameParam = "";
+        let currDate = null;
+        let countToday = 0;
+        let isDone = false;
 
-    var versionListClassSection = $('.versionListClassSection');
-    var pageNumParam = 1;
-    var componentNameParam = "";
-    var currDate = null; // global in order to correctly page version
-    var countToday = 0;
-
-    window.isDone = false;
-
-    var loader = $('.loadingClass');
-    jQuery.ajaxSetup({
-        beforeSend: function() {
-            loader.show();
-        },
-        complete: function() {
-            loader.hide();
-        },
-        success: function() {}
-    });
-
-    $(document.body).on('touchmove', onScroll); // for mobile
-    $(window).on('scroll', onScroll); // for desktop
-
-    $('.component-names').on("change", function(e) {
-        pageNumParam = 1 // start from scratch after each selection. 
-        componentNameParam = ""; // start from scratch after each selection. 
-        var select2DataObjsArr = $(this).select2('data');
-        for (var i = 0; i < select2DataObjsArr.length; i++) {
-            if (i == 0) {
-                componentNameParam = select2DataObjsArr[i].text
-            } else {
-                componentNameParam += "," + select2DataObjsArr[i].text;
-            }
-        }
-
-        if (window.isDone) {
-            if (componentNameParam == window.location.search.substring(1).split("q=")[1]) {
-                getReleases();
-            } else {
-                // window.location.href="http://localhost:8080?q="+componentNameParam;
-                window.location.href = "https://releasetrain.io?q=" + componentNameParam;
-            }
-        }
-    });
-
-    function getReleases() {
-        pageNumParam = 1;
-        $(".versionListClassSection").empty(); // clear version list on change
-        getVersionList(); // display version list
-    }
-
-    function getAndRenderComponentList() {
-        $('.component-names').select2({
-            tags: true,
-            multiple: true,
-            tokenSeparators: [',', ' '],
-            minimumInputLength: 2,
-            minimumResultsForSearch: 4,
-            ajax: {
-                url: url + "/c/names",
-                dataType: "json",
-                type: "GET",
-                data: function(params) {
-                    var queryParameters = {
-                        term: params.term
-                    }
-                    return queryParameters;
-                },
-                processResults: function(data) {
-                    return {
-                        results: $.map(data, function(item) {
-                            return {
-                                text: item.versionProductName,
-                                id: item.versionProductName
-                            }
-                        })
-                    };
-                }
-            }
+        const loader = $('.loadingClass');
+        $.ajaxSetup({
+            beforeSend: () => loader.show(),
+            complete: () => loader.hide()
         });
-    }
 
-    function getVersionList() {
-        $.ajax({
-            url: url + "/v?pageNumParam=" + pageNumParam + "&q=" + componentNameParam,
-            type: 'GET',
-            dataType: 'json',
-            success: function(res) {
-                renderVersionList(res);
-            }
-        });
-    }
+        $(document.body).on('touchmove', onScroll); // for mobile
+        $(window).on('scroll', onScroll); // for desktop
 
-    function getVersionForecast(component) {
-        var fCurl = url + "/v/fc?q=" + component;
-        $.ajax({
-            url: fCurl,
-            type: 'GET',
-            dataType: 'text',
-            success: function(res) {
-                if (res.toLowerCase().startsWith("forecast")) {
-                    //
-                } else if (res.toLowerCase().startsWith("invalid")) {
-                    //
+        $('.component-names').on("change", function () {
+            pageNumParam = 1;
+            componentNameParam = $(this).select2('data').map(item => item.text).join(',');
+            updateURLWithSelectedComponents();
+
+            if (isDone) {
+                if (componentNameParam === new URLSearchParams(window.location.search).get('q')) {
+                    getReleases();
                 } else {
-                    // res = Tue, 09 Feb 2021 05:00:00 GMT
-                    $(".rt-class-" + component).text("Next " + component + " update estimation on " + res.substring(0, 17));
-                    if (componentNameParam.split(",").length > 1) {
-                        getCoincideForecast(component);
-                    }
+                    window.location.href = `https://releasetrain.io?q=${componentNameParam}`;
                 }
             }
         });
-    }
 
-    function getCoincideForecast(component) {
-        var fCurl2 = url + "/v/fcc?q=" + componentNameParam;
-        $.ajax({
-            url: fCurl2,
-            type: 'GET',
-            dataType: 'text',
-            success: function(res) {
-                res = JSON.parse(res);
-
-                if (res["isCoincideReleaseDate"] && res["components"].indexOf(component) >= 0) {
-
-                    res["components"] = res["components"].filter(function(item) {
-                        return item !== component
-                    })
-
-                    var msg = "may coincide with a " + res["components"].join(" and ").replace(component.toLowerCase(), "") + " update.";
-
-                    if (!$("." + component).text().includes(msg)) {
-
-                        $("." + component).append("<b>" + msg + "</b>");
-
-                    }
-                }
-            }
-        });
-    }
-
-    function getVersionCount() {
-        $.ajax({
-            url: url + "/v/count",
-            type: 'GET',
-            dataType: 'json',
-            success: function(res) {
-                renderVersionCount(res);
-            }
-        });
-    }
-
-    function getComponentCount() {
-        $.ajax({
-            url: url + "/c/count",
-            type: 'GET',
-            dataType: 'json',
-            success: function(res) {
-                return renderComponentCount(res);
-            }
-        });
-    }
-
-    function getTodayDate() {
-        renderTodayDate(new Date().toLocaleDateString());
-    }
-
-    function renderTodayDate(today) {
-        $(".getTodayDate").text(today);
-    }
-
-    function renderVersionCount(res) {
-        $(".getVersionCount").text(res + " versions");
-    }
-
-    function renderComponentCount(res) {
-        $(".getComponentCount").text(res + " components");
-    }
-
-    function renderVersionList(res) {
-
-        countToday = 0;
-
-        if (res.length == 0) {
-            $(".errorHandling").html("No results found for:" + componentNameParam + "<br><br><br>");
-            $(".errorHandling").append('Please select a component from the dropdown menu or try:<br><br>');
-            $(".errorHandling").append('<ul style="padding-left: 20px;">');
-            $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=browser" target="_self">releasetrain.io/?q=browser (Browsers)</a></li>');
-            $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=mongo,express,angular,node" target="_self">releasetrain.io/?q=mongo,express,angular,node (MEAN Stack) </a></li>');
-            $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=linux,apache,mysql,php" target="_self">releasetrain.io/?q=linux,apache,mysql,php (LAMP Stack)</a></li>');
-            $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=elasticsearch,logstach,kibana" target="_self">releasetrain.io/?q=elasticsearch,logstach,kibana (ELK Stack)</a></li>');
-            $(".errorHandling").append('</ul>');
-        } else {
-            $(".errorHandling").empty();
+        function updateURLWithSelectedComponents() {
+            const selectedComponents = $('.component-names').select2('data').map(item => item.text).join(',');
+            window.history.replaceState({}, document.title, `?q=${selectedComponents}`);
         }
 
-        var displayComponents = [];
-
-        for (var i = 0; i < res.length; i++) {
-
-            let formattedDate;
-
-            // Start data verification
-            if (res[i].versionReleaseDate) {
-                formattedDate = formatDate(res[i].versionReleaseDate);
-                if (formattedDate === null) {
-                    console.warn(`Warning: Failed to format date for record at index ${i}, versionReleaseDate:`, res[i].versionReleaseDate);
-                    continue;
-                }
-            }
-            // End data verification
-
-            var avatar = res[i].versionProductType;
-            var isSecurityPatch = res[i].versionReleaseChannel == "patch" ? true : false;
-            var isCve = res[i].versionReleaseChannel == "cve" ? true : false;
-            var versionLabel = res[i].versionProductName.substring(0, 20) + " (" + res[i].versionNumber + ")";
-
-            if (res[i].hasOwnProperty("versionPredictedComponentType")) {
-                versionLabel += " &rarr; " + res[i].versionPredictedComponentType;
-            }
-
-            var versionReleaseNotes = res[i].versionReleaseNotes;
-            var versionSearchTags = "";
-            var versionReleaseComments = res[i].versionReleaseComments ? res[i].versionReleaseComments.replace(/^[^A-Z]+/, '').replace(/_/g, ' ') : "";
-            var versionLinkedUrl = res[i].versionLinkedUrl;
-            var versionLinkedNote = res[i].versionLinkedNote;
-
-
-            avatar = getAvatarHtml(res[i].versionProductName, isCve, isSecurityPatch, avatar);
-
-            // tech debt - fix in backend
-            // console.log(parseInt(res[i].versionReleaseDate)) // 20210630
-            if (isNewerThanDayAfterTomorrow(res[i].versionReleaseDate)) {
-                continue;
-            }
-
-            if (currDate != res[i].versionReleaseDate) {
-                if (i > 0) {
-                    $(".versionListClassSection").append('<hr style="height:1px;border:none;"><li><h3>' + formatDate(res[i].versionReleaseDate) + '</h3></li>');
-                } else {
-                    $(".versionListClassSection").append('<li><h3>' + formatDate(res[i].versionReleaseDate) + '</h3></li>');
-                }
-                currDate = res[i].versionReleaseDate;
-            }
-
-            if (formattedDate.toLowerCase() == "today") {
-                countToday++;
-            }
-
-            // display version comments
-            if (versionReleaseComments.trim().length > 0) {
-                versionReleaseComments = "<span style='font-size:10pt'>" + versionReleaseComments + "</span>";
-            }
-
-            // display version tags
-            if (isCve && res[i].versionSearchTags.length > 0 && res[i].versionSearchTags[0].length > 0) {
-                for (var j = 0; j < res[i].versionSearchTags.length; j++) {
-                    if (res[i].versionSearchTags[j] != "cve" && res[i].versionSearchTags[j] != res[i].versionProductName) {
-                        versionSearchTags += "<span style='display: inline-block; color: #fff; font-size: 10pt; background-color: #ca4141;border-radius: 4px;padding: 2px; margin: 2px;'>" + res[i].versionSearchTags[j] + "</span>";
-                    }
-                }
-            } else {
-                for (var j = 0; j < res[i].versionSearchTags.length; j++) {
-                    if (res[i].versionSearchTags[j].trim() != "" &&
-                        res[i].versionSearchTags[j].trim() != "prod" &&
-                        res[i].versionSearchTags[j].trim() != "production" &&
-                        res[i].versionSearchTags[j].trim() != "bypass" &&
-                        res[i].versionSearchTags[j].toLowerCase() != res[i].versionProductName.toLowerCase()) {
-                        versionSearchTags += "<span style='color: #fff; font-size: 10pt; background-color: #47863e;border-radius: 4px;padding: 2px 5px; margin: 1px 2px 1px 0px; display: inline-block;'>" + res[i].versionSearchTags[j] + "</span>";
-                    }
-                }
-            }
-
-            versionSearchTags = versionSearchTags.trim().length > 0 ? versionSearchTags + "<br>" : "";
-
-            if (isSecurityPatch) {
-                // https://stackoverflow.com/questions/4758103/last-segment-of-url-in-jquery
-                var parts = versionLinkedUrl.split('/');
-                var cveId = parts.pop() || parts.pop();
-                versionReleaseComments = "<a style='color:#797777;font-size: 10pt;' href='" + versionLinkedUrl + "' target='_blank'>Security patch for Android for " + versionLinkedNote + " severity " + cveId + " (click)</a>";
-            }
-
-            $(".versionListClassSection").append('<li class="versionListClassSection-item">' + avatar + '<a target="_blank" href="' + versionReleaseNotes + '"><span>' + versionLabel + '</a><div style="padding: 2px 0px">' + versionSearchTags + versionReleaseComments + '<br><span style="color: #797777; font-size:10pt; font-weight:bold" class="rt-class-' + res[i].versionProductName.toLowerCase() + '"></span></div></li>');
-
-            // Render forecast class only once per components
-            if (displayComponents.indexOf(res[i].versionProductName) == -1) {
-                displayComponents.push(res[i].versionProductName);
-                // getVersionForecast(res[i].versionProductName.toLowerCase());
-            }
-        }
-
-        if (countToday > 0) {
-            document.title = "(" + countToday + ") releasetrain.io";
-        } else {
-            document.title = "releasetrain.io";
-        }
-        pageNumParam++;
-    }
-
-    function getAvatarHtml(versionProductName, isCve, isSecurityPatch, initialAvatar) {
-        let avatar = initialAvatar;
-        const productName = versionProductName.toLowerCase();
-
-        if (productName === "chrome") {
-            avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png"></img>';
-        } else if (productName === "ledvance") {
-            avatar = '<img class="avatar" src="./img/ledvance.png"></img>';
-        } else if (productName === "firefox") {
-            avatar = '<img class="avatar" src="./img/firefox.png"></img>';
-        } else if (productName === "android studio") {
-            avatar = '<img class="avatar" src="./img/androidStudio.png"></img>';
-        } else if (productName === "safari") {
-            avatar = '<img class="avatar" src="./img/safari.png"></img>';
-        } else if (productName === "eclipse") {
-            avatar = '<img class="avatar" src="./img/eclipse.png"></img>';
-        } else if (productName === "let's encrypt") {
-            avatar = '<img class="avatar" src="./img/letsencrypt.png"></img>';
-        } else if (productName.startsWith("vmware")) {
-            avatar = '<img class="avatar" src="./img/vmware.png"></img>';
-        } else if (productName.startsWith("oracle")) {
-            avatar = '<img class="avatar" src="./img/vboracle.png"></img>';
-        } else if (productName === "digitalocean") {
-            avatar = '<i class="fas fa-exclamation-triangle"></i>';
-        } else if (avatar && avatar !== "OS" && avatar !== "security") {
-            avatar = '<img class="avatar" src="https://avatars3.githubusercontent.com/u/' + avatar + '"></img>';
-        } else if (isCve) {
-            avatar = '<img class="avatar" src="./img/cve.png"></img>';
-        } else if (isSecurityPatch) {
-            avatar = '<img class="avatar" src="./img/androidSecurityUpdate.png"></img>';
-        } else {
-            avatar = '<img class="avatar" src="./img/default.png"></img>';
-        }
-
-        return avatar;
-    }
-
-    function onScroll() {
-        if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+        function getReleases() {
+            pageNumParam = 1;
+            $(".versionListClassSection").empty();
             getVersionList();
         }
-    }
 
-    function formatDate(d) {
-        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        var today = new Date();
-        var releaseDate = new Date([d.slice(0, 4), d.slice(4, 6), d.slice(6, 8)].join('-'));
-        if (isSameDate(releaseDate, today)) {
-            return "Today";
-        } else if (!isNaN(releaseDate.getTime())) {
-            return months[releaseDate.getMonth()] + '/' + releaseDate.getDate() + '/' + releaseDate.getFullYear();
-        } else {
-            return null;
-        }
-    }
-
-    function isNewerThanDayAfterTomorrow(dateString) {
-        // Parse year, month, and day from the date string
-        const year = parseInt(dateString.substring(0, 4));
-        const month = parseInt(dateString.substring(4, 6)) - 1; // Month is 0-indexed in JS
-        const day = parseInt(dateString.substring(6, 8));
-
-        // Create date objects
-        const specificDate = new Date(year, month, day);
-        const today = new Date();
-        const dayAfterTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
-
-        // Compare dates
-        return specificDate > dayAfterTomorrow;
-    }
-
-    function isSameDate(d1, d2) {
-        return d1.getFullYear() == d2.getFullYear() &&
-            d1.getMonth() == d2.getMonth() &&
-            d1.getDate() == d2.getDate();
-    }
-
-    $(document).ready(function() {
-
-        getAndRenderComponentList();
-
-        var query = window.location.search.substring(1);
-        var isQueryWithValue = false;
-
-        if (query) {
-            isQueryWithValue = query.split("q=")[1] != "";
-        }
-
-        if (query && isQueryWithValue) {
-            componentNameParam = query.split("q=")[1];
-            var queryArgs = componentNameParam.split(",");
-            for (var i = 0; i < queryArgs.length; i++) {
-                if (i == queryArgs.length - 1) {
-                    window.isDone = true;
+        function getAndRenderComponentList() {
+            $('.component-names').select2({
+                tags: true,
+                multiple: true,
+                tokenSeparators: [',', ' '],
+                minimumInputLength: 2,
+                minimumResultsForSearch: 4,
+                ajax: {
+                    url: `${apiBaseUrl}/c/names`,
+                    dataType: "json",
+                    type: "GET",
+                    data: params => ({ term: params.term }),
+                    processResults: data => ({
+                        results: data.map(item => ({ text: item.versionProductName, id: item.versionProductName }))
+                    })
                 }
-                $(".component-names").select2("trigger", "select", { data: { id: i, text: queryArgs[i] } });
-            }
-        } else {
-            window.isDone = true;
-            getReleases();
+            });
         }
 
-        getVersionCount();
-        getComponentCount();
-        getTodayDate();
-    })
+        function getVersionList() {
+            $.ajax({
+                url: `${apiBaseUrl}/component?pageNumParam=${pageNumParam}&q=${componentNameParam}`,
+                type: 'GET',
+                dataType: 'json',
+                success: renderVersionList,
+                error: error => console.error('Error fetching version list:', error)
+            });
+        }
+
+        function getVersionForecast(component) {
+            $.ajax({
+                url: `${apiBaseUrl}/v/fc?q=${component}`,
+                type: 'GET',
+                dataType: 'text',
+                success: res => {
+                    if (!res.toLowerCase().startsWith("forecast") && !res.toLowerCase().startsWith("invalid")) {
+                        $(".rt-class-" + component).text(`Next ${component} update estimation on ${res.substring(0, 17)}`);
+                        if (componentNameParam.split(",").length > 1) {
+                            getCoincideForecast(component);
+                        }
+                    }
+                },
+                error: error => console.error('Error fetching version forecast:', error)
+            });
+        }
+
+        function getCoincideForecast(component) {
+            $.ajax({
+                url: `${apiBaseUrl}/v/fcc?q=${componentNameParam}`,
+                type: 'GET',
+                dataType: 'json',
+                success: res => {
+                    if (res.isCoincideReleaseDate && res.components.includes(component)) {
+                        res.components = res.components.filter(item => item !== component);
+                        const msg = `may coincide with a ${res.components.join(" and ").replace(component.toLowerCase(), "")} update.`;
+                        if (!$(`.${component}`).text().includes(msg)) {
+                            $(`.${component}`).append(`<b>${msg}</b>`);
+                        }
+                    }
+                },
+                error: error => console.error('Error fetching coincide forecast:', error)
+            });
+        }
+
+        function getVersionCount() {
+            $.ajax({
+                url: `${apiBaseUrl}/v/count`,
+                type: 'GET',
+                dataType: 'json',
+                success: res => $(".getVersionCount").text(`Versions: ${res}`),
+                error: error => console.error('Error fetching version count:', error)
+            });
+        }
+
+        function getComponentCount() {
+            $.ajax({
+                url: `${apiBaseUrl}/c/count`,
+                type: 'GET',
+                dataType: 'json',
+                success: res => $(".getComponentCount").text(`Components: ${res}`),
+                error: error => console.error('Error fetching component count:', error)
+            });
+        }
+
+        function getTodayDate() {
+            $(".getTodayDate").text(new Date().toLocaleDateString());
+        }
+
+        function renderVersionList(res) {
+            countToday = 0;
+            if (res.length === 0) {
+                $(".errorHandling").html(`No results found for: ${componentNameParam}<br><br><br>`);
+                $(".errorHandling").append('Please select a component from the dropdown menu or try:<br><br>');
+                $(".errorHandling").append('<ul style="padding-left: 20px;">');
+                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=browser" target="_self">releasetrain.io/?q=browser (Browsers)</a></li>');
+                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=mongo,express,angular,node" target="_self">releasetrain.io/?q=mongo,express,angular,node (MEAN Stack) </a></li>');
+                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=linux,apache,mysql,php" target="_self">releasetrain.io/?q=linux,apache,mysql,php (LAMP Stack)</a></li>');
+                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=elasticsearch,logstach,kibana" target="_self">releasetrain.io/?q=elasticsearch,logstach,kibana (ELK Stack)</a></li>');
+                $(".errorHandling").append('</ul>');
+            } else {
+                $(".errorHandling").empty();
+            }
+
+            const displayComponents = [];
+
+            for (const item of res) {
+                const formattedDate = formatDate(item.versionReleaseDate);
+                if (!formattedDate) continue;
+
+                const avatar = getAvatarHtml(item.versionProductName, item.versionReleaseChannel === "cve", item.versionReleaseChannel === "patch", item.versionProductType);
+                const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
+
+                let releaseNotesHtml = `${avatar} <a target="_blank" href="${item.versionUrl || item.versionReleaseNotes}"><span>${versionLabel}</span></a>`;
+                if (item.user_post_reddit) {
+                    const firstRedditPost = Object.values(item.user_post_reddit)[0];
+                    if (firstRedditPost) {
+                        releaseNotesHtml += `<div style="font-size: 10pt; padding-top: 10px;">
+                            <img src="https://www.iconpacks.net/icons/2/free-reddit-logo-icon-2436-thumb.png" alt="Reddit Logo" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;">
+                            <a href="${firstRedditPost.url}" target="_blank" style="font-size: 10pt;">${firstRedditPost.title.length > 50 ? firstRedditPost.title.substring(0, 50) + '...' : firstRedditPost.title}</a>
+                            by ${firstRedditPost.author} on ${new Date(firstRedditPost.created_utc).toLocaleString()}
+                            <button class="add-component" data-component="${item.versionProductName}">+</button>
+                            <button class="remove-component" data-component="${item.versionProductName}">-</button>
+                        </div>`;
+                    }
+                }
+
+                const versionSearchTags = (item.versionSearchTags || []).map(tag =>
+                    `<span style='color: #fff; font-size: 10pt; background-color: ${tag === 'cve' ? '#ca4141' : '#47863e'};border-radius: 4px;padding: 2px 5px; margin: 1px 2px 1px 0px; display: inline-block;'>${tag}</span>`).join(' ');
+
+                const versionReleaseComments = item.versionReleaseComments ? `<span style='font-size:10pt'>${item.versionReleaseComments.replace(/^[^A-Z]+/, '').replace(/_/g, ' ')}</span>` : '';
+
+                if (isNewerThanDayAfterTomorrow(item.versionReleaseDate)) continue;
+
+                if (currDate !== item.versionReleaseDate) {
+                    $(".versionListClassSection").append(`<hr style="height:1px;border:none;"><li><h3>${formatDate(item.versionReleaseDate)}</h3></li>`);
+                    currDate = item.versionReleaseDate;
+                }
+
+                if (formattedDate.toLowerCase() === "today") countToday++;
+
+                $(".versionListClassSection").append(`<li class="versionListClassSection-item">${releaseNotesHtml}<div style="padding: 10px 0px">${versionSearchTags} ${versionReleaseComments}<br><span style="color: #797777; font-size:10pt; font-weight:bold" class="rt-class-${item.versionProductName.toLowerCase()}"></span></div></li>`);
+
+                if (!displayComponents.includes(item.versionProductName)) {
+                    displayComponents.push(item.versionProductName);
+                    getVersionForecast(item.versionProductName.toLowerCase());
+                }
+            }
+
+            document.title = countToday > 0 ? `(${countToday}) releasetrain.io` : "releasetrain.io";
+            pageNumParam++;
+        }
+
+        function getAvatarHtml(versionProductName, isCve, isSecurityPatch, initialAvatar) {
+            const productName = versionProductName.toLowerCase();
+            let avatar = initialAvatar;
+
+            switch (productName) {
+                case "chrome":
+                    avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png" alt="Chrome">';
+                    break;
+                case "ledvance":
+                    avatar = '<img class="avatar" src="./img/ledvance.png" alt="Ledvance">';
+                    break;
+                case "firefox":
+                    avatar = '<img class="avatar" src="./img/firefox.png" alt="Firefox">';
+                    break;
+                case "android studio":
+                    avatar = '<img class="avatar" src="./img/androidStudio.png" alt="Android Studio">';
+                    break;
+                case "safari":
+                    avatar = '<img class="avatar" src="./img/safari.png" alt="Safari">';
+                    break;
+                case "eclipse":
+                    avatar = '<img class="avatar" src="./img/eclipse.png" alt="Eclipse">';
+                    break;
+                case "let's encrypt":
+                    avatar = '<img class="avatar" src="./img/letsencrypt.png" alt="Let\'s Encrypt">';
+                    break;
+                case "vmware":
+                    avatar = '<img class="avatar" src="./img/vmware.png" alt="VMware">';
+                    break;
+                case "oracle":
+                    avatar = '<img class="avatar" src="./img/vboracle.png" alt="Oracle">';
+                    break;
+                case "digitalocean":
+                    avatar = '<i class="fas fa-exclamation-triangle"></i>';
+                    break;
+                default:
+                    avatar = initialAvatar && initialAvatar !== "OS" && initialAvatar !== "security"
+                        ? `<img class="avatar" src="https://avatars3.githubusercontent.com/u/${initialAvatar}" alt="${versionProductName}">`
+                        : isCve
+                            ? '<img class="avatar" src="./img/cve.png" alt="CVE">'
+                            : isSecurityPatch
+                                ? '<img class="avatar" src="./img/androidSecurityUpdate.png" alt="Security Patch">'
+                                : '<img class="avatar" src="./img/default.png" alt="Default">';
+            }
+
+            return avatar;
+        }
+
+        function onScroll() {
+            if ($(window).scrollTop() === $(document).height() - $(window).height()) {
+                getVersionList();
+            }
+        }
+
+        function formatDate(d) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const today = new Date();
+            const releaseDate = new Date([d.slice(0, 4), d.slice(4, 6), d.slice(6, 8)].join('-'));
+            if (isSameDate(releaseDate, today)) {
+                return "Today";
+            } else if (!isNaN(releaseDate.getTime())) {
+                return `${months[releaseDate.getMonth()]}/${releaseDate.getDate()}/${releaseDate.getFullYear()}`;
+            } else {
+                return null;
+            }
+        }
+
+        function isNewerThanDayAfterTomorrow(dateString) {
+            const year = parseInt(dateString.substring(0, 4));
+            const month = parseInt(dateString.substring(4, 6)) - 1;
+            const day = parseInt(dateString.substring(6, 8));
+
+            const specificDate = new Date(year, month, day);
+            const today = new Date();
+            const dayAfterTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
+
+            return specificDate > dayAfterTomorrow;
+        }
+
+        function isSameDate(d1, d2) {
+            return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+        }
+
+        $(document).ready(function () {
+            getAndRenderComponentList();
+
+            const query = new URLSearchParams(window.location.search).get('q');
+            if (query) {
+                componentNameParam = query;
+                const queryArgs = componentNameParam.split(',');
+                queryArgs.forEach((arg, index) => {
+                    $(".component-names").select2("trigger", "select", { data: { id: index, text: arg } });
+                    if (index === queryArgs.length - 1) {
+                        isDone = true;
+                    }
+                });
+            } else {
+                isDone = true;
+                getReleases();
+            }
+
+            getVersionCount();
+            getComponentCount();
+            getTodayDate();
+
+            $(document).on('click', '.add-component', function () {
+                const component = $(this).data('component');
+                const select2Data = $('.component-names').select2('data');
+                if (!select2Data.some(item => item.text === component)) {
+                    const newOption = new Option(component, component, true, true);
+                    $('.component-names').append(newOption).trigger('change');
+                }
+            });
+
+            $(document).on('click', '.remove-component', function () {
+                const component = $(this).data('component');
+                const select2Data = $('.component-names').select2('data');
+                const newData = select2Data.filter(item => item.text !== component);
+                $('.component-names').val(newData.map(item => item.id)).trigger('change');
+            });
+        });
     </script>
 </body>
 

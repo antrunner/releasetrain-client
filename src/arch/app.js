@@ -1,17 +1,27 @@
-import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
+import { plantuml } from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
+// import plantuml from '@sakirtemel/plantuml.js';
+
+// Usage
+plantuml.initialize().then(() => {
+    console.log("PlantUML has been initialized.");
+    // Additional code to use PlantUML functionalities
+});
+
 import util from './util.js';
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4b1a5c77683a795e3ba513c04fdf91beb1a4f42d
 // PRODUCTION
-/*
-const URL_API_ENDPOINT = "https://releasetrain.io/api";
-const urlSelectOptions = "https://releasetrain.io/api/c/names";
-const URL_HOMEPAGE = "https://releasetrain.io";
-*/
+// const URL_HOMEPAGE = "https://releasetrain.io";
 
 // DEVELOPMENT
+const URL_HOMEPAGE = "http://localhost:8080/src";
+
+// COMMON
 const URL_API_ENDPOINT = "https://releasetrain.io/api";
 const urlSelectOptions = "https://releasetrain.io/api/c/names";
 const urlSelectOS = "https://releasetrain.io/api/c/os";
-const URL_HOMEPAGE = "http://localhost:8080/src";
 
 let versions = [];
 let osList = [];
