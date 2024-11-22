@@ -1,6 +1,5 @@
 import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
 import util from './util.js';
-// console.log(util);
 // PRODUCTION
 /*
 const URL_API_ENDPOINT = "https://releasetrain.io/api";
@@ -23,7 +22,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const q = urlParams.get('q') === null ? "" : urlParams.get('q');
 
 $.ajax({
-    url: `${URL_API_ENDPOINT}/v?q=${encodeURIComponent(q)}`,
+    url: `${URL_API_ENDPOINT}/component?q=${encodeURIComponent(q)}`,
     type: 'GET',
     dataType: 'json',
     success: handleData,
@@ -51,14 +50,21 @@ function handleOsData(data) {
 }
 
 function handleData(data) {
+    console.log(data)
+
+    if (data['q'] === undefined) {
+        data = data;
+    } else {
+        data = data['q'];
+    }
+
+    // console.log("Array length", data.length);
     if (!Array.isArray(data)) {
         console.error("Data is not an array");
         return;
     }
 
     const sortedData = sortByDate(data);
-
-    // sortedData.forEach(v => { console.log(v.versionReleaseDate) });
 
     versions.push(...sortedData);
 
@@ -101,11 +107,6 @@ $('#mySelect2').select2({
     }
 });
 
-// function isFirstLetterAlphabetic(str) {
-//     if (str.length === 0) return false; // Check if the string is empty
-//     return /^[A-Za-z]/.test(str.charAt(0));
-// }
-
 $('#mySelect2').on('change', function () {
     var selectedTexts = $(this).find(':selected').map(function () {
         return $(this).text();
@@ -116,15 +117,11 @@ $('#mySelect2').on('change', function () {
 });
 
 q.split(",").forEach(component => {
-
-    // console.log(q, component);
-
     if (q === "") {
         return;
     }
     let initialValue = { id: counterId, text: component };
     let newOption = new Option(initialValue.text, initialValue.id, true, true);
-    // $('#mySelect2').append(newOption).trigger('change');
     $('#mySelect2').append(newOption);
     counterId = counterId + 1;
 })
@@ -139,8 +136,7 @@ function versionsToTree() {
         }
         else {
             osList.forEach(os => {
-                if (v.versionSearchTags.includes(os.toLowerCase())) {
-                    // const osKey = `${os}@${os.replace(/\./g, ":")}`;
+                if (v.versionSearchTags.map(tag => tag.toLowerCase()).includes(os.toLowerCase())) {
                     const osKey = `${os}`;
                     if (!tree.hasOwnProperty(osKey)) {
                         tree[osKey] = { version: os };
@@ -168,10 +164,14 @@ function addLeafToTree() {
 function getplantuml() {
     const diagrams = [];
     const addedOsComponents = new Set();
+    let baseline = "";
 
     Object.entries(tree).forEach(([osComponent, componentData], index) => {
 
-        if (!addedOsComponents.has(osComponent)) {
+        baseline = ` Baseline: ${osComponent}\\n`;
+
+        if (!addedOsComponents.has(osComponent) && osComponent == "linux") {
+
             // let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
             let plantUMLCode = `@startuml\n  package "${osComponent}" {\n`;
 
@@ -179,6 +179,7 @@ function getplantuml() {
 
             // OS Component Class Properties
             if (componentData.version.hasOwnProperty("versionNumber")) {
+
                 plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
 
                 if (componentData.version.versionReleaseChannel === 'cve') {
@@ -202,6 +203,7 @@ function getplantuml() {
             Object.keys(componentData).forEach((component) => {
 
                 if (component !== 'version') {
+
                     plantUMLCode += `      class ${component} {\n`;
 
                     if (isRecent(componentData[component].version.versionReleaseDate)) {
@@ -212,7 +214,12 @@ function getplantuml() {
 
                     plantUMLCode += `        Version: ${addMajorTag(componentData[component].version.versionNumber)}\n`;
 
-                    // plantUMLCode += '       ... (other details)\n';
+                    if (componentData[component].version.versionReleaseChannel === 'cve') {
+                        plantUMLCode += `        Note: <b>Security Update</b>\n`;
+                    } else {
+                        baseline += `- ${component}\\n`;
+                    }
+
                     plantUMLCode += '      }\n';
 
                     plantUMLCode += '    skinparam class {\n';
@@ -222,7 +229,8 @@ function getplantuml() {
             });
 
             /***************************************************************************** */
-
+            plantUMLCode += `note  "${baseline}" as test\n`;
+            plantUMLCode += `test .- ${osComponent}\n`;
             plantUMLCode += '    }\n  }\n@enduml';
             diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
             addedOsComponents.add(osComponent);
@@ -249,7 +257,6 @@ function renderDiagrams(diagrams) {
 }
 
 function myRender(container, diagramData) {
-    // console.log('diagramData:', diagramData);
     let { name, code } = diagramData;
     let diagramContainer = document.createElement('div');
     diagramContainer.id = name;
