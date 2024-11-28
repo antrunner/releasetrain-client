@@ -1,24 +1,17 @@
-import { plantuml } from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
-// import plantuml from '@sakirtemel/plantuml.js';
-
-// Usage
-plantuml.initialize().then(() => {
-    console.log("PlantUML has been initialized.");
-    // Additional code to use PlantUML functionalities
-});
-
+import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
 import util from './util.js';
-
 // PRODUCTION
-// const URL_HOMEPAGE = "https://releasetrain.io";
+/*
+const URL_API_ENDPOINT = "https://releasetrain.io/api";
+const urlSelectOptions = "https://releasetrain.io/api/c/names";
+const URL_HOMEPAGE = "https://releasetrain.io";
+*/
 
 // DEVELOPMENT
-const URL_HOMEPAGE = "http://localhost:8080/src";
-
-// COMMON
 const URL_API_ENDPOINT = "https://releasetrain.io/api";
 const urlSelectOptions = "https://releasetrain.io/api/c/names";
 const urlSelectOS = "https://releasetrain.io/api/c/os";
+const URL_HOMEPAGE = "http://localhost:8080/src";
 
 let versions = [];
 let osList = [];
@@ -29,7 +22,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const q = urlParams.get('q') === null ? "" : urlParams.get('q');
 
 $.ajax({
-    url: `${URL_API_ENDPOINT}/v?q=${encodeURIComponent(q)}`,
+    url: `${URL_API_ENDPOINT}/component?q=${encodeURIComponent(q)}`,
     type: 'GET',
     dataType: 'json',
     success: handleData,
@@ -57,6 +50,15 @@ function handleOsData(data) {
 }
 
 function handleData(data) {
+    console.log(data)
+
+    if (data['q'] === undefined) {
+        data = data;
+    } else {
+        data = data['q'];
+    }
+
+    // console.log("Array length", data.length);
     if (!Array.isArray(data)) {
         console.error("Data is not an array");
         return;
@@ -64,15 +66,13 @@ function handleData(data) {
 
     const sortedData = sortByDate(data);
 
-    // sortedData.forEach(v => { console.log(v.versionReleaseDate) });
-
     versions.push(...sortedData);
 
     versionsToTree();
 
     plantuml.initialize('../app/node_modules/@sakirtemel/plantuml.js')
         .then(() => {
-            renderDiagrams(getplantuml());
+            renderDiagrams(getPlantuml());
         })
         .catch((error) => {
             console.error('Error initializing PlantUML:', error);
@@ -107,11 +107,6 @@ $('#mySelect2').select2({
     }
 });
 
-// function isFirstLetterAlphabetic(str) {
-//     if (str.length === 0) return false; // Check if the string is empty
-//     return /^[A-Za-z]/.test(str.charAt(0));
-// }
-
 $('#mySelect2').on('change', function () {
     var selectedTexts = $(this).find(':selected').map(function () {
         return $(this).text();
@@ -122,15 +117,11 @@ $('#mySelect2').on('change', function () {
 });
 
 q.split(",").forEach(component => {
-
-    // console.log(q, component);
-
     if (q === "") {
         return;
     }
     let initialValue = { id: counterId, text: component };
     let newOption = new Option(initialValue.text, initialValue.id, true, true);
-    // $('#mySelect2').append(newOption).trigger('change');
     $('#mySelect2').append(newOption);
     counterId = counterId + 1;
 })
@@ -145,8 +136,7 @@ function versionsToTree() {
         }
         else {
             osList.forEach(os => {
-                if (v.versionSearchTags.includes(os.toLowerCase())) {
-                    // const osKey = `${os}@${os.replace(/\./g, ":")}`;
+                if (v.versionSearchTags.map(tag => tag.toLowerCase()).includes(os.toLowerCase())) {
                     const osKey = `${os}`;
                     if (!tree.hasOwnProperty(osKey)) {
                         tree[osKey] = { version: os };
@@ -171,71 +161,260 @@ function addLeafToTree() {
     }
 }
 
-function getplantuml() {
-    const diagrams = [];
-    const addedOsComponents = new Set();
+function getPlantuml() {
+    const plantUMLCode = `
+@startuml
+title Software Version Stacks and Hierarchies
 
-    Object.entries(tree).forEach(([osComponent, componentData], index) => {
-
-        if (!addedOsComponents.has(osComponent)) {
-            // let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
-            let plantUMLCode = `@startuml\n  package "${osComponent}" {\n`;
-
-            /***************************************************************************** */
-
-            // OS Component Class Properties
-            if (componentData.version.hasOwnProperty("versionNumber")) {
-                plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
-
-                if (componentData.version.versionReleaseChannel === 'cve') {
-                    plantUMLCode += `        Note: <b>Security Update</b>\n`;
-                }
-
-                if (isRecent(componentData.version.versionReleaseDate)) {
-                    plantUMLCode += `        Date: <b>${formatDate(componentData.version.versionReleaseDate)}</b>\n`;
-                } else {
-                    plantUMLCode += `        Date: ${formatDate(componentData.version.versionReleaseDate)}\n`;
-                }
-                plantUMLCode += `      Version: ${addMajorTag(componentData.version.versionNumber)}\n`;
-                plantUMLCode += '    }\n';
-            }
-
-            /***************************************************************************** */
-
-            // OS Sub-Component Package
-            plantUMLCode += '    package Subcomponents {\n';
-
-            Object.keys(componentData).forEach((component) => {
-
-                if (component !== 'version') {
-                    plantUMLCode += `      class ${component} {\n`;
-
-                    if (isRecent(componentData[component].version.versionReleaseDate)) {
-                        plantUMLCode += `        Date: <b>${formatDate(componentData[component].version.versionReleaseDate)}</b>\n`;
-                    } else {
-                        plantUMLCode += `        Date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
-                    }
-
-                    plantUMLCode += `        Version: ${addMajorTag(componentData[component].version.versionNumber)}\n`;
-
-                    // plantUMLCode += '       ... (other details)\n';
-                    plantUMLCode += '      }\n';
-
-                    plantUMLCode += '    skinparam class {\n';
-                    plantUMLCode += '    }\n';
-
-                }
-            });
-
-            /***************************************************************************** */
-
-            plantUMLCode += '    }\n  }\n@enduml';
-            diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
-            addedOsComponents.add(osComponent);
-        }
-    });
-    return diagrams;
+package "Software Stack (LAMP)" {
+    component "Linux OS" as Linux
+    component "Apache Web Server" as Apache
+    component "MySQL Database" as MySQL
+    component "PHP Interpreter" as PHP
 }
+
+package "Single Database" {
+    component "PostgreSQL Database" as PostgreSQL
+}
+
+package "Application Hierarchy" {
+    component "Parent Service" as ParentService {
+        component "Child Service A" as ChildA
+        component "Child Service B" as ChildB {
+            component "Grandchild Service" as Grandchild
+        }
+    }
+}
+
+' Relationships within the stack
+Linux --> Apache : Hosts
+Apache --> PHP : Executes
+PHP --> MySQL : Queries
+
+' Single database relationship example
+PostgreSQL ..> PHP : Used by
+
+' Hierarchy relationships
+ParentService --> ChildA : Manages
+ParentService --> ChildB : Manages
+ChildB --> Grandchild : Delegates
+
+@enduml
+    `;
+    return [{ name: "software-stacks-and-hierarchy", code: plantUMLCode }];
+}
+
+// function getPlantuml() {
+//     const plantUMLCode = `
+// @startuml
+// title Nested, Stacked, and Sibling Components Diagram
+
+// package "Frontend" {
+//     component "Web Application" as WebApp
+//     component "Frontend Helper" as FrontHelper
+// }
+
+// package "Backend" {
+//     component "API Gateway" as APIGateway {
+//         component "Authentication Service" as AuthService
+//         component "Routing Service" as RoutingService
+//     }
+
+//     component "Database" as DB
+// }
+
+// WebApp --> APIGateway : Sends requests
+// APIGateway --> AuthService : Validates
+// APIGateway --> RoutingService : Routes
+// AuthService --> DB : Reads/Writes user data
+// RoutingService --> DB : Queries
+// FrontHelper --> WebApp : Supports UI rendering
+
+// @enduml
+//     `;
+//     return [{ name: "nested-stacked-sibling-diagram", code: plantUMLCode }];
+// }
+
+// function getPlantuml() {
+//     const diagrams = [];
+//     const addedOsComponents = new Set();
+
+//     Object.entries(tree).forEach(([osComponent, componentData]) => {
+//         if (!addedOsComponents.has(osComponent) && osComponent === "linux") {
+//             let plantUMLCode = `
+// @startuml
+// package ${osComponent} {
+// `;
+
+//             // Add OS Component Class Properties
+//             if (componentData.version?.versionNumber) {
+//                 plantUMLCode += `
+//     class ${osComponent} {
+//         Version: ${componentData.version.versionNumber}
+//         ReleaseDate: ${componentData.version.versionReleaseDate || "Unknown"}
+//         ${componentData.version.versionReleaseChannel === "cve" ? "Note: Security Update" : ""}
+//     }
+// `;
+//             }
+
+//             // Add Subcomponents
+//             plantUMLCode += `
+//     package Subcomponents {
+// `;
+
+//             Object.entries(componentData).forEach(([component, data]) => {
+//                 if (component !== "version") {
+//                     plantUMLCode += `
+//         class ${component} {
+//             Version: ${data.version?.versionNumber || "Unknown"}
+//             ReleaseDate: ${data.version?.versionReleaseDate || "Unknown"}
+//             ${data.version?.versionReleaseChannel === "cve" ? "Note: Security Update" : ""}
+//         }
+// `;
+//                 }
+//             });
+
+//             plantUMLCode += `
+//     }
+// }
+// @enduml
+// `;
+
+//             diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
+//             addedOsComponents.add(osComponent);
+//         }
+//     });
+
+//     return diagrams;
+// }
+
+// function getPlantuml() {
+//     const plantUMLCode = `
+// @startuml
+// title Simple Component Diagram
+
+// component "Web Application" as WebApp
+// component "Database" as DB
+// component "API Gateway" as APIGateway
+// component "Authentication Service" as AuthService
+
+// WebApp --> APIGateway : Uses
+// APIGateway --> DB : Reads/Writes
+// APIGateway --> AuthService : Authenticates
+
+// @enduml
+//     `;
+//     return [{ name: "simple-component-diagram", code: plantUMLCode }];
+// }
+
+// function getPlantuml() {
+//     const plantUMLCode = `
+// @startuml
+// title Nested, Stacked, and Sibling Components Diagram
+
+// package "Frontend" {
+//     component "Web Application" as WebApp
+//     component "Frontend Helper" as FrontHelper
+// }
+
+// package "Backend" {
+//     component "API Gateway" as APIGateway {
+//         component "Authentication Service" as AuthService
+//         component "Routing Service" as RoutingService
+//     }
+
+//     component "Database" as DB
+// }
+
+// WebApp --> APIGateway : Sends requests
+// APIGateway --> AuthService : Validates
+// APIGateway --> RoutingService : Routes
+// AuthService --> DB : Reads/Writes user data
+// RoutingService --> DB : Queries
+// FrontHelper --> WebApp : Supports UI rendering
+
+// @enduml
+//     `;
+//     return [{ name: "nested-stacked-sibling-diagram", code: plantUMLCode }];
+// }
+
+// function getPlantuml() {
+//     const diagrams = [];
+//     const addedOsComponents = new Set();
+//     let baseline = "";
+
+//     Object.entries(tree).forEach(([osComponent, componentData], index) => {
+
+//         baseline = ` Baseline: ${osComponent}\\n`;
+
+//         if (!addedOsComponents.has(osComponent) && osComponent == "linux") {
+
+//             // let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
+//             let plantUMLCode = `@startuml\n  package "${osComponent}" {\n`;
+
+//             /***************************************************************************** */
+
+//             // OS Component Class Properties
+//             if (componentData.version.hasOwnProperty("versionNumber")) {
+
+//                 plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
+
+//                 if (componentData.version.versionReleaseChannel === 'cve') {
+//                     plantUMLCode += `        Note: <b>Security Update</b>\n`;
+//                 }
+
+//                 if (isRecent(componentData.version.versionReleaseDate)) {
+//                     plantUMLCode += `        Date: <b>${formatDate(componentData.version.versionReleaseDate)}</b>\n`;
+//                 } else {
+//                     plantUMLCode += `        Date: ${formatDate(componentData.version.versionReleaseDate)}\n`;
+//                 }
+//                 plantUMLCode += `      Version: ${addMajorTag(componentData.version.versionNumber)}\n`;
+//                 plantUMLCode += '    }\n';
+//             }
+
+//             /***************************************************************************** */
+
+//             // OS Sub-Component Package
+//             plantUMLCode += '    package Subcomponents {\n';
+
+//             Object.keys(componentData).forEach((component) => {
+
+//                 if (component !== 'version') {
+
+//                     plantUMLCode += `      class ${component} {\n`;
+
+//                     if (isRecent(componentData[component].version.versionReleaseDate)) {
+//                         plantUMLCode += `        Date: <b>${formatDate(componentData[component].version.versionReleaseDate)}</b>\n`;
+//                     } else {
+//                         plantUMLCode += `        Date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
+//                     }
+
+//                     plantUMLCode += `        Version: ${addMajorTag(componentData[component].version.versionNumber)}\n`;
+
+//                     if (componentData[component].version.versionReleaseChannel === 'cve') {
+//                         plantUMLCode += `        Note: <b>Security Update</b>\n`;
+//                     } else {
+//                         baseline += `- ${component}\\n`;
+//                     }
+
+//                     plantUMLCode += '      }\n';
+
+//                     plantUMLCode += '    skinparam class {\n';
+//                     plantUMLCode += '    }\n';
+
+//                 }
+//             });
+
+//             /***************************************************************************** */
+//             plantUMLCode += `note  "${baseline}" as test\n`;
+//             plantUMLCode += `test .- ${osComponent}\n`;            
+//             plantUMLCode += '    }\n  }\n@enduml';
+//             diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
+//             addedOsComponents.add(osComponent);
+//         }
+//     });
+//     return diagrams;
+// }
 
 function renderDiagrams(diagrams) {
     let container = document.getElementById('plantuml-diagrams');
@@ -255,7 +434,6 @@ function renderDiagrams(diagrams) {
 }
 
 function myRender(container, diagramData) {
-    // console.log('diagramData:', diagramData);
     let { name, code } = diagramData;
     let diagramContainer = document.createElement('div');
     diagramContainer.id = name;
