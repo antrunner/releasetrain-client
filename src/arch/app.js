@@ -1,4 +1,4 @@
-import plantuml from '../../node_modules/@sakirtemel/plantuml.js/plantuml.js';
+import plantuml from './plantuml.js';
 import util from './util.js';
 // PRODUCTION
 /*
