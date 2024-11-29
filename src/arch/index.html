@@ -97,7 +97,12 @@
 
             <!-- Loader Section -->
             <section>
-                <div class="loader" id="loader" style="display: none;"></div>
+                <div style="text-align: center; position: relative;">
+                    <div class="loader" id="loader" style="display: none;"></div>
+                    <div id="timer" style="margin-top: 10px; font-size: 14px; display: none;">
+                        Loading... <span id="seconds">0</span> seconds
+                    </div>
+                </div>
             </section>
 
             <!-- Diagram Display Section -->
@@ -137,6 +142,44 @@
             </a>
         </div>
     </footer>
+
+    <script>
+        let timerInterval; // Variable to store the timer interval
+        let seconds = 0;   // Timer starts at 0
+
+        // Function to show the loader and start the timer
+        function showLoader() {
+            const loader = document.getElementById('loader');
+            const timer = document.getElementById('timer');
+            const secondsElement = document.getElementById('seconds');
+
+            // Display the loader and timer
+            loader.style.display = 'block';
+            timer.style.display = 'block';
+
+            // Start the timer
+            timerInterval = setInterval(() => {
+                seconds++;
+                secondsElement.textContent = seconds;
+            }, 1000); // Increment every second
+        }
+
+        // Function to hide the loader and stop the timer
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            const timer = document.getElementById('timer');
+
+            loader.style.display = 'none';   // Hide the loader
+            timer.style.display = 'none';    // Hide the timer
+
+            // Stop the timer (this will stop the second counter, but the text will stay visible)
+            clearInterval(timerInterval);
+        }
+
+        // Example usage: Show the loader for 5 seconds (total duration 7 seconds including the 2 extra seconds)
+        showLoader();
+        setTimeout(hideLoader, 10000); // Hide loader after 5 seconds of dynamic loading
+    </script>
 
 </body>
 
