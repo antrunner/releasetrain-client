@@ -1,17 +1,40 @@
 import plantuml from './plantuml.js';
 import util from './util.js';
-// PRODUCTION
-/*
-const URL_API_ENDPOINT = "https://releasetrain.io/api";
-const urlSelectOptions = "https://releasetrain.io/api/c/names";
-const URL_HOMEPAGE = "https://releasetrain.io";
-*/
 
-// DEVELOPMENT
-const URL_API_ENDPOINT = "https://releasetrain.io/api";
-const urlSelectOptions = "https://releasetrain.io/api/c/names";
-const urlSelectOS = "https://releasetrain.io/api/c/os";
-const URL_HOMEPAGE = "http://localhost:8080/src";
+// Set environment flag
+const IS_PRODUCTION = true;  // Change to `true` for production
+
+// Define URLs and paths for both environments
+const config = {
+    production: {
+        API_ENDPOINT: "https://releasetrain.io/api",
+        SELECT_OPTIONS: "https://releasetrain.io/api/c/names",
+        HOMEPAGE: "https://releasetrain.io",
+        PLANTUML_PATH: "./arch"  // Path in production
+    },
+    development: {
+        API_ENDPOINT: "https://releasetrain.io/api",
+        SELECT_OPTIONS: "https://releasetrain.io/api/c/names",
+        SELECT_OS: "https://releasetrain.io/api/c/os",
+        HOMEPAGE: "http://localhost:8080/src",
+        PLANTUML_PATH: "./src/arch"  // Path in development
+    }
+};
+
+// Set the URLs and paths based on the environment flag
+const URL_API_ENDPOINT = IS_PRODUCTION ? config.production.API_ENDPOINT : config.development.API_ENDPOINT;
+const urlSelectOptions = IS_PRODUCTION ? config.production.SELECT_OPTIONS : config.development.SELECT_OPTIONS;
+const urlSelectOS = IS_PRODUCTION ? "" : config.development.SELECT_OS;  // For development only
+const URL_HOMEPAGE = IS_PRODUCTION ? config.production.HOMEPAGE : config.development.HOMEPAGE;
+const plantumlPath = IS_PRODUCTION ? config.production.PLANTUML_PATH : config.development.PLANTUML_PATH;
+
+// Example usage
+console.log("Environment:", IS_PRODUCTION ? "PRODUCTION" : "DEVELOPMENT");
+console.log("API Endpoint:", URL_API_ENDPOINT);
+console.log("Select Options URL:", urlSelectOptions);
+console.log("Select OS URL:", urlSelectOS);
+console.log("Homepage URL:", URL_HOMEPAGE);
+console.log("PlantUML Path:", plantumlPath);
 
 // Define the top 30 operating systems
 const allowedOperatingSystems = [
@@ -24,6 +47,9 @@ let versions = [];
 let osList = [];
 let tree = {};
 let counterId = 0;
+
+let startTime = Date.now();  // Start time to calculate the generation time
+let endTime;
 
 const urlParams = new URLSearchParams(window.location.search);
 const componentListQuery = urlParams.get('q') === null ? "" : urlParams.get('q');
@@ -53,6 +79,7 @@ function handleOsData(data) {
         console.error("Data is not an array");
         return;
     }
+
     osList = data;
 }
 
@@ -77,13 +104,26 @@ function handleData(data) {
 
     versionsToTree();
 
-    plantuml.initialize('./arch')
+    plantuml.initialize(plantumlPath)
         .then(() => {
+            // Call the function to generate PlantUML diagrams
             renderDiagrams(getPlantuml());
+        })
+        .then(() => {
+            // Once diagrams are rendered, calculate endTime
+            const endTime = Date.now();  // Set the end time after rendering diagrams
+            const generationTime = ((endTime - startTime) / 1000).toFixed(2);  // Calculate the generation time in seconds
+
+            // Update the metrics section on the page with the generation time
+            document.getElementById("generationTime").textContent = generationTime;
+
+            // Log the generation time to the console (for debugging or monitoring purposes)
+            console.log(`Time to Generate PlantUML Image: ${generationTime} seconds`);
         })
         .catch((error) => {
             console.error('Error initializing PlantUML:', error);
         });
+
 }
 
 $('#mySelect2').select2({
@@ -180,15 +220,32 @@ function addLeafToTree() {
         });
     }
 }
-
 function getPlantuml() {
     console.log(componentListQuery);
 
     // Set to track unique OS components
     const addedOsComponents = new Set();
+
+    // Aggregated metrics variables
+    let totalComponents = 0;
+    let versionDistribution = {};  // To store counts of each version
+    let recentUpdateTimestamp = null;  // To track the most recent update
+
+    const timestamp = new Date().toLocaleString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false,
+        timeZoneName: 'short'
+    });
+
     let plantUMLCode = `
 @startuml
-title "Unique Operating Systems Components"
+title "Unique Operating Systems Components\\n${timestamp}"
 `;
 
     // Function to replace special characters (including colon) with '-'
@@ -210,39 +267,55 @@ title "Unique Operating Systems Components"
         // Skip already added components
         if (!addedOsComponents.has(componentName)) {
             addedOsComponents.add(componentName);
+            totalComponents++;  // Increment total component count
 
             // Start a package for the OS component
-            plantUMLCode += `
-package "${componentName}" {
-`;
+            plantUMLCode += `package "${componentName}" {\n`;
 
             // Add OS version info inside the component's name, replacing ':' with '-'
             if (componentData.version && componentData.version.versionNumber) {
                 let version = replaceColonWithDash(componentData.version.versionNumber);  // Replace ':' with '-'
                 let releaseDate = formatDate(componentData.version.versionReleaseDate);  // Get release date (no need for sanitization here)
+
+                // Aggregating version distribution
+                versionDistribution[version] = (versionDistribution[version] || 0) + 1;
+
+                // Track recent update timestamp
+                let versionReleaseDate = new Date(componentData.version.versionReleaseDate);
+                if (!recentUpdateTimestamp || versionReleaseDate > recentUpdateTimestamp) {
+                    recentUpdateTimestamp = versionReleaseDate;
+                }
+
                 plantUMLCode += `    component "${componentName}@${version}\\nVersion: ${version}\\nRelease Date: ${releaseDate}"\n`;
             }
 
-            // Add sub-component packages with version information inside the component name
             if (componentData && componentData.version) {
+                // Loop through the components, excluding 'version' itself
                 Object.keys(componentData).forEach((component) => {
                     if (component !== 'version') {
+                        // Sanitize the component name
                         component = sanitize(component);
+
+                        // Get the subcomponent data
                         let subComponent = componentData[component];
 
                         // Safely handle undefined version and release date
-                        let subVersion = subComponent?.version?.versionNumber ? replaceColonWithDash(subComponent.version.versionNumber) : 'N/A';  // Replace ':' with '-' or return 'N/A' if undefined
-                        let subReleaseDate = subComponent?.version?.versionReleaseDate ? formatDate(subComponent.version.versionReleaseDate) : 'N/A';  // Return 'N/A' if undefined
+                        let subVersion = subComponent?.version?.versionNumber
+                            ? replaceColonWithDash(subComponent.version.versionNumber)
+                            : 'N/A';  // Replace ':' with '-' or return 'N/A' if undefined
+
+                        let subReleaseDate = subComponent?.version?.versionReleaseDate
+                            ? formatDate(subComponent.version.versionReleaseDate)
+                            : 'N/A';  // Return 'N/A' if undefined
 
                         // Add the component with version and release date to the PlantUML code
                         plantUMLCode += `    component "${component}\\nVersion: ${subVersion}\\nRelease Date: ${subReleaseDate}"\n`;
                     }
                 });
             }
+
             // End the package for the current OS component
-            plantUMLCode += `
-}
-`;
+            plantUMLCode += `}\n`;
         }
     });
 
@@ -253,10 +326,19 @@ package "${componentName}" {
     // Insert the PlantUML code into the HTML element with the id "plantuml-code"
     document.getElementById("plantuml-code").innerText = plantUMLCode;
 
+    // Update the metrics section on the page
+    document.getElementById("totalComponents").textContent = totalComponents;
+    document.getElementById("versionDistribution").textContent = JSON.stringify(versionDistribution, null, 2);
+    document.getElementById("recentUpdate").textContent = recentUpdateTimestamp ? recentUpdateTimestamp.toLocaleString() : 'N/A';
+
+    // Aggregate and log critical data
+    console.log(`Total Components: ${totalComponents}`);
+    console.log(`Version Distribution: ${JSON.stringify(versionDistribution)}`);
+    console.log(`Most Recent Update: ${recentUpdateTimestamp ? recentUpdateTimestamp.toLocaleString() : 'N/A'}`);
+
     // Optionally return the generated PlantUML code
     return [{ name: "unique-os-packages", code: plantUMLCode }];
 }
-
 
 // function getPlantuml() {
 

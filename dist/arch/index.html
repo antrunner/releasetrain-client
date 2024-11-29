@@ -117,9 +117,7 @@
             <section>
                 <label for="mySelect2">Select Architecture Modules:</label>
                 <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple"
-                    style="width: 100%">
-                    <!-- Options will be dynamically loaded -->
-                </select>
+                    style="width: 100%"></select>
             </section>
 
             <!-- Loader Section -->
@@ -134,9 +132,7 @@
 
             <!-- Diagram Display Section -->
             <section id="diagram-container">
-                <div id="plantuml-diagrams">
-                    <!-- PlantUML diagrams will be rendered here -->
-                </div>
+                <div id="plantuml-diagrams"></div>
             </section>
         </div>
 
@@ -148,9 +144,11 @@
 
             <!-- Metrics Display -->
             <section id="metrics-container">
-                <p><strong>KPI 1:</strong> 85% System Uptime</p>
-                <p><strong>KPI 2:</strong> 99.9% Data Accuracy</p>
-                <p><strong>Trend:</strong> Diagram updates increased by 15% this week.</p>
+                <p><strong>Total Components:</strong> <span id="totalComponents">0</span></p>
+                <p><strong>Version Distribution:</strong> <span id="versionDistribution">N/A</span></p>
+                <p><strong>Most Recent Update:</strong> <span id="recentUpdate">N/A</span></p>
+                <p><strong>Time to Generate Diagram:</strong> <span id="generationTime">0.00</span> seconds</p>
+
                 <div id="chart-placeholder">
                     Metrics visualization placeholder
                 </div>
@@ -165,21 +163,16 @@
                 <button class="copy-btn" id="copy-btn">Copy Code</button>
 
                 <!-- Open in PlantUML Editor Button -->
-                <button class="open-editor-btn" id="open-editor-btn" onclick="openPlantUMLEditor()">Open in PlantUML
-                    Editor</button>
+                <button class="open-editor-btn" id="open-editor-btn" onclick="openPlantUMLEditor()">Open in PlantUML Editor</button>
             </section>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer
-        style="text-align: center; padding: 10px; background-color: #f6f8fa; position: relative; border-top: 1px solid #d0d7de;">
+    <footer style="text-align: center; padding: 10px; background-color: #f6f8fa; position: relative; border-top: 1px solid #d0d7de;">
         <p style="margin: 0; font-size: 14px; color: #24292f;">&copy; 2024 Architecture Monitoring Tool</p>
         <div class="github-reference" style="margin-top: 8px;">
-            <a href="https://github.com/antrunner/releasetrain-client" target="_blank"
-                style="color: #0969da; text-decoration: none; font-weight: 600;">
-                ReleaseTrain Client on GitHub
-            </a>
+            <a href="https://github.com/antrunner/releasetrain-client" target="_blank" style="color: #0969da; text-decoration: none; font-weight: 600;">ReleaseTrain Client on GitHub</a>
         </div>
     </footer>
 
@@ -218,8 +211,8 @@
 
         // Example usage: Show the loader for 5 seconds (total duration 7 seconds including the 2 extra seconds)
         showLoader();
-        setTimeout(hideLoader, 10000); // Hide loader after 5 seconds of dynamic loading
-
+        hideLoader();
+        
         // Function to copy PlantUML code to clipboard
         document.getElementById('copy-btn').addEventListener('click', function () {
             const plantUMLCode = document.getElementById('plantuml-code');
