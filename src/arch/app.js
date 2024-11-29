@@ -77,7 +77,7 @@ function handleData(data) {
 
     versionsToTree();
 
-    plantuml.initialize('../app/node_modules/@sakirtemel/plantuml.js')
+    plantuml.initialize('./arch')
         .then(() => {
             renderDiagrams(getPlantuml());
         })
