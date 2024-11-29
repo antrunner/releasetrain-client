@@ -45,7 +45,6 @@
             border-right: 1px solid #ccc;
             box-sizing: border-box;
             overflow-y: auto;
-            /* Add scroll for overflow */
         }
 
         /* Metrics section (25%) */
@@ -55,7 +54,6 @@
             background-color: #f9f9f9;
             box-sizing: border-box;
             overflow-y: auto;
-            /* Add scroll for overflow */
         }
 
         /* Footer styling */
@@ -74,14 +72,6 @@
             margin-top: 20px;
         }
 
-        /* PlantUML diagram styling */
-        #plantuml-diagrams {
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 20px;
-            text-align: center;
-        }
-
         /* Code block styling for PlantUML code */
         pre {
             background-color: #f4f4f4;
@@ -90,12 +80,13 @@
             overflow-x: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
-            text-align: left; /* Aligning text to the left */
-            font-family: 'Courier New', Courier, monospace; /* Ensuring monospace font for code */
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         /* Copy Button */
-        .copy-btn {
+        .copy-btn,
+        .open-editor-btn {
             margin-top: 10px;
             background-color: #4CAF50;
             color: white;
@@ -105,7 +96,8 @@
             font-size: 14px;
         }
 
-        .copy-btn:hover {
+        .copy-btn:hover,
+        .open-editor-btn:hover {
             background-color: #45a049;
         }
     </style>
@@ -168,7 +160,13 @@
             <section id="plantuml-code-container">
                 <h3>PlantUML Code</h3>
                 <pre id="plantuml-code" style="font-size: 8pt;"></pre>
+
+                <!-- Copy Code Button -->
                 <button class="copy-btn" id="copy-btn">Copy Code</button>
+
+                <!-- Open in PlantUML Editor Button -->
+                <button class="open-editor-btn" id="open-editor-btn" onclick="openPlantUMLEditor()">Open in PlantUML
+                    Editor</button>
             </section>
         </div>
     </div>
@@ -222,16 +220,26 @@
         showLoader();
         setTimeout(hideLoader, 10000); // Hide loader after 5 seconds of dynamic loading
 
-        // Copy code to clipboard function
-        document.getElementById('copy-btn').addEventListener('click', function() {
-            const code = document.getElementById('plantuml-code');
+        // Function to copy PlantUML code to clipboard
+        document.getElementById('copy-btn').addEventListener('click', function () {
+            const plantUMLCode = document.getElementById('plantuml-code');
             const range = document.createRange();
-            range.selectNode(code);
+            range.selectNode(plantUMLCode);
             window.getSelection().removeAllRanges();
             window.getSelection().addRange(range);
             document.execCommand('copy');
             alert('PlantUML code copied to clipboard!');
+            window.getSelection().removeAllRanges(); // Deselect text
         });
+
+        // Function to open the PlantUML Editor in a new tab
+        function openPlantUMLEditor() {
+            const plantUMLCode = document.getElementById('plantuml-code').innerText;
+            const encodedCode = encodeURIComponent(plantUMLCode); // Encode the PlantUML code
+            // const url = `https://plantuml-editor.kkeisuke.com/?code=${encodedCode}`;
+            const url = `https://plantuml-editor.kkeisuke.com/`;
+            window.open(url, '_blank'); // Open in a new tab
+        }
     </script>
 
 </body>

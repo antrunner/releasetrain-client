@@ -13,16 +13,23 @@ const urlSelectOptions = "https://releasetrain.io/api/c/names";
 const urlSelectOS = "https://releasetrain.io/api/c/os";
 const URL_HOMEPAGE = "http://localhost:8080/src";
 
+// Define the top 30 operating systems
+const allowedOperatingSystems = [
+    "linux", "windows", "macos", "ubuntu", "centos", "debian", "redhat", "fedora", "arch", "suse",
+    "mint", "mac", "solaris", "freebsd", "opensuse", "gentoo", "slackware", "manjaro", "android", "ios",
+    "fedora", "android-x86", "raspbian", "kali-linux", "opensolaris", "zorin", "popos", "puppylinux", "steamos", "beaglebone"
+];
+
 let versions = [];
 let osList = [];
 let tree = {};
 let counterId = 0;
 
 const urlParams = new URLSearchParams(window.location.search);
-const q = urlParams.get('q') === null ? "" : urlParams.get('q');
+const componentListQuery = urlParams.get('q') === null ? "" : urlParams.get('q');
 
 $.ajax({
-    url: `${URL_API_ENDPOINT}/component?q=${encodeURIComponent(q)}`,
+    url: `${URL_API_ENDPOINT}/component?q=${encodeURIComponent(componentListQuery)}`,
     type: 'GET',
     dataType: 'json',
     success: handleData,
@@ -50,7 +57,7 @@ function handleOsData(data) {
 }
 
 function handleData(data) {
-    console.log(data)
+    console.log("Component count", data.length, data);
 
     if (data['q'] === undefined) {
         data = data;
@@ -116,8 +123,8 @@ $('#mySelect2').on('change', function () {
     window.location.href = urlToCall;
 });
 
-q.split(",").forEach(component => {
-    if (q === "") {
+componentListQuery.split(",").forEach(component => {
+    if (componentListQuery === "") {
         return;
     }
     let initialValue = { id: counterId, text: component };
@@ -127,17 +134,25 @@ q.split(",").forEach(component => {
 })
 
 function versionsToTree() {
+
     versions.forEach(v => {
         if (v.hasOwnProperty("versionPredictedComponentType") && v.versionPredictedComponentType.toUpperCase() === "OS") {
+            // Process the OS component based on the allowed operating systems list
             const osKey = `${v.versionProductName}@${v.versionNumber.replace(/\./g, ":")}`;
-            if (!tree.hasOwnProperty(osKey)) {
+
+            // Only process if the OS is in the allowed list
+            const osComponent = v.versionProductName.toLowerCase();
+            if (allowedOperatingSystems.includes(osComponent) && !tree.hasOwnProperty(osKey)) {
                 tree[osKey] = { version: v };
             }
-        }
-        else {
+        } else {
             osList.forEach(os => {
-                if (v.versionSearchTags.map(tag => tag.toLowerCase()).includes(os.toLowerCase())) {
+                const osComponent = os.toLowerCase();
+                // Check if the OS is in the allowed list before processing
+                if (allowedOperatingSystems.includes(osComponent) && v.versionSearchTags.map(tag => tag.toLowerCase()).includes(os.toLowerCase())) {
                     const osKey = `${os}`;
+
+                    // Only add the OS key if it doesn't already exist in the tree
                     if (!tree.hasOwnProperty(osKey)) {
                         tree[osKey] = { version: os };
                     }
@@ -149,10 +164,15 @@ function versionsToTree() {
 }
 
 function addLeafToTree() {
+    // Loop through the tree object
     for (const osKey in tree) {
+        // Extract the osComponent from osKey
+        const osComponent = osKey.split("@")[0].toLowerCase();
+
+        // Iterate over the versions
         versions.forEach(v => {
             if (v.hasOwnProperty("versionPredictedComponentType") && v.versionPredictedComponentType.toUpperCase() !== "OS") {
-                const osComponent = osKey.split("@")[0].toLowerCase();
+                // Only add version if the osKey matches the operating system component
                 if (v.versionSearchTags.includes(osComponent)) {
                     tree[osKey][`${v.versionProductName}@${v.versionNumber.replace(/\./g, ":")}`] = { version: v };
                 }
@@ -162,185 +182,116 @@ function addLeafToTree() {
 }
 
 function getPlantuml() {
-    const plantUMLCode = `
+    console.log(componentListQuery);
+
+    // Set to track unique OS components
+    const addedOsComponents = new Set();
+    let plantUMLCode = `
 @startuml
-title Software Version Stacks and Hierarchies
+title "Unique Operating Systems Components"
+`;
 
-package "Software Stack (LAMP)" {
-    component "Linux OS" as Linux
-    component "Apache Web Server" as Apache
-    component "MySQL Database" as MySQL
-    component "PHP Interpreter" as PHP
-}
-
-package "Single Database" {
-    component "PostgreSQL Database" as PostgreSQL
-}
-
-package "Application Hierarchy" {
-    component "Parent Service" as ParentService {
-        component "Child Service A" as ChildA
-        component "Child Service B" as ChildB {
-            component "Grandchild Service" as Grandchild
-        }
+    // Function to replace special characters (including colon) with '-'
+    function sanitize(name) {
+        return name.replace(/[^\w\s\.-:]/g, '-');  // Replace non-alphanumeric characters (except dot and dash) with '-'
     }
+
+    // Function to replace ':' with '-'
+    function replaceColonWithDash(str) {
+        return str.replace(/:/g, '-');  // Replace all colons with '-'
+    }
+
+    // Loop through each OS component in the tree
+    Object.entries(tree).forEach(([osComponent, componentData], index) => {
+        // Extract and normalize the OS name
+        let componentName = osComponent.split('@')[0].toLowerCase();
+        componentName = sanitize(componentName);  // Sanitize the component name
+
+        // Skip already added components
+        if (!addedOsComponents.has(componentName)) {
+            addedOsComponents.add(componentName);
+
+            // Start a package for the OS component
+            plantUMLCode += `
+package "${componentName}" {
+`;
+
+            // Add OS version info inside the component's name, replacing ':' with '-'
+            if (componentData.version && componentData.version.versionNumber) {
+                let version = replaceColonWithDash(componentData.version.versionNumber);  // Replace ':' with '-'
+                let releaseDate = formatDate(componentData.version.versionReleaseDate);  // Get release date (no need for sanitization here)
+                plantUMLCode += `    component "${componentName}@${version}\\nVersion: ${version}\\nRelease Date: ${releaseDate}"\n`;
+            }
+
+            // Add sub-component packages with version information inside the component name
+            if (componentData && componentData.version) {
+                Object.keys(componentData).forEach((component) => {
+                    if (component !== 'version') {
+                        component = sanitize(component);
+                        let subComponent = componentData[component];
+
+                        // Safely handle undefined version and release date
+                        let subVersion = subComponent?.version?.versionNumber ? replaceColonWithDash(subComponent.version.versionNumber) : 'N/A';  // Replace ':' with '-' or return 'N/A' if undefined
+                        let subReleaseDate = subComponent?.version?.versionReleaseDate ? formatDate(subComponent.version.versionReleaseDate) : 'N/A';  // Return 'N/A' if undefined
+
+                        // Add the component with version and release date to the PlantUML code
+                        plantUMLCode += `    component "${component}\\nVersion: ${subVersion}\\nRelease Date: ${subReleaseDate}"\n`;
+                    }
+                });
+            }
+            // End the package for the current OS component
+            plantUMLCode += `
 }
+`;
+        }
+    });
 
-' Relationships within the stack
-Linux --> Apache : Hosts
-Apache --> PHP : Executes
-PHP --> MySQL : Queries
-
-' Single database relationship example
-PostgreSQL ..> PHP : Used by
-
-' Hierarchy relationships
-ParentService --> ChildA : Manages
-ParentService --> ChildB : Manages
-ChildB --> Grandchild : Delegates
-
+    plantUMLCode += `
 @enduml
-    `;
+`;
 
     // Insert the PlantUML code into the HTML element with the id "plantuml-code"
     document.getElementById("plantuml-code").innerText = plantUMLCode;
-    
-    // Optionally, return the code for further processing if needed
-    return [{ name: "software-stacks-and-hierarchy", code: plantUMLCode }];
+
+    // Optionally return the generated PlantUML code
+    return [{ name: "unique-os-packages", code: plantUMLCode }];
 }
 
-// function getPlantuml() {
-//     const plantUMLCode = `
-// @startuml
-// title Nested, Stacked, and Sibling Components Diagram
-
-// package "Frontend" {
-//     component "Web Application" as WebApp
-//     component "Frontend Helper" as FrontHelper
-// }
-
-// package "Backend" {
-//     component "API Gateway" as APIGateway {
-//         component "Authentication Service" as AuthService
-//         component "Routing Service" as RoutingService
-//     }
-
-//     component "Database" as DB
-// }
-
-// WebApp --> APIGateway : Sends requests
-// APIGateway --> AuthService : Validates
-// APIGateway --> RoutingService : Routes
-// AuthService --> DB : Reads/Writes user data
-// RoutingService --> DB : Queries
-// FrontHelper --> WebApp : Supports UI rendering
-
-// @enduml
-//     `;
-//     return [{ name: "nested-stacked-sibling-diagram", code: plantUMLCode }];
-// }
 
 // function getPlantuml() {
-//     const diagrams = [];
-//     const addedOsComponents = new Set();
 
-//     Object.entries(tree).forEach(([osComponent, componentData]) => {
-//         if (!addedOsComponents.has(osComponent) && osComponent === "linux") {
-//             let plantUMLCode = `
+//     console.log(componentListQuery);
+
+//     const addedOsComponents = new Set(); // Keep track of unique OS packages
+//     let plantUMLCode = `
 // @startuml
-// package ${osComponent} {
+// title "Unique Operating Systems Packages"
 // `;
 
-//             // Add OS Component Class Properties
-//             if (componentData.version?.versionNumber) {
-//                 plantUMLCode += `
-//     class ${osComponent} {
-//         Version: ${componentData.version.versionNumber}
-//         ReleaseDate: ${componentData.version.versionReleaseDate || "Unknown"}
-//         ${componentData.version.versionReleaseChannel === "cve" ? "Note: Security Update" : ""}
-//     }
-// `;
-//             }
+//     Object.entries(tree).forEach(([osComponent]) => {
+//         // Extract the OS name before '@' and ensure it's unique
+//         let componentName = osComponent.split('@')[0];
+//         componentName = componentName.toLowerCase();
+//         componentName = componentName.replace(".", "_");
 
-//             // Add Subcomponents
+//         if (!addedOsComponents.has(componentName)) {
+//             addedOsComponents.add(componentName);
 //             plantUMLCode += `
-//     package Subcomponents {
-// `;
-
-//             Object.entries(componentData).forEach(([component, data]) => {
-//                 if (component !== "version") {
-//                     plantUMLCode += `
-//         class ${component} {
-//             Version: ${data.version?.versionNumber || "Unknown"}
-//             ReleaseDate: ${data.version?.versionReleaseDate || "Unknown"}
-//             ${data.version?.versionReleaseChannel === "cve" ? "Note: Security Update" : ""}
-//         }
-// `;
-//                 }
-//             });
-
-//             plantUMLCode += `
-//     }
+// package "${componentName}" {
 // }
-// @enduml
-// `;
-
-//             diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
-//             addedOsComponents.add(osComponent);
+//             `;
 //         }
 //     });
 
-//     return diagrams;
-// }
-
-// function getPlantuml() {
-//     const plantUMLCode = `
-// @startuml
-// title Simple Component Diagram
-
-// component "Web Application" as WebApp
-// component "Database" as DB
-// component "API Gateway" as APIGateway
-// component "Authentication Service" as AuthService
-
-// WebApp --> APIGateway : Uses
-// APIGateway --> DB : Reads/Writes
-// APIGateway --> AuthService : Authenticates
-
+//     plantUMLCode += `
 // @enduml
 //     `;
-//     return [{ name: "simple-component-diagram", code: plantUMLCode }];
-// }
 
-// function getPlantuml() {
-//     const plantUMLCode = `
-// @startuml
-// title Nested, Stacked, and Sibling Components Diagram
+//     // Insert the PlantUML code into the HTML element with the id "plantuml-code"
+//     document.getElementById("plantuml-code").innerText = plantUMLCode;
 
-// package "Frontend" {
-//     component "Web Application" as WebApp
-//     component "Frontend Helper" as FrontHelper
-// }
-
-// package "Backend" {
-//     component "API Gateway" as APIGateway {
-//         component "Authentication Service" as AuthService
-//         component "Routing Service" as RoutingService
-//     }
-
-//     component "Database" as DB
-// }
-
-// WebApp --> APIGateway : Sends requests
-// APIGateway --> AuthService : Validates
-// APIGateway --> RoutingService : Routes
-// AuthService --> DB : Reads/Writes user data
-// RoutingService --> DB : Queries
-// FrontHelper --> WebApp : Supports UI rendering
-
-// @enduml
-//     `;
-//     return [{ name: "nested-stacked-sibling-diagram", code: plantUMLCode }];
+//     // Optionally return the generated PlantUML code
+//     return [{ name: "unique-os-packages", code: plantUMLCode }];
 // }
 
 // function getPlantuml() {
