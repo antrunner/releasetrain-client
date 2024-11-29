@@ -4,7 +4,7 @@ const plantuml = {
         try {
             await Promise.all([
                 cheerpjInit({ preloadResources: this._runtimeResources() }),
-                this._preloadPlantumlFiles(cheerpjPath.replace("/app", ""))
+                this._preloadPlantumlFiles(cheerpjPath.replace("/app", "./"))
             ]);
 
             // Load the Java package necessary for PlantUML
