@@ -201,6 +201,11 @@ ChildB --> Grandchild : Delegates
 
 @enduml
     `;
+
+    // Insert the PlantUML code into the HTML element with the id "plantuml-code"
+    document.getElementById("plantuml-code").innerText = plantUMLCode;
+    
+    // Optionally, return the code for further processing if needed
     return [{ name: "software-stacks-and-hierarchy", code: plantUMLCode }];
 }
 

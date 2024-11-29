@@ -40,7 +40,7 @@
 
         /* Architecture section (75%) */
         .architecture-section {
-            width: 75%;
+            width: 60%;
             padding: 20px;
             border-right: 1px solid #ccc;
             box-sizing: border-box;
@@ -50,7 +50,7 @@
 
         /* Metrics section (25%) */
         .metrics-section {
-            width: 25%;
+            width: 40%;
             padding: 20px;
             background-color: #f9f9f9;
             box-sizing: border-box;
@@ -72,6 +72,41 @@
             padding: 10px;
             text-align: center;
             margin-top: 20px;
+        }
+
+        /* PlantUML diagram styling */
+        #plantuml-diagrams {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Code block styling for PlantUML code */
+        pre {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 10px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            text-align: left; /* Aligning text to the left */
+            font-family: 'Courier New', Courier, monospace; /* Ensuring monospace font for code */
+        }
+
+        /* Copy Button */
+        .copy-btn {
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .copy-btn:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -128,6 +163,13 @@
                     Metrics visualization placeholder
                 </div>
             </section>
+
+            <!-- PlantUML Code Display Section -->
+            <section id="plantuml-code-container">
+                <h3>PlantUML Code</h3>
+                <pre id="plantuml-code" style="font-size: 8pt;"></pre>
+                <button class="copy-btn" id="copy-btn">Copy Code</button>
+            </section>
         </div>
     </div>
 
@@ -179,6 +221,17 @@
         // Example usage: Show the loader for 5 seconds (total duration 7 seconds including the 2 extra seconds)
         showLoader();
         setTimeout(hideLoader, 10000); // Hide loader after 5 seconds of dynamic loading
+
+        // Copy code to clipboard function
+        document.getElementById('copy-btn').addEventListener('click', function() {
+            const code = document.getElementById('plantuml-code');
+            const range = document.createRange();
+            range.selectNode(code);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            alert('PlantUML code copied to clipboard!');
+        });
     </script>
 
 </body>
