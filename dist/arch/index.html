@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Architecture Monitoring Tool</title>
+    <title>Ecosystem Architecture Monitoring</title>
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon" type="image/x-icon" />
@@ -20,7 +20,23 @@
     <script src="https://cjrtnc.leaningtech.com/2.3/loader.js" defer></script>
 
     <style>
-        /* Ensure full-page layout */
+        /* Set a base font size based on the screen size */
+        html {
+            font-size: 14px;
+        }
+
+        @media (max-width: 1280px) {
+            html {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            html {
+                font-size: 10px;
+            }
+        }
+
         body,
         html {
             margin: 0;
@@ -28,6 +44,20 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+        }
+
+        /* Ensure no space between strong and span */
+        strong,
+        span {
+            margin: 0;
+            padding: 0;
+            display: inline;
+        }
+
+        .select2 {
+            width: 100%;
         }
 
         /* Main container for split layout */
@@ -36,69 +66,196 @@
             flex-direction: row;
             flex: 1;
             height: 100%;
+            padding: 0.5rem;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
-        /* Architecture section (75%) */
+        /* Architecture section (60%) */
         .architecture-section {
             width: 60%;
-            padding: 20px;
+            padding: 0.5rem;
             border-right: 1px solid #ccc;
             box-sizing: border-box;
             overflow-y: auto;
+            min-height: 80vh;
         }
 
-        /* Metrics section (25%) */
+        /* Metrics section (40%) */
         .metrics-section {
             width: 40%;
-            padding: 20px;
+            padding: 0.5rem;
             background-color: #f9f9f9;
             box-sizing: border-box;
+            min-height: 80vh;
             overflow-y: auto;
         }
 
         /* Footer styling */
         footer {
             text-align: center;
-            padding: 10px;
+            padding: 0.5rem;
             background-color: #eaeaea;
             position: relative;
+            font-size: 0.75rem;
         }
 
-        /* Placeholder chart for metrics */
-        #chart-placeholder {
-            border: 1px dashed #ccc;
-            padding: 10px;
-            text-align: center;
-            margin-top: 20px;
+        /* PlantUML Code Display Section */
+        #plantuml-code-container {
+            margin-top: 0.5rem;
         }
 
         /* Code block styling for PlantUML code */
         pre {
             background-color: #f4f4f4;
             border: 1px solid #ddd;
-            padding: 10px;
-            overflow-x: auto;
+            padding: 0.5rem;
+            overflow-y: auto;
+            max-height: 150px;
             white-space: pre-wrap;
             word-wrap: break-word;
             text-align: left;
             font-family: 'Courier New', Courier, monospace;
+            font-size: 0.75rem;
         }
 
         /* Copy Button */
         .copy-btn,
         .open-editor-btn {
-            margin-top: 10px;
+            margin-top: 0.5rem;
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 0.5rem;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 0.75rem;
         }
 
         .copy-btn:hover,
         .open-editor-btn:hover {
             background-color: #45a049;
+        }
+
+        /* Dropdown Styling */
+        #mySelect2 {
+            width: 100%;
+            font-size: 0.75rem;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Diagram Image */
+        .diagram-image {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        /* Main Metrics Container */
+        #metrics-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        /* Flex Container for Each Metric */
+        .metric-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            background: #f4f4f4;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            min-width: 140px;
+            flex: 1 1 30%;
+            max-width: 250px;
+            text-align: left;
+            gap: 1px;
+            word-wrap: break-word;
+            white-space: nowrap;
+        }
+
+        /* Aggregated CVEs Section */
+        .aggregated-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 1rem;
+            font-size: 0.75rem;
+            width: 100%;
+            text-align: left;
+        }
+
+        .aggregated-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.5rem;
+            min-width: 120px;
+            max-width: 150px;
+            text-align: left;
+        }
+
+        .aggregated-item strong {
+            font-weight: normal;
+            color: #333;
+        }
+
+        /* Highlight style for values */
+        .highlight {
+            font-weight: bold;
+            color: #4CAF50;
+            display: inline;
+        }
+
+        /* Placeholder for Chart */
+        #chart-placeholder {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        /* Styling for Generation Time */
+        #generationTime {
+            white-space: nowrap;
+            margin-left: 0.25rem;
+            /* Add small spacing between value and "s" */
+        }
+
+        /* Styling for Loading Timer */
+        #timer {
+            font-size: 0.75rem;
+        }
+
+        #seconds {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        /* GitHub link positioning */
+        .github-link {
+            position: fixed;
+            top: 10px;
+            /* Distance from the top */
+            right: 10px;
+            /* Distance from the right */
+            z-index: 9999;
+            /* Ensure it stays on top of other elements */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Style for GitHub Icon */
+        .github-icon {
+            width: 30px;
+            /* Adjust size */
+            height: auto;
         }
     </style>
 </head>
@@ -107,25 +264,24 @@
     <!-- Main Split Container -->
     <div class="container">
 
-        <!-- 75% Architecture Monitoring Section -->
+        <!-- 60% Architecture Monitoring Section -->
         <div class="architecture-section">
             <header>
-                <h1>Architecture Monitoring</h1>
+                <h1>Ecosystem Architecture Monitoring</h1>
             </header>
 
             <!-- Dropdown for Module Selection -->
             <section>
-                <label for="mySelect2">Select Architecture Modules:</label>
-                <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple"
-                    style="width: 100%"></select>
+                <label for="mySelect2">Select Current Ecosystem Components:</label>
+                <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple"></select>
             </section>
 
             <!-- Loader Section -->
             <section>
                 <div style="text-align: center; position: relative;">
                     <div class="loader" id="loader" style="display: none;"></div>
-                    <div id="timer" style="margin-top: 10px; font-size: 14px; display: none;">
-                        Loading... <span id="seconds">0</span> seconds
+                    <div id="timer" style="margin-top: 10px; font-size: 0.75rem; display: none;">
+                        Loading... <span id="seconds">0</span>s
                     </div>
                 </div>
             </section>
@@ -136,19 +292,68 @@
             </section>
         </div>
 
-        <!-- 25% Metrics Section -->
+        <!-- 40% Metrics Section -->
         <div class="metrics-section">
             <header>
-                <h2>Metrics Overview</h2>
+                <h3>Metrics Overview</h3>
             </header>
-
             <!-- Metrics Display -->
             <section id="metrics-container">
-                <p><strong>Total Components:</strong> <span id="totalComponents">0</span></p>
-                <p><strong>Version Distribution:</strong> <span id="versionDistribution">N/A</span></p>
-                <p><strong>Most Recent Update:</strong> <span id="recentUpdate">N/A</span></p>
-                <p><strong>Time to Generate Diagram:</strong> <span id="generationTime">0.00</span> seconds</p>
+                <div class="metric-item">
+                    <strong>Total:</strong>
+                    <span id="totalComponents" class="highlight">0</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Version:</strong>
+                    <span id="versionDistribution" class="highlight">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Last Update:</strong>
+                    <span id="recentUpdate" class="highlight">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Gen Time:</strong><span id="generationTime" class="highlight">0.00</span>s
+                </div>
 
+                <!-- Additional Metrics -->
+                <div class="metric-item">
+                    <strong>Patches:</strong>
+                    <span id="availablePatches" class="highlight">5</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Critical CVEs:</strong>
+                    <span id="criticalCVEs" class="highlight">3</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Total CVEs:</strong>
+                    <span id="totalCVEs" class="highlight">12</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Pending:</strong>
+                    <span id="pendingUpdates" class="highlight">2</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Last Patch:</strong>
+                    <span id="lastPatchDate" class="highlight">2024-11-20</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Last Sec. Update:</strong>
+                    <span id="lastSecurityUpdate" class="highlight">2024-11-18</span>
+                </div>
+
+                <!-- Aggregated Data -->
+                <div class="metric-item">
+                    <strong>CVEs:</strong>
+                    <div class="aggregated-list">
+                        <div class="aggregated-item">
+                            <strong>Critical:</strong> <span id="criticalCVEsCount" class="highlight">3</span>
+                            <strong>High:</strong> <span id="highCVEsCount" class="highlight">5</span>
+                            <strong>Medium:</strong> <span id="mediumCVEsCount" class="highlight">4</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placeholder for Chart -->
                 <div id="chart-placeholder">
                     Metrics visualization placeholder
                 </div>
@@ -157,63 +362,61 @@
             <!-- PlantUML Code Display Section -->
             <section id="plantuml-code-container">
                 <h3>PlantUML Code</h3>
-                <pre id="plantuml-code" style="font-size: 8pt;"></pre>
+                <pre id="plantuml-code"></pre>
 
                 <!-- Copy Code Button -->
                 <button class="copy-btn" id="copy-btn">Copy Code</button>
 
                 <!-- Open in PlantUML Editor Button -->
-                <button class="open-editor-btn" id="open-editor-btn" onclick="openPlantUMLEditor()">Open in PlantUML Editor</button>
+                <button class="open-editor-btn" id="open-editor-btn" onclick="openPlantUMLEditor()">Open in PlantUML
+                    Editor</button>
             </section>
+
         </div>
     </div>
 
     <!-- Footer -->
-    <footer style="text-align: center; padding: 10px; background-color: #f6f8fa; position: relative; border-top: 1px solid #d0d7de;">
-        <p style="margin: 0; font-size: 14px; color: #24292f;">&copy; 2024 Architecture Monitoring Tool</p>
-        <div class="github-reference" style="margin-top: 8px;">
-            <a href="https://github.com/antrunner/releasetrain-client" target="_blank" style="color: #0969da; text-decoration: none; font-weight: 600;">ReleaseTrain Client on GitHub</a>
+    <!-- <footer
+        style="text-align: center; padding: 0.5rem; background-color: #f6f8fa; position: relative; border-top: 1px solid #d0d7de;">
+        <p style="margin: 0; font-size: 0.75rem; color: #24292f;">&copy; 2024 Architecture Monitoring Tool</p>
+        <div class="github-reference" style="margin-top: 0.5rem;">
+            <a href="https://github.com/antrunner/releasetrain-client" target="_blank"
+                style="color: #0969da; text-decoration: none; font-weight: 600;">ReleaseTrain Client on GitHub</a>
         </div>
-    </footer>
+    </footer> -->
+
+    <!-- GitHub Link -->
+    <a href="https://github.com/antrunner/releasetrain-client" target="_blank" class="github-link">
+        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo"
+            class="github-icon">
+    </a>
 
     <script>
-        let timerInterval; // Variable to store the timer interval
-        let seconds = 0;   // Timer starts at 0
-
-        // Function to show the loader and start the timer
+        // Show loader and start timer
+        let timerInterval;
+        let seconds = 0;
         function showLoader() {
             const loader = document.getElementById('loader');
             const timer = document.getElementById('timer');
             const secondsElement = document.getElementById('seconds');
-
-            // Display the loader and timer
             loader.style.display = 'block';
             timer.style.display = 'block';
-
-            // Start the timer
             timerInterval = setInterval(() => {
                 seconds++;
                 secondsElement.textContent = seconds;
-            }, 1000); // Increment every second
+            }, 1000);
         }
 
-        // Function to hide the loader and stop the timer
+        // Hide loader and stop timer
         function hideLoader() {
             const loader = document.getElementById('loader');
             const timer = document.getElementById('timer');
-
-            loader.style.display = 'none';   // Hide the loader
-            timer.style.display = 'none';    // Hide the timer
-
-            // Stop the timer (this will stop the second counter, but the text will stay visible)
+            loader.style.display = 'none';
+            timer.style.display = 'none';
             clearInterval(timerInterval);
         }
 
-        // Example usage: Show the loader for 5 seconds (total duration 7 seconds including the 2 extra seconds)
-        showLoader();
-        hideLoader();
-        
-        // Function to copy PlantUML code to clipboard
+        // Copy PlantUML code to clipboard
         document.getElementById('copy-btn').addEventListener('click', function () {
             const plantUMLCode = document.getElementById('plantuml-code');
             const range = document.createRange();
@@ -222,16 +425,15 @@
             window.getSelection().addRange(range);
             document.execCommand('copy');
             alert('PlantUML code copied to clipboard!');
-            window.getSelection().removeAllRanges(); // Deselect text
+            window.getSelection().removeAllRanges();
         });
 
-        // Function to open the PlantUML Editor in a new tab
+        // Open PlantUML editor in new tab
         function openPlantUMLEditor() {
             const plantUMLCode = document.getElementById('plantuml-code').innerText;
-            const encodedCode = encodeURIComponent(plantUMLCode); // Encode the PlantUML code
-            // const url = `https://plantuml-editor.kkeisuke.com/?code=${encodedCode}`;
+            const encodedCode = encodeURIComponent(plantUMLCode);
             const url = `https://plantuml-editor.kkeisuke.com/`;
-            window.open(url, '_blank'); // Open in a new tab
+            window.open(url, '_blank');
         }
     </script>
 

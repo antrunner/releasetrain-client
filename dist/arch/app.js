@@ -2,7 +2,7 @@ import plantuml from './plantuml.js';
 import util from './util.js';
 
 // Set environment flag
-const IS_PRODUCTION = true;  // Change to `true` for production
+const IS_PRODUCTION = false;  // Change to `true` for production
 
 // Define URLs and paths for both environments
 const config = {
@@ -112,7 +112,7 @@ function handleData(data) {
         .then(() => {
             // Once diagrams are rendered, calculate endTime
             const endTime = Date.now();  // Set the end time after rendering diagrams
-            const generationTime = ((endTime - startTime) / 1000).toFixed(2);  // Calculate the generation time in seconds
+            const generationTime = ((endTime - startTime) / 1000).toFixed(2).trim();  // Calculate the generation time in seconds
 
             // Update the metrics section on the page with the generation time
             document.getElementById("generationTime").textContent = generationTime;
