@@ -431,6 +431,65 @@
             window.open(url, '_blank');
         }
 
+        function updateMetrics() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Create a container for the components list
+            const componentsListContainer = document.getElementById('metrics-container');
+
+            // Get the `q` parameter and log it (component name only)
+            const q = urlParams.get('q');
+
+            // Initialize an array to store the components and their info
+            let componentsInfo = [];
+
+            if (q) {
+                componentsInfo.push({ name: q, version: 'N/A', os: 'N/A' });
+            }
+
+            // Get all `component` parameters (could be multiple)
+            const components = urlParams.getAll('component');
+            components.forEach((component) => {
+
+                const parts = component.split(',');
+
+                if (parts.length === 1) {
+                    // Case 1: Only component name (no version or OS)
+                    componentsInfo.push({ name: parts[0], version: 'N/A', os: 'N/A' });
+                } else if (parts.length === 2) {
+                    // Case 2: Component name and version (could include OS or just version)
+                    const name = parts[0];
+                    const versionOrOS = parts[1];
+
+                    if (/\d+(\.\d+)+/.test(versionOrOS)) {
+                        componentsInfo.push({ name: name, version: versionOrOS, os: 'N/A' });
+                    } else {
+                        componentsInfo.push({ name: name, version: 'N/A', os: versionOrOS });
+                    }
+                } else if (parts.length === 3) {
+                    // Case 3: Component name, version, and OS
+                    const name = parts[0];
+                    const version = parts[1];
+                    const os = parts[2];
+                    componentsInfo.push({ name: name, version: version, os: os });
+                }
+            });
+
+            // Create the HTML for the components list
+            let componentsHTML = '<h3>Components List</h3><ul>';
+            componentsInfo.forEach(component => {
+                componentsHTML += `<li><strong>${component.name}</strong> - Version: <span class="highlight">${component.version}</span>, OS: <span class="highlight">${component.os}</span></li>`;
+            });
+            componentsHTML += '</ul>';
+
+            // Inject the components list HTML into the container
+            componentsListContainer.innerHTML += componentsHTML;
+        }
+
+        // Call the function to update the metrics container
+        updateMetrics();
+
     </script>
 
 </body>
