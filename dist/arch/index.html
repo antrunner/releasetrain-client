@@ -375,16 +375,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <!-- <footer
-        style="text-align: center; padding: 0.5rem; background-color: #f6f8fa; position: relative; border-top: 1px solid #d0d7de;">
-        <p style="margin: 0; font-size: 0.75rem; color: #24292f;">&copy; 2024 Architecture Monitoring Tool</p>
-        <div class="github-reference" style="margin-top: 0.5rem;">
-            <a href="https://github.com/antrunner/releasetrain-client" target="_blank"
-                style="color: #0969da; text-decoration: none; font-weight: 600;">ReleaseTrain Client on GitHub</a>
-        </div>
-    </footer> -->
-
     <!-- GitHub Link -->
     <a href="https://github.com/antrunner/releasetrain-client" target="_blank" class="github-link">
         <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo"
@@ -392,6 +382,11 @@
     </a>
 
     <script>
+        // Show loader immediately when the page loads
+        window.onload = function () {
+            showLoader();
+        };
+
         // Show loader and start timer
         let timerInterval;
         let seconds = 0;
@@ -435,6 +430,7 @@
             const url = `https://plantuml-editor.kkeisuke.com/`;
             window.open(url, '_blank');
         }
+
     </script>
 
 </body>

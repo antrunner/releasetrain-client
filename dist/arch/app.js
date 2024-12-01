@@ -109,19 +109,11 @@ function handleData(data) {
             // Call the function to generate PlantUML diagrams
             renderDiagrams(getPlantuml());
         })
-        .then(() => {
-            // Once diagrams are rendered, calculate endTime
-            const endTime = Date.now();  // Set the end time after rendering diagrams
-            const generationTime = ((endTime - startTime) / 1000).toFixed(2).trim();  // Calculate the generation time in seconds
-
-            // Update the metrics section on the page with the generation time
-            document.getElementById("generationTime").textContent = generationTime;
-
-            // Log the generation time to the console (for debugging or monitoring purposes)
-            console.log(`Time to Generate PlantUML Image: ${generationTime} seconds`);
-        })
         .catch((error) => {
             console.error('Error initializing PlantUML:', error);
+
+            // Hide the loader in case of an error as well
+            hideLoader();
         });
 
 }
@@ -485,6 +477,15 @@ function myRender(container, diagramData) {
             diagramContainer.appendChild(image);
             image.classList.add('diagram-image');
             loader.style.display = 'none';
+
+            const endTime = Date.now();  // Set the end time after rendering diagrams
+            const generationTime = ((endTime - startTime) / 1000).toFixed(2).trim();  // Calculate the generation time in seconds
+
+            // Update the metrics section on the page with the generation time
+            document.getElementById("generationTime").textContent = generationTime;
+
+            // Hide the loader and stop the timer after the image is generated
+            hideLoader();
         }).catch((error) => {
             console.error('Error rendering PlantUML diagram:', error);
         });
