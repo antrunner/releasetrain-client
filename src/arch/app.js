@@ -2,19 +2,17 @@ import plantuml from './plantuml.js';
 import util from './util.js';
 
 // Set environment flag
-const IS_PRODUCTION = true;  // Change to `true` for production
+const IS_PRODUCTION = false;  // Change to `true` for production
 
 // Define URLs and paths for both environments
 const config = {
     production: {
         API_ENDPOINT: "https://releasetrain.io/api",
-        SELECT_OPTIONS: "https://releasetrain.io/api/c/names",
         HOMEPAGE: "https://releasetrain.io",
         PLANTUML_PATH: "./arch"  // Path in production
     },
     development: {
         API_ENDPOINT: "https://releasetrain.io/api",
-        SELECT_OPTIONS: "https://releasetrain.io/api/c/names",
         SELECT_OS: "https://releasetrain.io/api/c/os",
         HOMEPAGE: "http://localhost:8080/src",
         PLANTUML_PATH: "./src/arch"  // Path in development
@@ -23,7 +21,6 @@ const config = {
 
 // Set the URLs and paths based on the environment flag
 const URL_API_ENDPOINT = IS_PRODUCTION ? config.production.API_ENDPOINT : config.development.API_ENDPOINT;
-const urlSelectOptions = IS_PRODUCTION ? config.production.SELECT_OPTIONS : config.development.SELECT_OPTIONS;
 const urlSelectOS = IS_PRODUCTION ? "" : config.development.SELECT_OS;  // For development only
 const URL_HOMEPAGE = IS_PRODUCTION ? config.production.HOMEPAGE : config.development.HOMEPAGE;
 const plantumlPath = IS_PRODUCTION ? config.production.PLANTUML_PATH : config.development.PLANTUML_PATH;
@@ -31,7 +28,6 @@ const plantumlPath = IS_PRODUCTION ? config.production.PLANTUML_PATH : config.de
 // Example usage
 console.log("Environment:", IS_PRODUCTION ? "PRODUCTION" : "DEVELOPMENT");
 console.log("API Endpoint:", URL_API_ENDPOINT);
-console.log("Select Options URL:", urlSelectOptions);
 console.log("Select OS URL:", urlSelectOS);
 console.log("Homepage URL:", URL_HOMEPAGE);
 console.log("PlantUML Path:", plantumlPath);
@@ -51,11 +47,14 @@ let counterId = 0;
 let startTime = Date.now();  // Start time to calculate the generation time
 let endTime;
 
-const urlParams = new URLSearchParams(window.location.search);
-const componentListQuery = urlParams.get('q') === null ? "" : urlParams.get('q');
+const fullQueryString = window.location.search.substring(1);
 
+// Log the full query string
+console.log("Full query string:", fullQueryString);
+
+// Use the full query string in your AJAX request
 $.ajax({
-    url: `${URL_API_ENDPOINT}/component?q=${encodeURIComponent(componentListQuery)}`,
+    url: `http://localhost:3000/api/v/d/versionsByComponent?${fullQueryString}`, // Pass the full query string directly
     type: 'GET',
     dataType: 'json',
     success: handleData,
@@ -74,107 +73,56 @@ $.ajax({
     }
 });
 
-function handleOsData(data) {
-    if (!Array.isArray(data)) {
-        console.error("Data is not an array");
-        return;
-    }
-
-    osList = data;
-}
-
 function handleData(data) {
     console.log("Component count", data.length, data);
 
-    if (data['q'] === undefined) {
-        data = data;
-    } else {
-        data = data['q'];
-    }
-
-    // console.log("Array length", data.length);
+    // Ensure `data` is an array
     if (!Array.isArray(data)) {
         console.error("Data is not an array");
         return;
     }
 
-    const sortedData = sortByDate(data);
+    // Iterate over each component object in the array
+    data.forEach(component => {
+        const { name, latestVersion, currentVersion, latestCveVersion } = component;
 
-    versions.push(...sortedData);
+        // Log component details (adjust as needed)
+        console.log(`Component: ${name}`);
+        console.log(`Latest Version: `, latestVersion);
+        console.log(`Current Version: `, currentVersion);
+        console.log(`Latest CVE Version: `, latestCveVersion);
 
-    versionsToTree();
+        // Here, you can process each version or add it to the global `versions` array
+        versions.push({
+            name,
+            latestVersion,
+            currentVersion,
+            latestCveVersion
+        });
+    });
 
+    // Initialize PlantUML for diagram generation
     plantuml.initialize(plantumlPath)
         .then(() => {
-            // Call the function to generate PlantUML diagrams
+            // Generate PlantUML diagrams
             renderDiagrams(getPlantuml());
         })
         .catch((error) => {
             console.error('Error initializing PlantUML:', error);
-
-            // Hide the loader in case of an error as well
+            // Hide the loader in case of error
             hideLoader();
         });
-
 }
 
-componentListQuery.split(",").forEach(component => {
-    if (componentListQuery === "") {
-        return;
+function handleOsData(data) {
+    if (!Array.isArray(data)) {
+        console.error("Data is not an array");
     }
-    counterId = counterId + 1;
-})
-
-function versionsToTree() {
-
-    versions.forEach(v => {
-        if (v.hasOwnProperty("versionPredictedComponentType") && v.versionPredictedComponentType.toUpperCase() === "OS") {
-            // Process the OS component based on the allowed operating systems list
-            const osKey = `${v.versionProductName}@${v.versionNumber.replace(/\./g, ":")}`;
-
-            // Only process if the OS is in the allowed list
-            const osComponent = v.versionProductName.toLowerCase();
-            if (allowedOperatingSystems.includes(osComponent) && !tree.hasOwnProperty(osKey)) {
-                tree[osKey] = { version: v };
-            }
-        } else {
-            osList.forEach(os => {
-                const osComponent = os.toLowerCase();
-                // Check if the OS is in the allowed list before processing
-                if (allowedOperatingSystems.includes(osComponent) && v.versionSearchTags.map(tag => tag.toLowerCase()).includes(os.toLowerCase())) {
-                    const osKey = `${os}`;
-
-                    // Only add the OS key if it doesn't already exist in the tree
-                    if (!tree.hasOwnProperty(osKey)) {
-                        tree[osKey] = { version: os };
-                    }
-                }
-            });
-        }
-    });
-    addLeafToTree();
+    // osList = data;
+    osList = allowedOperatingSystems;
 }
 
-function addLeafToTree() {
-    // Loop through the tree object
-    for (const osKey in tree) {
-        // Extract the osComponent from osKey
-        const osComponent = osKey.split("@")[0].toLowerCase();
-
-        // Iterate over the versions
-        versions.forEach(v => {
-            if (v.hasOwnProperty("versionPredictedComponentType") && v.versionPredictedComponentType.toUpperCase() !== "OS") {
-                // Only add version if the osKey matches the operating system component
-                if (v.versionSearchTags.includes(osComponent)) {
-                    tree[osKey][`${v.versionProductName}@${v.versionNumber.replace(/\./g, ":")}`] = { version: v };
-                }
-            }
-        });
-    }
-}
 function getPlantuml() {
-    console.log(componentListQuery);
-
     // Set to track unique OS components
     const addedOsComponents = new Set();
 
@@ -200,75 +148,64 @@ function getPlantuml() {
 title "Unique Operating Systems Components\\n${timestamp}"
 `;
 
-    // Function to replace special characters (including colon) with '-'
-    function sanitize(name) {
-        return name.replace(/[^\w\s\.-:]/g, '-');  // Replace non-alphanumeric characters (except dot and dash) with '-'
-    }
-
-    // Function to replace ':' with '-'
-    function replaceColonWithDash(str) {
-        return str.replace(/:/g, '-');  // Replace all colons with '-'
-    }
-
-    // Loop through each OS component in the tree
-    Object.entries(tree).forEach(([osComponent, componentData], index) => {
-        // Extract and normalize the OS name
-        let componentName = osComponent.split('@')[0].toLowerCase();
-        componentName = sanitize(componentName);  // Sanitize the component name
-
-        // Skip already added components
-        if (!addedOsComponents.has(componentName)) {
-            addedOsComponents.add(componentName);
-            totalComponents++;  // Increment total component count
-
-            // Start a package for the OS component
-            plantUMLCode += `package "${componentName}" {\n`;
-
-            // Add OS version info inside the component's name, replacing ':' with '-'
-            if (componentData.version && componentData.version.versionNumber) {
-                let version = replaceColonWithDash(componentData.version.versionNumber);  // Replace ':' with '-'
-                let releaseDate = formatDate(componentData.version.versionReleaseDate);  // Get release date (no need for sanitization here)
-
-                // Aggregating version distribution
-                versionDistribution[version] = (versionDistribution[version] || 0) + 1;
-
-                // Track recent update timestamp
-                let versionReleaseDate = new Date(componentData.version.versionReleaseDate);
-                if (!recentUpdateTimestamp || versionReleaseDate > recentUpdateTimestamp) {
-                    recentUpdateTimestamp = versionReleaseDate;
-                }
-
-                plantUMLCode += `    component "${componentName}@${version}\\nVersion: ${version}\\nRelease Date: ${releaseDate}"\n`;
-            }
-
-            if (componentData && componentData.version) {
-                // Loop through the components, excluding 'version' itself
-                Object.keys(componentData).forEach((component) => {
-                    if (component !== 'version') {
-                        // Sanitize the component name
-                        component = sanitize(component);
-
-                        // Get the subcomponent data
-                        let subComponent = componentData[component];
-
-                        // Safely handle undefined version and release date
-                        let subVersion = subComponent?.version?.versionNumber
-                            ? replaceColonWithDash(subComponent.version.versionNumber)
-                            : 'N/A';  // Replace ':' with '-' or return 'N/A' if undefined
-
-                        let subReleaseDate = subComponent?.version?.versionReleaseDate
-                            ? formatDate(subComponent.version.versionReleaseDate)
-                            : 'N/A';  // Return 'N/A' if undefined
-
-                        // Add the component with version and release date to the PlantUML code
-                        plantUMLCode += `    component "${component}\\nVersion: ${subVersion}\\nRelease Date: ${subReleaseDate}"\n`;
-                    }
-                });
-            }
-
-            // End the package for the current OS component
-            plantUMLCode += `}\n`;
+    versions.forEach((version, index) => {
+        // Defensive checks for properties before accessing them
+        if (!version || !version.currentVersion || !version.latestVersion) {
+            console.warn(`Skipping invalid version data at index ${index}: Missing currentVersion or latestVersion`);
+            return; // Skip this iteration if the version data is incomplete
         }
+
+        // Predefined fields
+        let name = sanitize(version.currentVersion.versionProductName);
+        let versionNumber = sanitize(version.currentVersion.versionNumber);
+        let releaseDate = sanitize(formatDateWithRelativeTime(version.currentVersion.versionReleaseDate));
+
+        // Default CVE info as empty string
+        let cveInfo = '';
+
+        // Check if latest version and CVE info are available
+        let latestVersionNumber = version.latestVersion ? sanitize(version.latestVersion.versionNumber) : null;
+        let latestReleaseDate = version.latestVersion ? sanitize(formatDateWithRelativeTime(version.latestVersion.versionReleaseDate)) : null;
+
+        if (version.latestCveVersion) {
+            // Select relevant CVE details
+            cveInfo = sanitize(extractCveCode(version.latestCveVersion.versionUrl)); // CVE version ID
+        }
+
+        // Defensive check for missing latestVersion details
+        if (!latestVersionNumber || !latestReleaseDate) {
+            console.warn(`Missing latest version data for ${name} at index ${index}.`);
+        }
+
+        // Check if current version matches the latest version
+        let isSameAsLatest = (versionNumber === latestVersionNumber);
+
+        // Increment total component count
+        totalComponents++;
+
+        // Prepare component details for PlantUML in a single line
+        let componentDetails = `"${name}@${versionNumber} \\nVersion: ${versionNumber} \\nRelease Date: ${releaseDate}`;
+
+        // if (!isSameAsLatest && latestVersionNumber && latestReleaseDate) {
+            // Adding latest version and CVE info to the component details
+            componentDetails += ` \\nLatest: ${name}@${latestVersionNumber} \\nVersion: ${latestVersionNumber} \\nRelease Date: ${latestReleaseDate}`;
+
+            // Add CVE info if available
+            if (cveInfo) {
+                componentDetails += ` \\nCVE Info: ${cveInfo}`;
+            }
+        // }
+
+        componentDetails += `"`; // End of component details string
+
+        // Start PlantUML code for the component
+        plantUMLCode += `package "${sanitize(version.name)}" {\n`;
+
+        // Add the combined component details to the PlantUML code
+        plantUMLCode += `    component ${componentDetails}\n`;
+
+        // End the package for the current OS component
+        plantUMLCode += `}\n`;
     });
 
     plantUMLCode += `
@@ -292,121 +229,8 @@ title "Unique Operating Systems Components\\n${timestamp}"
     return [{ name: "unique-os-packages", code: plantUMLCode }];
 }
 
-// function getPlantuml() {
-
-//     console.log(componentListQuery);
-
-//     const addedOsComponents = new Set(); // Keep track of unique OS packages
-//     let plantUMLCode = `
-// @startuml
-// title "Unique Operating Systems Packages"
-// `;
-
-//     Object.entries(tree).forEach(([osComponent]) => {
-//         // Extract the OS name before '@' and ensure it's unique
-//         let componentName = osComponent.split('@')[0];
-//         componentName = componentName.toLowerCase();
-//         componentName = componentName.replace(".", "_");
-
-//         if (!addedOsComponents.has(componentName)) {
-//             addedOsComponents.add(componentName);
-//             plantUMLCode += `
-// package "${componentName}" {
-// }
-//             `;
-//         }
-//     });
-
-//     plantUMLCode += `
-// @enduml
-//     `;
-
-//     // Insert the PlantUML code into the HTML element with the id "plantuml-code"
-//     document.getElementById("plantuml-code").innerText = plantUMLCode;
-
-//     // Optionally return the generated PlantUML code
-//     return [{ name: "unique-os-packages", code: plantUMLCode }];
-// }
-
-// function getPlantuml() {
-//     const diagrams = [];
-//     const addedOsComponents = new Set();
-//     let baseline = "";
-
-//     Object.entries(tree).forEach(([osComponent, componentData], index) => {
-
-//         baseline = ` Baseline: ${osComponent}\\n`;
-
-//         if (!addedOsComponents.has(osComponent) && osComponent == "linux") {
-
-//             // let plantUMLCode = `@startuml\n  package "${osComponent} ${index}" {\n`;
-//             let plantUMLCode = `@startuml\n  package "${osComponent}" {\n`;
-
-//             /***************************************************************************** */
-
-//             // OS Component Class Properties
-//             if (componentData.version.hasOwnProperty("versionNumber")) {
-
-//                 plantUMLCode += `    class ${osComponent.toLowerCase()} {\n`;
-
-//                 if (componentData.version.versionReleaseChannel === 'cve') {
-//                     plantUMLCode += `        Note: <b>Security Update</b>\n`;
-//                 }
-
-//                 if (isRecent(componentData.version.versionReleaseDate)) {
-//                     plantUMLCode += `        Date: <b>${formatDate(componentData.version.versionReleaseDate)}</b>\n`;
-//                 } else {
-//                     plantUMLCode += `        Date: ${formatDate(componentData.version.versionReleaseDate)}\n`;
-//                 }
-//                 plantUMLCode += `      Version: ${addMajorTag(componentData.version.versionNumber)}\n`;
-//                 plantUMLCode += '    }\n';
-//             }
-
-//             /***************************************************************************** */
-
-//             // OS Sub-Component Package
-//             plantUMLCode += '    package Subcomponents {\n';
-
-//             Object.keys(componentData).forEach((component) => {
-
-//                 if (component !== 'version') {
-
-//                     plantUMLCode += `      class ${component} {\n`;
-
-//                     if (isRecent(componentData[component].version.versionReleaseDate)) {
-//                         plantUMLCode += `        Date: <b>${formatDate(componentData[component].version.versionReleaseDate)}</b>\n`;
-//                     } else {
-//                         plantUMLCode += `        Date: ${formatDate(componentData[component].version.versionReleaseDate)}\n`;
-//                     }
-
-//                     plantUMLCode += `        Version: ${addMajorTag(componentData[component].version.versionNumber)}\n`;
-
-//                     if (componentData[component].version.versionReleaseChannel === 'cve') {
-//                         plantUMLCode += `        Note: <b>Security Update</b>\n`;
-//                     } else {
-//                         baseline += `- ${component}\\n`;
-//                     }
-
-//                     plantUMLCode += '      }\n';
-
-//                     plantUMLCode += '    skinparam class {\n';
-//                     plantUMLCode += '    }\n';
-
-//                 }
-//             });
-
-//             /***************************************************************************** */
-//             plantUMLCode += `note  "${baseline}" as test\n`;
-//             plantUMLCode += `test .- ${osComponent}\n`;            
-//             plantUMLCode += '    }\n  }\n@enduml';
-//             diagrams.push({ name: `diagram-${osComponent}`, code: plantUMLCode });
-//             addedOsComponents.add(osComponent);
-//         }
-//     });
-//     return diagrams;
-// }
-
 function renderDiagrams(diagrams) {
+    console.log(diagrams);
     let container = document.getElementById('plantuml-diagrams');
     let loader = document.getElementById('loader');
     loader.style.display = 'block';
@@ -438,7 +262,7 @@ function myRender(container, diagramData) {
             image.classList.add('diagram-image');
             loader.style.display = 'none';
 
-            const endTime = Date.now();  // Set the end time after rendering diagrams
+            endTime = Date.now();  // Set the end time after rendering diagrams
             const generationTime = ((endTime - startTime) / 1000).toFixed(2).trim();  // Calculate the generation time in seconds
 
             // Update the metrics section on the page with the generation time
@@ -530,4 +354,53 @@ function sortByDate(data) {
     }
 
     return data.sort((a, b) => compareDates(a, b));
+}
+
+// Function to replace special characters (including colon) with '-'
+function sanitize(name) {
+    return name.replace(/[:]/g, '-')   // Replace non-alphanumeric characters (except dot and dash) with '-'
+        .replace(/\./g, '-');          // Replace periods with hyphens
+}
+
+// Extract CVE code from the full URL (e.g., CVE-2024-9194 from "https://nvd.nist.gov/vuln/detail/CVE-2024-9194")
+function extractCveCode(url) {
+    const regex = /CVE-\d{4}-\d+/; // Match patterns like "CVE-2024-9194"
+    const match = url.match(regex);
+    return match ? match[0] : null; // Return the matched CVE code or null if no match
+}
+
+function formatDateWithRelativeTime(dateStr) {
+    // Parse the input date string (e.g., "20200816") into a Date object
+    const date = new Date(dateStr.slice(0, 4), dateStr.slice(4, 6) - 1, dateStr.slice(6, 8));
+
+    // Get today's date and time for comparison
+    const today = new Date();
+
+    // Calculate the difference in time
+    const timeDiff = today - date;
+    const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+    // Function to format the date as "Jan/30/2024"
+    const formatDate = (date) => {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        return `${month}/${day < 10 ? '0' + day : day}/${year}`;
+    };
+
+    // Determine the relative time to today
+    let relativeTime = '';
+
+    if (dayDiff === 0) {
+        relativeTime = '(Today)';
+    } else if (dayDiff === 1) {
+        relativeTime = '(Yesterday)';
+    } else if (dayDiff < 7) {
+        relativeTime = '(This week)';
+    } else if (dayDiff < 30) {
+        relativeTime = '(This month)';
+    }
+
+    return `${formatDate(date)} ${relativeTime}`;
 }
