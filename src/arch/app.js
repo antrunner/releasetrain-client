@@ -2,7 +2,7 @@ import plantuml from './plantuml.js';
 import util from './util.js';
 
 // Set environment flag
-const IS_PRODUCTION = true;  // Change to `true` for production
+const IS_PRODUCTION = prod;  // Change to `true` for production
 
 // Define URLs and paths for both environments
 const config = {
@@ -12,7 +12,7 @@ const config = {
         PLANTUML_PATH: "./arch"  // Path in production
     },
     development: {
-        API_ENDPOINT: "https://releasetrain.io/api",
+        API_ENDPOINT: "http://localhost:3000/api",
         SELECT_OS: "https://releasetrain.io/api/c/os",
         HOMEPAGE: "http://localhost:8080/src",
         PLANTUML_PATH: "./src/arch"  // Path in development
@@ -50,11 +50,11 @@ let endTime;
 const fullQueryString = window.location.search.substring(1);
 
 // Log the full query string
-console.log("Full query string:", fullQueryString);
+console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
 
 // Use the full query string in your AJAX request
 $.ajax({
-    url: `http://localhost:3000/api/v/d/versionsByComponent?${fullQueryString}`, // Pass the full query string directly
+    url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`, // Pass the full query string directly
     type: 'GET',
     dataType: 'json',
     success: handleData,
@@ -155,6 +155,8 @@ title "Unique Operating Systems Components\\n${timestamp}"
             return; // Skip this iteration if the version data is incomplete
         }
 
+        console.log(version)
+
         // Predefined fields
         let name = sanitize(version.currentVersion.versionProductName);
         let versionNumber = sanitize(version.currentVersion.versionNumber);
@@ -186,15 +188,15 @@ title "Unique Operating Systems Components\\n${timestamp}"
         // Prepare component details for PlantUML in a single line
         let componentDetails = `"${name}@${versionNumber} \\nVersion: ${versionNumber} \\nRelease Date: ${releaseDate}`;
 
-        // if (!isSameAsLatest && latestVersionNumber && latestReleaseDate) {
+        if (!isSameAsLatest && latestVersionNumber && latestReleaseDate) {
             // Adding latest version and CVE info to the component details
             componentDetails += ` \\nLatest: ${name}@${latestVersionNumber} \\nVersion: ${latestVersionNumber} \\nRelease Date: ${latestReleaseDate}`;
+        }
 
-            // Add CVE info if available
-            if (cveInfo) {
-                componentDetails += ` \\nCVE Info: ${cveInfo}`;
-            }
-        // }
+        // Add CVE info if available
+        if (cveInfo) {
+            componentDetails += ` \\nCVE Info: ${cveInfo}`;
+        }
 
         componentDetails += `"`; // End of component details string
 
