@@ -118,50 +118,10 @@ function handleData(data) {
 
 }
 
-$('#mySelect2').select2({
-    ajax: {
-        url: urlSelectOptions,
-        processResults: function (data) {
-            counterId = 1000;
-            let resultsArray = [];
-            data.forEach(version => {
-
-                if (version.hasOwnProperty('versionProductName') === false) {
-                    return;
-                }
-
-                if (util.isFirstLetterAlphabetic(version.versionProductName) === false) {
-                    return;
-                }
-
-                resultsArray.push({ "id": counterId, "text": version.versionProductName })
-
-                counterId = counterId + 1;
-            })
-
-            return {
-                results: resultsArray
-            };
-        }
-    }
-});
-
-$('#mySelect2').on('change', function () {
-    var selectedTexts = $(this).find(':selected').map(function () {
-        return $(this).text();
-    }).get();
-    var valuesAsString = selectedTexts.join(',');
-    var urlToCall = URL_HOMEPAGE + '/arch?q=' + valuesAsString;
-    window.location.href = urlToCall;
-});
-
 componentListQuery.split(",").forEach(component => {
     if (componentListQuery === "") {
         return;
     }
-    let initialValue = { id: counterId, text: component };
-    let newOption = new Option(initialValue.text, initialValue.id, true, true);
-    $('#mySelect2').append(newOption);
     counterId = counterId + 1;
 })
 

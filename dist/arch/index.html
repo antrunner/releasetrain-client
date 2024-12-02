@@ -10,12 +10,10 @@
     <link href="img/favicon.ico" rel="icon" type="image/x-icon" />
 
     <!-- Stylesheets -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="./app.css">
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" defer></script>
     <script type="module" src="./app.js" defer></script>
     <script src="https://cjrtnc.leaningtech.com/2.3/loader.js" defer></script>
 
@@ -48,16 +46,50 @@
             font-size: 1rem;
         }
 
-        /* Ensure no space between strong and span */
-        strong,
-        span {
-            margin: 0;
-            padding: 0;
-            display: inline;
+        /* Basic reset for textarea */
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            border: 2px solid #4CAF50;
+            /* Green border */
+            border-radius: 8px;
+            background-color: #f1f9f4;
+            /* Light green background */
+            color: #333;
+            font-family: 'Roboto', sans-serif;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            min-height: 100px;
         }
 
-        .select2 {
-            width: 100%;
+        textarea::placeholder {
+            color: #8e8e8e;
+            /* Slightly lighter gray */
+            font-style: italic;
+        }
+
+        /* Focus state with Material Design accent */
+        textarea:focus {
+            border-color: #388E3C;
+            /* Darker green on focus */
+            box-shadow: 0 0 10px rgba(56, 142, 60, 0.2);
+            outline: none;
+        }
+
+        /* Styling for labels */
+        label {
+            font-weight: 500;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        /* Additional styling for the container */
+        section {
+            margin-bottom: 20px;
         }
 
         /* Main container for split layout */
@@ -75,7 +107,7 @@
         .architecture-section {
             width: 60%;
             padding: 0.5rem;
-            border-right: 1px solid #ccc;
+            border-right: 1px solid #ddd;
             box-sizing: border-box;
             overflow-y: auto;
             min-height: 80vh;
@@ -95,7 +127,7 @@
         footer {
             text-align: center;
             padding: 0.5rem;
-            background-color: #eaeaea;
+            background-color: #f4f4f4;
             position: relative;
             font-size: 0.75rem;
         }
@@ -124,24 +156,20 @@
         .open-editor-btn {
             margin-top: 0.5rem;
             background-color: #4CAF50;
+            /* Green background */
             color: white;
             border: none;
             padding: 0.5rem;
             cursor: pointer;
             font-size: 0.75rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
         }
 
         .copy-btn:hover,
         .open-editor-btn:hover {
-            background-color: #45a049;
-        }
-
-        /* Dropdown Styling */
-        #mySelect2 {
-            width: 100%;
-            font-size: 0.75rem;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
+            background-color: #388E3C;
+            /* Darker green on hover */
         }
 
         /* Diagram Image */
@@ -165,9 +193,11 @@
             display: flex;
             justify-content: flex-start;
             align-items: center;
-            background: #f4f4f4;
+            background: #e8f5e9;
+            /* Light green background */
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #4CAF50;
+            /* Green border */
             border-radius: 6px;
             box-sizing: border-box;
             min-width: 140px;
@@ -209,6 +239,7 @@
         .highlight {
             font-weight: bold;
             color: #4CAF50;
+            /* Green */
             display: inline;
         }
 
@@ -224,7 +255,6 @@
         #generationTime {
             white-space: nowrap;
             margin-left: 0.25rem;
-            /* Add small spacing between value and "s" */
         }
 
         /* Styling for Loading Timer */
@@ -235,17 +265,15 @@
         #seconds {
             font-weight: bold;
             color: #4CAF50;
+            /* Green */
         }
 
         /* GitHub link positioning */
         .github-link {
             position: fixed;
             top: 10px;
-            /* Distance from the top */
             right: 10px;
-            /* Distance from the right */
             z-index: 9999;
-            /* Ensure it stays on top of other elements */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -254,7 +282,6 @@
         /* Style for GitHub Icon */
         .github-icon {
             width: 30px;
-            /* Adjust size */
             height: auto;
         }
     </style>
@@ -270,10 +297,10 @@
                 <h1>Ecosystem Architecture Monitoring</h1>
             </header>
 
-            <!-- Dropdown for Module Selection -->
             <section>
-                <label for="mySelect2">Select Current Ecosystem Components:</label>
-                <select id="mySelect2" class="js-example-basic-multiple" name="states[]" multiple="multiple"></select>
+                <label for="componentListId">Select Current Ecosystem Components:</label>
+                <textarea id="componentListId" name="componentListId" multiple="multiple"
+                    placeholder="Enter components in format: name:linux,version:6.11"></textarea>
             </section>
 
             <!-- Loader Section -->
@@ -431,64 +458,78 @@
             window.open(url, '_blank');
         }
 
-        function updateMetrics() {
+        // Function to parse the components from the URL
+        function getComponentByUrlParam() {
             // Get URL parameters
             const urlParams = new URLSearchParams(window.location.search);
-
-            // Create a container for the components list
-            const componentsListContainer = document.getElementById('metrics-container');
-
-            // Get the `q` parameter and log it (component name only)
-            const q = urlParams.get('q');
 
             // Initialize an array to store the components and their info
             let componentsInfo = [];
 
-            if (q) {
-                componentsInfo.push({ name: q, version: 'N/A', os: 'N/A' });
-            }
-
             // Get all `component` parameters (could be multiple)
             const components = urlParams.getAll('component');
-            components.forEach((component) => {
 
+            components.forEach((component) => {
+                // Split the component string by commas
                 const parts = component.split(',');
 
-                if (parts.length === 1) {
-                    // Case 1: Only component name (no version or OS)
-                    componentsInfo.push({ name: parts[0], version: 'N/A', os: 'N/A' });
-                } else if (parts.length === 2) {
-                    // Case 2: Component name and version (could include OS or just version)
-                    const name = parts[0];
-                    const versionOrOS = parts[1];
+                // Initialize values for name, version, and os
+                let name = null;
+                let version = null;
+                let os = null;
 
-                    if (/\d+(\.\d+)+/.test(versionOrOS)) {
-                        componentsInfo.push({ name: name, version: versionOrOS, os: 'N/A' });
-                    } else {
-                        componentsInfo.push({ name: name, version: 'N/A', os: versionOrOS });
+                // Iterate through the parts and split each part by ':' to extract key-value pairs
+                parts.forEach((part) => {
+                    const [key, value] = part.split(':');
+                    if (key && value) {
+                        // Match keys and assign values to name, version, and os
+                        switch (key.trim()) {
+                            case 'name':
+                                name = value.trim();  // Extract the component name
+                                break;
+                            case 'version':
+                                version = value.trim();  // Extract the version
+                                break;
+                            case 'os':
+                                os = value.trim();  // Extract the OS
+                                break;
+                            default:
+                                // Optionally, handle unknown keys here
+                                break;
+                        }
                     }
-                } else if (parts.length === 3) {
-                    // Case 3: Component name, version, and OS
-                    const name = parts[0];
-                    const version = parts[1];
-                    const os = parts[2];
-                    componentsInfo.push({ name: name, version: version, os: os });
+                });
+
+                // Only push the component to componentsInfo if the name is defined
+                if (name) {
+                    componentsInfo.push({ name, version: version || null, os: os || null });
                 }
             });
 
-            // Create the HTML for the components list
-            let componentsHTML = '<h3>Components List</h3><ul>';
-            componentsInfo.forEach(component => {
-                componentsHTML += `<li><strong>${component.name}</strong> - Version: <span class="highlight">${component.version}</span>, OS: <span class="highlight">${component.os}</span></li>`;
-            });
-            componentsHTML += '</ul>';
-
-            // Inject the components list HTML into the container
-            componentsListContainer.innerHTML += componentsHTML;
+            return componentsInfo;
         }
 
-        // Call the function to update the metrics container
-        updateMetrics();
+        // Function to update the textarea with components info
+        function updateComponents() {
+            // Get the component information by parsing the URL parameters
+            const componentsInfo = getComponentByUrlParam();
+
+            // Create an array to store the formatted component strings
+            let componentsText = '';
+
+            // Format each component as 'name, version, os'
+            componentsInfo.forEach(component => {
+                componentsText += `${component.name}, ${component.version}, ${component.os}\n`;
+            });
+
+            // Populate the textarea with the component list (each component on a new line)
+            document.getElementById('componentListId').value = componentsText;
+        }
+
+        // Call the updateComponents function when the page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            updateComponents();
+        });
 
     </script>
 
