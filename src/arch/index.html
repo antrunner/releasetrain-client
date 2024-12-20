@@ -98,6 +98,10 @@
             margin-bottom: 20px;
         }
 
+        button:hover {
+            background-color: #45A049;
+        }
+
         /* Main container for split layout */
         .container {
             display: flex;
@@ -174,7 +178,8 @@
 
         .copy-btn:hover,
         .open-editor-btn:hover {
-            background-color: #388E3C;
+            /* background-color: #388E3C; */
+            background-color: #45A049;
             /* Darker green on hover */
         }
 
@@ -300,14 +305,130 @@
 
         <!-- 60% Architecture Monitoring Section -->
         <div class="architecture-section">
-            <header>
-                <h1>Ecosystem Architecture Monitoring</h1>
-            </header>
-
+            <!-- Stack Selection Section -->
             <section>
-                <label for="componentListId">Current Ecosystem Components:</label>
+                <h2>Select (latest version) or Enter Your Software Ecosystem Components</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start;">
+                    <!-- Stack Buttons -->
+                    <a href="https://releasetrain.io/arch/?component=name:apache&component=name:linux&component=name:mysql&component=name:php"
+                        style="text-decoration: none;" title="Linux, Apache, MySQL, PHP">
+                        <button
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #4CAF50; border-radius: 4px; background-color: #4CAF50; color: white; cursor: pointer;">LAMP</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:django&component=name:python&component=name:sqlite"
+                        style="text-decoration: none;" title="Django, Python, SQLite">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Django</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:flask&component=name:python&component=name:postgresql"
+                        style="text-decoration: none;" title="Flask, Python, PostgreSQL">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Flask</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:mongodb&component=name:express&component=name:angular&component=name:node"
+                        style="text-decoration: none;" title="MongoDB, Express, Angular, Node.js">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">MEAN</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:mongodb&component=name:express&component=name:react&component=name:node"
+                        style="text-decoration: none;" title="MongoDB, Express, React, Node.js">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">MERN</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:nginx&component=name:linux&component=name:mysql&component=name:php"
+                        style="text-decoration: none;" title="Nginx, Linux, MySQL, PHP">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">LEMP</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:rails&component=name:ruby&component=name:postgresql"
+                        style="text-decoration: none;" title="Rails, Ruby, PostgreSQL">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Rails</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:spring&component=name:java&component=name:hibernate"
+                        style="text-decoration: none;" title="Spring, Java, Hibernate">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Spring</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:svelte&component=name:node&component=name:prisma"
+                        style="text-decoration: none;" title="Svelte, Node.js, Prisma">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Svelte</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:vue&component=name:typescript&component=name:firebase"
+                        style="text-decoration: none;" title="Vue.js, TypeScript, Firebase">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Vue</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:apache&component=name:java&component=name:groovy"
+                        style="text-decoration: none;" title="Apache, Java, Groovy">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Groovy</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:laravel&component=name:php&component=name:mysql"
+                        style="text-decoration: none;" title="Laravel, PHP, MySQL">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">Laravel</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:express&component=name:react&component=name:firebase"
+                        style="text-decoration: none;" title="Express, React, Firebase">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">ERF</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:flask&component=name:python&component=name:mongo"
+                        style="text-decoration: none;" title="Flask, Python, MongoDB">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">FPM</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:angular&component=name:typescript&component=name:mysql"
+                        style="text-decoration: none;" title="Angular, TypeScript, MySQL">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">ATM</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:django&component=name:python&component=name:firebase"
+                        style="text-decoration: none;" title="Django, Python, Firebase">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">DPF</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:rails&component=name:ruby&component=name:sqlite"
+                        style="text-decoration: none;" title="Rails, Ruby, SQLite">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">RRS</button>
+                    </a>
+
+                    <a href="https://releasetrain.io/arch/?component=name:express&component=name:typescript&component=name:postgresql"
+                        style="text-decoration: none;" title="Express, TypeScript, PostgreSQL">
+                        <button disabled
+                            style="padding: 5px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; color: #999;">ETP</button>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Current Ecosystem Components Section -->
+            <section style="display: flex; align-items: stretch; gap: 10px; margin-top: 20px;">
                 <textarea id="componentListId" name="componentListId" multiple="multiple"
-                    placeholder="Enter components in format: name:linux,version:6.11"></textarea>
+                    placeholder="Enter components in format: name:linux,version:6.11"
+                    style="flex-grow: 1; min-height: 100px; resize: none;"></textarea>
+                <button id="generateButton" onclick="updateComponents()"
+                    style="padding: 0 20px; font-size: 14px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; display: flex; align-items: center; justify-content: center;">
+                    Generate Architecture
+                </button>
             </section>
 
             <!-- Loader Section -->
@@ -551,20 +672,25 @@
         document.addEventListener('DOMContentLoaded', function () {
             updateComponents();
 
-            // Dynamic UI rendering
-            const textareas = document.querySelectorAll("textarea");
-            textareas.forEach((textarea) => {
-                // Adjust the height of the textarea to match its content
-                const adjustHeight = () => {
-                    textarea.style.height = "auto"; // Reset height to calculate new height
-                    textarea.style.height = `${Math.min(textarea.scrollHeight, 400)}px`; // Set height dynamically with a max of 400px
-                };
+            // Adjust the height of the button to match the textarea
+            const textarea = document.getElementById("componentListId");
+            const button = document.getElementById("generateButton");
 
-                // Adjust height on input and initial load
-                textarea.addEventListener("input", adjustHeight);
-                adjustHeight();
+            const matchButtonHeight = () => {
+                button.style.height = `${textarea.offsetHeight}px`;
+            };
+
+            // Adjust button height on input and initial load
+            textarea.addEventListener("input", () => {
+                textarea.style.height = "auto"; // Reset height to calculate new height
+                textarea.style.height = `${Math.min(textarea.scrollHeight, 400)}px`; // Set height dynamically with a max of 400px
+                matchButtonHeight();
             });
+
+            // Initial height adjustment
+            matchButtonHeight();
         });
+
 
     </script>
 
