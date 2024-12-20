@@ -50,7 +50,7 @@
         textarea {
             width: 100%;
             padding: 12px;
-            font-size: 14px;
+            font-size: 10px;
             line-height: 1.6;
             border: 2px solid #4CAF50;
             /* Green border */
@@ -62,6 +62,12 @@
             box-sizing: border-box;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
             min-height: 100px;
+            max-height: 400px;
+            /* Limit the maximum height */
+            overflow-y: auto;
+            /* Allow scroll if content exceeds max-height */
+            resize: none;
+            /* Prevent manual resizing to avoid conflicts */
         }
 
         textarea::placeholder {
@@ -459,7 +465,7 @@
             window.open(url, '_blank');
         }
 
-        // Function to parse the components from the URL
+
         function getComponentByUrlParam() {
             // Get URL parameters
             const urlParams = new URLSearchParams(window.location.search);
@@ -470,42 +476,56 @@
             // Get all `component` parameters (could be multiple)
             const components = urlParams.getAll('component');
 
-            components.forEach((component) => {
-                // Split the component string by commas
-                const parts = component.split(',');
+            if (components.length === 0) {
+                // If no components are found in the URL, initialize with default values
+                const defaultComponent = { name: 'Linux', version: '6.8', os: null };
+                componentsInfo.push(defaultComponent);
 
-                // Initialize values for name, version, and os
-                let name = null;
-                let version = null;
-                let os = null;
+                // Update the URL with default values
+                const defaultUrlParam = `component=name:${defaultComponent.name},version:${defaultComponent.version}`;
+                let currentUrl = window.location.href.split('?')[0]; // Remove existing query params
+                const newUrl = `${currentUrl}?${unescape(defaultUrlParam)}`;
 
-                // Iterate through the parts and split each part by ':' to extract key-value pairs
-                parts.forEach((part) => {
-                    const [key, value] = part.split(':');
-                    if (key && value) {
-                        // Match keys and assign values to name, version, and os
-                        switch (key.trim()) {
-                            case 'name':
-                                name = value.trim();  // Extract the component name
-                                break;
-                            case 'version':
-                                version = value.trim();  // Extract the version
-                                break;
-                            case 'os':
-                                os = value.trim();  // Extract the OS
-                                break;
-                            default:
-                                // Optionally, handle unknown keys here
-                                break;
+                // Reload the page with the updated URL
+                window.location.href = newUrl;
+            } else {
+                components.forEach((component) => {
+                    // Split the component string by commas
+                    const parts = component.split(',');
+
+                    // Initialize values for name, version, and os
+                    let name = null;
+                    let version = null;
+                    let os = null;
+
+                    // Iterate through the parts and split each part by ':' to extract key-value pairs
+                    parts.forEach((part) => {
+                        const [key, value] = part.split(':');
+                        if (key && value) {
+                            // Match keys and assign values to name, version, and os
+                            switch (key.trim()) {
+                                case 'name':
+                                    name = value.trim();  // Extract the component name
+                                    break;
+                                case 'version':
+                                    version = value.trim();  // Extract the version
+                                    break;
+                                case 'os':
+                                    os = value.trim();  // Extract the OS
+                                    break;
+                                default:
+                                    // Optionally, handle unknown keys here
+                                    break;
+                            }
                         }
+                    });
+
+                    // Only push the component to componentsInfo if the name is defined
+                    if (name) {
+                        componentsInfo.push({ name, version: version || null, os: os || null });
                     }
                 });
-
-                // Only push the component to componentsInfo if the name is defined
-                if (name) {
-                    componentsInfo.push({ name, version: version || null, os: os || null });
-                }
-            });
+            }
 
             return componentsInfo;
         }
@@ -530,6 +550,20 @@
         // Call the updateComponents function when the page loads
         document.addEventListener('DOMContentLoaded', function () {
             updateComponents();
+
+            // Dynamic UI rendering
+            const textareas = document.querySelectorAll("textarea");
+            textareas.forEach((textarea) => {
+                // Adjust the height of the textarea to match its content
+                const adjustHeight = () => {
+                    textarea.style.height = "auto"; // Reset height to calculate new height
+                    textarea.style.height = `${Math.min(textarea.scrollHeight, 400)}px`; // Set height dynamically with a max of 400px
+                };
+
+                // Adjust height on input and initial load
+                textarea.addEventListener("input", adjustHeight);
+                adjustHeight();
+            });
         });
 
     </script>
