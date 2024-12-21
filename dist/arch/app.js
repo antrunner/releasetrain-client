@@ -145,17 +145,25 @@ function getPlantuml() {
 
     let plantUMLCode = `
 @startuml
-title "Unique Operating Systems Components\\n${timestamp}"
+title "${timestamp}"
 `;
 
+    versions = sortVersionsByOperatingSystem(versions);
+
     versions.forEach((version, index) => {
+
+        version.currentVersion = version.currentVersion || version.latestVersion;
+
         // Defensive checks for properties before accessing them
         if (!version || !version.currentVersion || !version.latestVersion) {
             console.warn(`Skipping invalid version data at index ${index}: Missing currentVersion or latestVersion`);
             return; // Skip this iteration if the version data is incomplete
         }
 
-        console.log(version)
+        if (index === 0) {
+            // Add an OS wrapper package for the first component
+            plantUMLCode += `package "${sanitize(version.name)} OS" {\n`;
+        }
 
         // Predefined fields
         let name = sanitize(version.currentVersion.versionProductName);
@@ -208,6 +216,11 @@ title "Unique Operating Systems Components\\n${timestamp}"
 
         // End the package for the current OS component
         plantUMLCode += `}\n`;
+
+        if (index === versions.length - 1) {
+            // Close the package for the OS wrapper
+            plantUMLCode += `}\n`;
+        }
     });
 
     plantUMLCode += `
@@ -247,6 +260,19 @@ function renderDiagrams(diagrams) {
             setTimeout(() => myRender(container, diagramData), 2000 * (index + 1));
         });
     }
+}
+
+function sortVersionsByOperatingSystem(versions) {
+    if (!Array.isArray(versions) || versions.length === 0) {
+        console.warn("Invalid or empty versions array.");
+        return versions;
+    }
+
+    return versions.sort((a, b) => {
+        const isAOS = allowedOperatingSystems.includes(a.name?.toLowerCase());
+        const isBOS = allowedOperatingSystems.includes(b.name?.toLowerCase());
+        return isBOS - isAOS; // Move OS objects to the top
+    });
 }
 
 function myRender(container, diagramData) {
@@ -366,9 +392,14 @@ function sanitize(name) {
 
 // Extract CVE code from the full URL (e.g., CVE-2024-9194 from "https://nvd.nist.gov/vuln/detail/CVE-2024-9194")
 function extractCveCode(url) {
+    if (!url) {
+        return "Unknown CVE"; // Return a generic placeholder if the URL is undefined or null
+    }
+
     const regex = /CVE-\d{4}-\d+/; // Match patterns like "CVE-2024-9194"
     const match = url.match(regex);
-    return match ? match[0] : null; // Return the matched CVE code or null if no match
+
+    return match ? match[0] : "Generic Security Issue"; // Return matched CVE code or a generic fallback
 }
 
 function formatDateWithRelativeTime(dateStr) {
