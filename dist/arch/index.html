@@ -102,16 +102,22 @@
             background-color: #45A049;
         }
 
-        /* Main container for split layout */
         .container {
             display: flex;
-            flex-direction: row;
-            flex: 1;
-            height: 100%;
+            flex-wrap: wrap;
+            /* Enables wrapping */
+            gap: 1rem;
+            /* Adds spacing between elements */
             padding: 0.5rem;
             box-sizing: border-box;
-            overflow: hidden;
         }
+
+        .container>div {
+            flex: 1 1 300px;
+            /* Each item has a minimum width of 300px */
+            box-sizing: border-box;
+        }
+
 
         /* Architecture section (60%) */
         .architecture-section {
@@ -186,8 +192,8 @@
         /* Diagram Image */
         .diagram-image {
             margin: 0px;
-            padding: 0px;
-            width: 80%;
+            padding: 0px 5%;
+            width: 90%;
         }
 
         /* Main Metrics Container */
@@ -411,60 +417,11 @@
                     <strong>Total:</strong>
                     <span id="totalComponents" class="highlight">0</span>
                 </div>
-                <div class="metric-item">
-                    <strong>Version:</strong>
-                    <span id="versionDistribution" class="highlight">N/A</span>
-                </div>
-                <div class="metric-item">
-                    <strong>Last Update:</strong>
-                    <span id="recentUpdate" class="highlight">N/A</span>
-                </div>
+
                 <div class="metric-item">
                     <strong>Gen Time:</strong><span id="generationTime" class="highlight">0.00</span>s
                 </div>
 
-                <!-- Additional Metrics -->
-                <div class="metric-item">
-                    <strong>Patches:</strong>
-                    <span id="availablePatches" class="highlight">5</span>
-                </div>
-                <div class="metric-item">
-                    <strong>Critical CVEs:</strong>
-                    <span id="criticalCVEs" class="highlight">3</span>
-                </div>
-                <div class="metric-item">
-                    <strong>Total CVEs:</strong>
-                    <span id="totalCVEs" class="highlight">12</span>
-                </div>
-                <div class="metric-item">
-                    <strong>Pending:</strong>
-                    <span id="pendingUpdates" class="highlight">2</span>
-                </div>
-                <div class="metric-item">
-                    <strong>Last Patch:</strong>
-                    <span id="lastPatchDate" class="highlight">2024-11-20</span>
-                </div>
-                <div class="metric-item">
-                    <strong>Last Sec. Update:</strong>
-                    <span id="lastSecurityUpdate" class="highlight">2024-11-18</span>
-                </div>
-
-                <!-- Aggregated Data -->
-                <div class="metric-item">
-                    <strong>CVEs:</strong>
-                    <div class="aggregated-list">
-                        <div class="aggregated-item">
-                            <strong>Critical:</strong> <span id="criticalCVEsCount" class="highlight">3</span>
-                            <strong>High:</strong> <span id="highCVEsCount" class="highlight">5</span>
-                            <strong>Medium:</strong> <span id="mediumCVEsCount" class="highlight">4</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Placeholder for Chart -->
-                <div id="chart-placeholder">
-                    Metrics visualization placeholder
-                </div>
             </section>
 
             <!-- PlantUML Code Display Section -->

@@ -128,7 +128,6 @@ function getPlantuml() {
 
     // Aggregated metrics variables
     let totalComponents = 0;
-    let versionDistribution = {};  // To store counts of each version
     let recentUpdateTimestamp = null;  // To track the most recent update
 
     const timestamp = new Date().toLocaleString('en-US', {
@@ -232,13 +231,6 @@ title "${timestamp}"
 
     // Update the metrics section on the page
     document.getElementById("totalComponents").textContent = totalComponents;
-    document.getElementById("versionDistribution").textContent = JSON.stringify(versionDistribution, null, 2);
-    document.getElementById("recentUpdate").textContent = recentUpdateTimestamp ? recentUpdateTimestamp.toLocaleString() : 'N/A';
-
-    // Aggregate and log critical data
-    console.log(`Total Components: ${totalComponents}`);
-    console.log(`Version Distribution: ${JSON.stringify(versionDistribution)}`);
-    console.log(`Most Recent Update: ${recentUpdateTimestamp ? recentUpdateTimestamp.toLocaleString() : 'N/A'}`);
 
     // Optionally return the generated PlantUML code
     return [{ name: "unique-os-packages", code: plantUMLCode }];
