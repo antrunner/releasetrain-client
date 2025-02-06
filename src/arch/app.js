@@ -1,8 +1,9 @@
+//import { get } from 'grunt';
 import plantuml from './plantuml.js';
 import util from './util.js';
 
 // Set environment flag
-const IS_PRODUCTION = true;  // Change to `true` for production
+const IS_PRODUCTION = false;  // Change to `true` for production
 
 // Define URLs and paths for both environments
 const config = {
@@ -12,10 +13,13 @@ const config = {
         PLANTUML_PATH: "./arch"  // Path in production
     },
     development: {
-        API_ENDPOINT: "http://localhost:3000/api",
+        API_ENDPOINT: "https://releasetrain.io/api",
+        //API_ENDPOINT: "http://localhost:3000/api",
         SELECT_OS: "https://releasetrain.io/api/c/os",
-        HOMEPAGE: "http://localhost:8080/src",
-        PLANTUML_PATH: "./src/arch"  // Path in development
+        HOMEPAGE: "http://localhost:8080/",
+        PLANTUML_PATH: "./src/arch"  // Pat
+        // 
+        // h in development
     }
 };
 
@@ -51,7 +55,6 @@ const fullQueryString = window.location.search.substring(1);
 
 // Log the full query string
 console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
-
 // Use the full query string in your AJAX request
 $.ajax({
     url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`, // Pass the full query string directly
@@ -85,7 +88,17 @@ function handleData(data) {
     // Iterate over each component object in the array
     data.forEach(component => {
         const { name, latestVersion, currentVersion, latestCveVersion } = component;
-
+        //console.log(latestVersion);
+        console.log(currentVersion);
+        //console.log(latestCveVersion);
+        
+        
+        if(latestVersion)
+            latestVersion.versionNumber = latestVersion.versionNumber.replace(/\./g, ':');
+        if(currentVersion)
+            currentVersion.versionNumber = currentVersion.versionNumber.replace(/\./g, ':');
+        if(latestCveVersion)
+            latestCveVersion.versionNumber = latestCveVersion.versionNumber.replace(/\./g, ':');
         // Log component details (adjust as needed)
         console.log(`Component: ${name}`);
         console.log(`Latest Version: `, latestVersion);
@@ -123,13 +136,9 @@ function handleOsData(data) {
 }
 
 function getPlantuml() {
-    // Set to track unique OS components
-    const addedOsComponents = new Set();
-
     // Aggregated metrics variables
     let totalComponents = 0;
-    let recentUpdateTimestamp = null;  // To track the most recent update
-
+    
     const timestamp = new Date().toLocaleString('en-US', {
         weekday: 'short',
         year: 'numeric',
@@ -142,89 +151,98 @@ function getPlantuml() {
         timeZoneName: 'short'
     });
 
-    let plantUMLCode = `
-@startuml
-title "${timestamp}"
-`;
+    let plantUMLCode = `@startuml\ntitle "${timestamp}"\n`;
 
+    // Fetch and sort version details
     versions = sortVersionsByOperatingSystem(versions);
+    //console.log("Sorted Versions:", versions);
 
-    versions.forEach((version, index) => {
+    plantUMLCode += `package "${sanitize(versions[0].name)} OS" {\n`;
 
+    // Extract component names from versions
+    const getComponent = versions.map(version => version.name);
+
+    // Group components by stack
+    const { groupedStacks, extraComponents } = getStack(getComponent);
+    //console.log("Grouped Stacks (Strict Matching):", groupedStacks);
+    //console.log("Extra Components:", extraComponents);
+    totalComponents = versions.length;
+    //console.log("Total Components:", totalComponents);
+
+    // Function to generate component details
+    function generateComponentDetails(version) {
+        //console.log('Version:', version);   
         version.currentVersion = version.currentVersion || version.latestVersion;
-
-        // Defensive checks for properties before accessing them
         if (!version || !version.currentVersion || !version.latestVersion) {
-            console.warn(`Skipping invalid version data at index ${index}: Missing currentVersion or latestVersion`);
-            return; // Skip this iteration if the version data is incomplete
+            //console.warn(`Skipping invalid version data: Missing currentVersion or latestVersion`);
+            return null; // Skip this iteration if the version data is incomplete
         }
-
-        if (index === 0) {
-            // Add an OS wrapper package for the first component
-            plantUMLCode += `package "${sanitize(version.name)} OS" {\n`;
-        }
-
-        // Predefined fields
         let name = sanitize(version.currentVersion.versionProductName);
         let versionNumber = sanitize(version.currentVersion.versionNumber);
         let releaseDate = sanitize(formatDateWithRelativeTime(version.currentVersion.versionReleaseDate));
-
-        // Default CVE info as empty string
-        let cveInfo = '';
-
-        // Check if latest version and CVE info are available
+        let cveInfo = version.latestCveVersion ? sanitize(extractCveCode(version.latestCveVersion.versionUrl)) : '';
         let latestVersionNumber = version.latestVersion ? sanitize(version.latestVersion.versionNumber) : null;
         let latestReleaseDate = version.latestVersion ? sanitize(formatDateWithRelativeTime(version.latestVersion.versionReleaseDate)) : null;
 
-        if (version.latestCveVersion) {
-            // Select relevant CVE details
-            cveInfo = sanitize(extractCveCode(version.latestCveVersion.versionUrl)); // CVE version ID
-        }
-
-        // Defensive check for missing latestVersion details
-        if (!latestVersionNumber || !latestReleaseDate) {
-            console.warn(`Missing latest version data for ${name} at index ${index}.`);
-        }
-
-        // Check if current version matches the latest version
-        let isSameAsLatest = (versionNumber === latestVersionNumber);
-
-        // Increment total component count
-        totalComponents++;
-
-        // Prepare component details for PlantUML in a single line
         let componentDetails = `"${name}@${versionNumber} \\nVersion: ${versionNumber} \\nRelease Date: ${releaseDate}`;
 
-        if (!isSameAsLatest && latestVersionNumber && latestReleaseDate) {
-            // Adding latest version and CVE info to the component details
-            componentDetails += ` \\nLatest: ${name}@${latestVersionNumber} \\nVersion: ${latestVersionNumber} \\nRelease Date: ${latestReleaseDate}`;
+        if (latestVersionNumber && latestReleaseDate) {
+            componentDetails += ` \\nLatest: ${name}@${latestVersionNumber} \\nVersion: ${latestVersionNumber} \\nRelease date: ${latestReleaseDate}`;
         }
 
-        // Add CVE info if available
         if (cveInfo) {
             componentDetails += ` \\nCVE Info: ${cveInfo}`;
         }
 
         componentDetails += `"`; // End of component details string
+        //console.log("Component Details:", componentDetails);
+        
+        return componentDetails;
+    }
 
-        // Start PlantUML code for the component
-        plantUMLCode += `package "${sanitize(version.name)}" {\n`;
+    // Function to add OS package
+    function addOSPackage(osName, components) {
 
-        // Add the combined component details to the PlantUML code
-        plantUMLCode += `    component ${componentDetails}\n`;
-
-        // End the package for the current OS component
-        plantUMLCode += `}\n`;
-
-        if (index === versions.length - 1) {
-            // Close the package for the OS wrapper
+        components.forEach(component => {
+            plantUMLCode += `package "${component.name}" {\n`;
+            plantUMLCode += `    component ${generateComponentDetails(component)}\n`;
             plantUMLCode += `}\n`;
-        }
-    });
+        });
 
-    plantUMLCode += `
-@enduml
-`;
+    }
+
+    // Function to add stack package
+    function addStackPackage(stackName, components) {
+        plantUMLCode += `package "${stackName} stack" {\n`;
+        const osComponents = {};
+
+        components.forEach(component => {
+            const osName = component.name; // Assuming the OS name is the same as the component name
+            if (!osComponents[osName]) {
+                osComponents[osName] = [];
+            }
+            osComponents[osName].push(component);
+        });
+
+        for (const osName in osComponents) {
+            addOSPackage(osName, osComponents[osName]);
+        }
+    }
+
+    // Process grouped stacks
+    groupedStacks.forEach(stack => {
+        const stackComponents = versions.filter(version => stack.matchedComponents.includes(version.name));
+        //console.log("Stack Components:", stackComponents);
+        addStackPackage(stack.stackName, stackComponents);
+    });
+    // end the stack
+    plantUMLCode += `}\n`;
+    // Process extra components
+    const extraComponentVersions = versions.filter(version => extraComponents.some(extra => extra.component === version.name));
+
+    addOSPackage("Extra Components", extraComponentVersions);
+
+    plantUMLCode += `}\n@enduml\n`;
 
     // Insert the PlantUML code into the HTML element with the id "plantuml-code"
     document.getElementById("plantuml-code").innerText = plantUMLCode;
@@ -428,4 +446,52 @@ function formatDateWithRelativeTime(dateStr) {
     }
 
     return `${formatDate(date)} ${relativeTime}`;
+}
+
+// Function to group components by stack
+function getStack(getComponent) {
+    // console.log("Components received:", getComponent);
+
+    // Ensure `getComponent` is an array
+    if (!Array.isArray(getComponent) || getComponent.length === 0) {
+        // console.warn("getComponent is empty or not an array.");
+        return { groupedStacks: [], extraComponents: [] };
+    }
+
+    const stacks = [
+        { name: "LAMP", components: ["apache", "mysql", "php", "linux"] },
+        { name: "LEMP", components: ["nginx", "mysql", "php", "linux"] },
+        { name: "UNN", components: ["ubuntu", "nginx", "nodejs"] },
+        { name: "RAILS", components: ["macos", "rails", "postgresql"] },
+        { name: "DWS", components: ["django", "windows", "sqlite"] },
+        { name: "FLASK", components: ["flask", "arch", "postgresql"] },
+        { name: "SPRING", components: ["redhat", "spring", "java"] },
+        { name: "CRP", components: ["centos", "rails", "postgresql"] },
+        { name: "DDS", components: ["debian", "django", "sqlite"] },
+        { name: "USP", components: ["ubuntu", "prisma", "svelte"] }
+    ];
+
+    const groupedStacks = [];
+    const usedComponents = new Set();
+
+    for (const stack of stacks) {
+        // Strict match: All stack components must be in getComponent
+        const isStrictMatch = stack.components.every(component => getComponent.includes(component.toLowerCase()));
+
+        if (isStrictMatch) {
+            groupedStacks.push({ stackName: stack.name, matchedComponents: stack.components });
+            stack.components.forEach(component => usedComponents.add(component.toLowerCase())); // Mark components as used
+        }
+    }
+
+    // Identify extra or unmatched components
+    const extraComponents = getComponent
+        .filter(component => !usedComponents.has(component.toLowerCase()))
+        .map(component => ({ component, belongsToStack: false }));
+
+    //console.log("Grouped stacks (Strict Matching):", groupedStacks);
+    //console.log("Extra components:", extraComponents);
+    //console.log("Used components:", Array.from(usedComponents));
+
+    return { groupedStacks, extraComponents };
 }
