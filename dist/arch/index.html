@@ -585,6 +585,8 @@
             }
 
             const lines = textarea.value.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+            console.log("Lines:", lines);
+            
             const components = [];
 
             lines.forEach(line => {

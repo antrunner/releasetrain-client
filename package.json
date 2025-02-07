@@ -5,7 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "build": "grunt",
-    "dev": " http-server .",
+    "dev": "http-server .",
     "prod": "npm run build && http-server dist",
     "test": "jest"
   },
@@ -25,7 +25,7 @@
     "@babel/core": "^7.24.4",
     "@babel/preset-env": "^7.24.4",
     "babel-jest": "^29.7.0",
-    "grunt": "^1.1.0",
+    "grunt": "^1.6.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-uglify-es": "^3.3.0",
     "grunt-minify-html": "^3.0.0",
