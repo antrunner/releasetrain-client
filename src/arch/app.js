@@ -155,7 +155,6 @@ function getPlantuml() {
 
     // Fetch and sort version details
     versions = sortVersionsByOperatingSystem(versions);
-    //console.log("Sorted Versions:", versions);
 
     plantUMLCode += `package "${sanitize(versions[0].name)} OS" {\n`;
 
