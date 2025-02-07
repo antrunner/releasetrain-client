@@ -164,7 +164,7 @@ function getPlantuml() {
     // Group components by stack
     const { groupedStacks, extraComponents } = getStack(getComponent);
     //console.log("Grouped Stacks (Strict Matching):", groupedStacks);
-    //console.log("Extra Components:", extraComponents);
+    console.log("Extra Components:", extraComponents);
     totalComponents = versions.length;
     //console.log("Total Components:", totalComponents);
 
@@ -226,8 +226,14 @@ function getPlantuml() {
             addOSPackage(osName, osComponents[osName]);
         }
     }
-
-    // Process grouped stacks
+    
+    // if there are no grouped stacks just push the extra components
+    if (groupedStacks.length === 0) {
+        addOSPackage("Extra Components", versions);
+    }
+    else
+    {
+        // Process grouped stacks
     groupedStacks.forEach(stack => {
         const stackComponents = versions.filter(version => stack.matchedComponents.includes(version.name));
         //console.log("Stack Components:", stackComponents);
@@ -239,6 +245,9 @@ function getPlantuml() {
     const extraComponentVersions = versions.filter(version => extraComponents.some(extra => extra.component === version.name));
 
     addOSPackage("Extra Components", extraComponentVersions);
+    }
+
+    
 
     plantUMLCode += `}\n@enduml\n`;
 
