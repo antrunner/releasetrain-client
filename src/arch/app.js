@@ -195,7 +195,6 @@ function getPlantuml() {
         }
 
         componentDetails += `"`; // End of component details string
-        //console.log("Component Details:", componentDetails);
         
         return componentDetails;
     }
