@@ -3,7 +3,7 @@ import plantuml from './plantuml.js';
 import util from './util.js';
 
 // Set environment flag
-const IS_PRODUCTION = false;  // Change to `true` for production
+const IS_PRODUCTION = true;  // Change to `true` for production
 
 // Define URLs and paths for both environments
 const config = {
@@ -138,7 +138,6 @@ function handleOsData(data) {
 function getPlantuml() {
     // Aggregated metrics variables
     let totalComponents = 0;
-
     
     const timestamp = new Date().toLocaleString('en-US', {
         weekday: 'short',
@@ -156,7 +155,6 @@ function getPlantuml() {
 
     // Fetch and sort version details
     versions = sortVersionsByOperatingSystem(versions);
-    console.log("Sorted Versions:", versions);
 
     plantUMLCode += `package "${sanitize(versions[0].name)} OS" {\n`;
 
@@ -165,17 +163,17 @@ function getPlantuml() {
 
     // Group components by stack
     const { groupedStacks, extraComponents } = getStack(getComponent);
-    console.log("Grouped Stacks (Strict Matching):", groupedStacks);
+    //console.log("Grouped Stacks (Strict Matching):", groupedStacks);
     console.log("Extra Components:", extraComponents);
     totalComponents = versions.length;
-    console.log("Total Components:", totalComponents);
+    //console.log("Total Components:", totalComponents);
 
     // Function to generate component details
     function generateComponentDetails(version) {
-        console.log('Version:', version);   
+        //console.log('Version:', version);   
         version.currentVersion = version.currentVersion || version.latestVersion;
         if (!version || !version.currentVersion || !version.latestVersion) {
-            console.warn(`Skipping invalid version data: Missing currentVersion or latestVersion`);
+            //console.warn(`Skipping invalid version data: Missing currentVersion or latestVersion`);
             return null; // Skip this iteration if the version data is incomplete
         }
         let name = sanitize(version.currentVersion.versionProductName);
@@ -196,7 +194,6 @@ function getPlantuml() {
         }
 
         componentDetails += `"`; // End of component details string
-        console.log("Component Details:", componentDetails);
         
         return componentDetails;
     }
@@ -229,11 +226,17 @@ function getPlantuml() {
             addOSPackage(osName, osComponents[osName]);
         }
     }
-
-    // Process grouped stacks
+    
+    // if there are no grouped stacks just push the extra components
+    if (groupedStacks.length === 0) {
+        addOSPackage("Extra Components", versions);
+    }
+    else
+    {
+        // Process grouped stacks
     groupedStacks.forEach(stack => {
         const stackComponents = versions.filter(version => stack.matchedComponents.includes(version.name));
-        console.log("Stack Components:", stackComponents);
+        //console.log("Stack Components:", stackComponents);
         addStackPackage(stack.stackName, stackComponents);
     });
     // end the stack
@@ -242,6 +245,9 @@ function getPlantuml() {
     const extraComponentVersions = versions.filter(version => extraComponents.some(extra => extra.component === version.name));
 
     addOSPackage("Extra Components", extraComponentVersions);
+    }
+
+    
 
     plantUMLCode += `}\n@enduml\n`;
 
@@ -451,11 +457,11 @@ function formatDateWithRelativeTime(dateStr) {
 
 // Function to group components by stack
 function getStack(getComponent) {
-    console.log("Components received:", getComponent);
+    // console.log("Components received:", getComponent);
 
     // Ensure `getComponent` is an array
     if (!Array.isArray(getComponent) || getComponent.length === 0) {
-        console.warn("getComponent is empty or not an array.");
+        // console.warn("getComponent is empty or not an array.");
         return { groupedStacks: [], extraComponents: [] };
     }
 
@@ -490,9 +496,9 @@ function getStack(getComponent) {
         .filter(component => !usedComponents.has(component.toLowerCase()))
         .map(component => ({ component, belongsToStack: false }));
 
-    console.log("Grouped stacks (Strict Matching):", groupedStacks);
-    console.log("Extra components:", extraComponents);
-    console.log("Used components:", Array.from(usedComponents));
+    //console.log("Grouped stacks (Strict Matching):", groupedStacks);
+    //console.log("Extra components:", extraComponents);
+    //console.log("Used components:", Array.from(usedComponents));
 
     return { groupedStacks, extraComponents };
 }
