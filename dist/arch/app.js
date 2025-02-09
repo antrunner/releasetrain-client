@@ -91,13 +91,13 @@ function handleData(data) {
         //console.log(latestVersion);
         console.log(currentVersion);
         //console.log(latestCveVersion);
-        
-        
-        if(latestVersion)
+
+
+        if (latestVersion)
             latestVersion.versionNumber = latestVersion.versionNumber.replace(/\./g, ':');
-        if(currentVersion)
+        if (currentVersion)
             currentVersion.versionNumber = currentVersion.versionNumber.replace(/\./g, ':');
-        if(latestCveVersion)
+        if (latestCveVersion)
             latestCveVersion.versionNumber = latestCveVersion.versionNumber.replace(/\./g, ':');
         // Log component details (adjust as needed)
         console.log(`Component: ${name}`);
@@ -138,7 +138,7 @@ function handleOsData(data) {
 function getPlantuml() {
     // Aggregated metrics variables
     let totalComponents = 0;
-    
+
     const timestamp = new Date().toLocaleString('en-US', {
         weekday: 'short',
         year: 'numeric',
@@ -194,7 +194,7 @@ function getPlantuml() {
         }
 
         componentDetails += `"`; // End of component details string
-        
+
         return componentDetails;
     }
 
@@ -226,39 +226,55 @@ function getPlantuml() {
             addOSPackage(osName, osComponents[osName]);
         }
     }
-    
+
     // if there are no grouped stacks just push the extra components
     if (groupedStacks.length === 0) {
         addOSPackage("Extra Components", versions);
     }
-    else
-    {
+    else {
         // Process grouped stacks
-    groupedStacks.forEach(stack => {
-        const stackComponents = versions.filter(version => stack.matchedComponents.includes(version.name));
-        //console.log("Stack Components:", stackComponents);
-        addStackPackage(stack.stackName, stackComponents);
-    });
-    // end the stack
-    plantUMLCode += `}\n`;
-    // Process extra components
-    const extraComponentVersions = versions.filter(version => extraComponents.some(extra => extra.component === version.name));
+        groupedStacks.forEach(stack => {
+            const stackComponents = versions.filter(version => stack.matchedComponents.includes(version.name));
+            //console.log("Stack Components:", stackComponents);
+            addStackPackage(stack.stackName, stackComponents);
+        });
+        // end the stack
+        plantUMLCode += `}\n`;
+        // Process extra components
+        const extraComponentVersions = versions.filter(version => extraComponents.some(extra => extra.component === version.name));
 
-    addOSPackage("Extra Components", extraComponentVersions);
+        addOSPackage("Extra Components", extraComponentVersions);
     }
 
-    
+
 
     plantUMLCode += `}\n@enduml\n`;
 
     // Insert the PlantUML code into the HTML element with the id "plantuml-code"
-    document.getElementById("plantuml-code").innerText = plantUMLCode;
+    document.getElementById("plantuml-code").innerHTML = formatPlantUML(plantUMLCode);
 
     // Update the metrics section on the page
     document.getElementById("totalComponents").textContent = totalComponents;
 
     // Optionally return the generated PlantUML code
     return [{ name: "unique-os-packages", code: plantUMLCode }];
+}
+
+function formatPlantUML(umlCode) {
+    // Store the original for copying
+    document.getElementById("copy-btn").setAttribute("data-code", umlCode);
+
+    return umlCode
+        .replace(/@startuml/g, '<span style="color: green;">@startuml</span>')
+        .replace(/@enduml/g, '<span style="color: green;">@enduml</span>')
+        .replace(/title\s+"([^"]+)"/g, '<span style="color: blue;">title "$1"</span>')
+        .replace(/package\s+"([^"]+)"/g, '<span style="color: purple;">package "$1"</span>')
+        .replace(/component\s+"([^"]+)"/g, (match, p1) =>
+            `<span style="color: brown;">component</span> "<span>${p1
+                .replace(/\\n/g, '<br>&nbsp;&nbsp;&nbsp;&nbsp;') // Add line breaks and indentation
+                .replace(/(Version:|Release Date:|Latest:|CVE Info:)/g, '<strong>$1</strong>')}</span>"`
+        )
+        .replace(/\n/g, '<br>'); // General line breaks
 }
 
 function renderDiagrams(diagrams) {

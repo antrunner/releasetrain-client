@@ -151,19 +151,6 @@
         /* PlantUML Code Display Section */
         #plantuml-code-container {
             margin-top: 0.5rem;
-        }
-
-        /* Code block styling for PlantUML code */
-        pre {
-            background-color: #f4f4f4;
-            border: 1px solid #ddd;
-            padding: 0.5rem;
-            overflow-y: auto;
-            max-height: 150px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            text-align: left;
-            font-family: 'Courier New', Courier, monospace;
             font-size: 0.75rem;
         }
 
@@ -427,7 +414,7 @@
             <!-- PlantUML Code Display Section -->
             <section id="plantuml-code-container">
                 <h3>PlantUML Code</h3>
-                <pre id="plantuml-code"></pre>
+                <code id="plantuml-code"></code>
 
                 <!-- Copy Code Button -->
                 <button class="copy-btn" id="copy-btn">Copy Code</button>
@@ -477,15 +464,9 @@
         }
 
         // Copy PlantUML code to clipboard
-        document.getElementById('copy-btn').addEventListener('click', function () {
-            const plantUMLCode = document.getElementById('plantuml-code');
-            const range = document.createRange();
-            range.selectNode(plantUMLCode);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            alert('PlantUML code copied to clipboard!');
-            window.getSelection().removeAllRanges();
+        document.getElementById("copy-btn").addEventListener("click", function () {
+            const umlCode = this.getAttribute("data-code"); // Get original code
+            navigator.clipboard.writeText(umlCode).then(() => alert("PlantUML code copied!"));
         });
 
         // Open PlantUML editor in new tab
@@ -586,7 +567,7 @@
 
             const lines = textarea.value.split("\n").map(line => line.trim()).filter(line => line.length > 0);
             console.log("Lines:", lines);
-            
+
             const components = [];
 
             lines.forEach(line => {
