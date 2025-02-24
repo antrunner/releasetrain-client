@@ -5,41 +5,119 @@
     <meta charset="UTF-8">
     <title>releasetrain.io</title>
     <link href="img/favicon.ico" rel="icon" type="image/x-icon" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Software Component Version Releases">
-    <meta name="keywords" content="Version, Release, Agile">
-    <meta name="author" content="Solomon Berhe">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Software Component Version Releases" />
+    <meta name="keywords" content="Version, Release, Agile" />
+    <meta name="author" content="Solomon Berhe" />
     <meta name="google-site-verification" content="e_DoTsZw_SlkIWfECBN2q7FkJBvy8xOvlQZ-ZL38xTk" />
-    <meta http-equiv="refresh" content="3600">
-    <link href="./reset.css" rel="stylesheet">
-    <link href="./lib/select2.min.css" rel="stylesheet">
-    <link href="./app.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet">
+    <meta http-equiv="refresh" content="3600" />
+    <link href="./reset.css" rel="stylesheet" />
+    <link href="./lib/select2.min.css" rel="stylesheet" />
+    <link href="./app.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet" />
 
 </head>
 
 <body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="info-bar">
+            <span>Releasetrain: v2.0.1</span>
+            <span class="getComponentCount">Components: Loading...</span>
+            <span class="getVersionCount">Versions: Loading...</span>
+            <span><a href="https://github.com/antrunner/releasetrain-client">Github</a></span>
+        </div>
+        <select class="component-names" name="names[]" multiple="multiple"></select>
+    </div>
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Column: Realtime Feed -->
+        <div class="left-column">
+            <div class="loadingClass" style="display: none;">
+                <img src="./img/spinner.gif" alt="Loading..." />
+            </div>
+            <ol class="versionListClassSection"></ol>
+            <div class="errorHandling"></div>
+        </div>
+        <!-- Right Column: Split into Two Halves -->
+        <div class="right-column">
+            <div id="parentContainer" style="position: relative; display: flex; flex-direction: column;height: 100%;">
+                <!-- Other content inside this parent div -->
+                <section id="graphSection" style="display: flex;gap: 20px;margin: 2px;">
+                    <canvas id="graphCanvas" style="height: 200px !important; width: auto;"></canvas>
+                </section>
+                <section id="llmChatSection"
+                    style="position: absolute; bottom: 0; left: 0; width: 100%; height: 180px; border-top: 1px solid #ddd; padding: 6px; background: #f9f9f9;">
+
+                    <div id="chatWindow"
+                        style="flex-grow: 1; overflow-y: auto; padding: 4px; font-size: 14px; color: #444; height: 130px;">
+                        <!-- Chat messages appear here -->
+                        <div style="color: #888; text-align: center;">Ask about software updates...</div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; padding-top: 4px;">
+                        <input type="text" id="chatInput" placeholder="Ask about updates..."
+                            style="flex-grow: 1; padding: 4px; border: 1px solid #ddd; border-radius: 3px; outline: none; font-size: 14px;">
+                        <button id="sendChat"
+                            style="margin-left: 4px; padding: 4px 8px; border: none; border-radius: 3px; background: #007bff; color: white; cursor: pointer; font-size: 14px;">
+                            ➤
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <!-- Scripts -->
     <script src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1" async></script>
     <script src="./lib/googleanalytics.js"></script>
     <script src="./lib/jquery-2.2.4.min.js"></script>
     <script src="./lib/select2.min.js"></script>
-    <div class="top-bar">
-        <div class="info-bar">
-            <div>Releasetrain: v2.0.1</div>
-            <div class="getComponentCount">Components: Loading...</div>
-            <div class="getVersionCount">Versions: Loading...</div>
-            <div><a href="https://github.com/antrunner/releasetrain-client">Github</a></div>
-        </div>
-        <select class="component-names" name="names[]" multiple="multiple"></select>
-    </div>
-    <div class="content">
-        <div class="loadingClass" style="display: none;">
-            <img src="./img/spinner.gif" alt="Loading...">
-        </div>
-        <ol class="versionListClassSection"></ol>
-        <div class="errorHandling"></div>
-    </div>
+    <!-- Chart.js for Graphing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js"></script>
+    <!-- Mermaid.js for UML Diagrams (if needed elsewhere) -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script type="text/javascript">
+        // Initialize Mermaid for UML rendering (if used)
+        mermaid.initialize({ startOnLoad: true });
+
+        // Define helper functions first
+        function isSameDate(d1, d2) {
+            return d1.getFullYear() === d2.getFullYear() &&
+                d1.getMonth() === d2.getMonth() &&
+                d1.getDate() === d2.getDate();
+        }
+
+        function formatDate(d) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            const releaseDate = new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`);
+
+            if (isNaN(releaseDate.getTime())) {
+                return null;
+            }
+
+            if (isSameDate(releaseDate, today)) {
+                return "Today";
+            } else if (isSameDate(releaseDate, yesterday)) {
+                return "Yesterday";
+            } else {
+                return `${months[releaseDate.getMonth()]} ${releaseDate.getDate()}, ${releaseDate.getFullYear()}`;
+            }
+        }
+
+        // Define onScroll to avoid ReferenceError
+        function onScroll() {
+            if ($(window).scrollTop() === $(document).height() - $(window).height()) {
+                getVersionList();
+            }
+        }
+
+        // ==========================
+        // Existing Feed Code (Endpoints preserved)
+        // ==========================
         const apiBaseUrl = "https://releasetrain.io/api";
         let pageNumParam = 1;
         let componentNameParam = "";
@@ -53,14 +131,13 @@
             complete: () => loader.hide()
         });
 
-        $(document.body).on('touchmove', onScroll); // for mobile
-        $(window).on('scroll', onScroll); // for desktop
+        $(document.body).on('touchmove', onScroll);
+        $(window).on('scroll', onScroll);
 
         $('.component-names').on("change", function () {
             pageNumParam = 1;
             componentNameParam = $(this).select2('data').map(item => item.text).join(',');
             updateURLWithSelectedComponents();
-
             if (isDone) {
                 if (componentNameParam === new URLSearchParams(window.location.search).get('q')) {
                     getReleases();
@@ -86,18 +163,69 @@
                 tags: true,
                 multiple: true,
                 tokenSeparators: [',', ' '],
-                minimumInputLength: 2,
-                minimumResultsForSearch: 4,
+                minimumInputLength: 0,  // Show results immediately
+                minimumResultsForSearch: 1, // Allow searching quickly
                 ajax: {
                     url: `${apiBaseUrl}/c/names`,
                     dataType: "json",
                     type: "GET",
+                    delay: 100, // Reduce delay for faster response
+                    cache: true, // Cache results to avoid redundant queries
                     data: params => ({ term: params.term }),
                     processResults: data => ({
-                        results: data.map(item => ({ text: item.versionProductName, id: item.versionProductName }))
+                        results: data.map(item => ({
+                            text: item.versionProductName,
+                            id: item.versionProductName
+                        }))
                     })
                 }
             });
+        }
+
+        function getAvatarHtml(versionProductName, isCve, isSecurityPatch, initialAvatar) {
+            const productName = versionProductName.toLowerCase();
+            let avatar = initialAvatar;
+            switch (productName) {
+                case "chrome":
+                    avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png" alt="Chrome">';
+                    break;
+                case "ledvance":
+                    avatar = '<img class="avatar" src="./img/ledvance.png" alt="Ledvance">';
+                    break;
+                case "firefox":
+                    avatar = '<img class="avatar" src="./img/firefox.png" alt="Firefox">';
+                    break;
+                case "android studio":
+                    avatar = '<img class="avatar" src="./img/androidStudio.png" alt="Android Studio">';
+                    break;
+                case "safari":
+                    avatar = '<img class="avatar" src="./img/safari.png" alt="Safari">';
+                    break;
+                case "eclipse":
+                    avatar = '<img class="avatar" src="./img/eclipse.png" alt="Eclipse">';
+                    break;
+                case "let\'s encrypt":
+                    avatar = '<img class="avatar" src="./img/letsencrypt.png" alt="Let\'s Encrypt">';
+                    break;
+                case "vmware":
+                    avatar = '<img class="avatar" src="./img/vmware.png" alt="VMware">';
+                    break;
+                case "oracle":
+                    avatar = '<img class="avatar" src="./img/vboracle.png" alt="Oracle">';
+                    break;
+                case "digitalocean":
+                    avatar = '<i class="fas fa-exclamation-triangle"></i>';
+                    break;
+                default:
+                    avatar = initialAvatar && initialAvatar !== "OS" && initialAvatar !== "security"
+                        ? `<img class="avatar" src="https://avatars3.githubusercontent.com/u/${initialAvatar}" alt="${versionProductName}">`
+                        : isCve
+                            ? '<img class="avatar" src="./img/cve.png" alt="CVE">'
+                            : isSecurityPatch
+                                ? '<img class="avatar" src="./img/androidSecurityUpdate.png" alt="Security Patch">'
+                                : '<img class="avatar" src="./img/default.png" alt="Default">';
+            }
+            return avatar;
         }
 
         function getVersionList() {
@@ -107,6 +235,102 @@
                 dataType: 'json',
                 success: renderVersionList,
                 error: error => console.error('Error fetching version list:', error)
+            });
+        }
+
+        function drawTimeSeriesChart(data) {
+            const canvas = document.getElementById('graphCanvas');
+            if (!canvas) {
+                console.error("Canvas element with id 'graphCanvas' not found.");
+                return;
+            }
+
+            // Ensure the canvas fills its container
+            canvas.height = canvas.parentNode.clientHeight;
+            const ctx = canvas.getContext('2d');
+
+            // ✅ Convert date labels to "Mon, Feb 25" format
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+            // ✅ Ensure the labels are properly formatted
+            let formattedLabels = data.labels.map(label => {
+                if (label === "Today" || label === "Yesterday") return label;
+
+                // Convert from YYYY-MM-DD to Date object safely
+                let dateObj = new Date(label);
+                if (isNaN(dateObj.getTime())) {
+                    console.warn(`Invalid date detected: ${label}`);
+                    return label; // Return raw label if invalid
+                }
+
+                return `${dayNames[dateObj.getDay()]}, ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
+            });
+
+            // ✅ Ensure at least 7 days of data (fill missing days with 0)
+            if (formattedLabels.length < 7) {
+                console.warn("Less than 7 days of data detected. Filling missing days...");
+
+                let today = new Date();
+                let last7Days = [];
+
+                for (let i = 6; i >= 0; i--) {
+                    let date = new Date();
+                    date.setDate(today.getDate() - i);
+                    let formattedDate = `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+
+                    last7Days.push(formattedDate);
+                }
+
+                formattedLabels = last7Days; // Replace with full 7 days
+            }
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: formattedLabels, // ✅ Use formatted labels
+                    datasets: [{
+                        label: 'Updates 7 Days',
+                        data: data.counts,
+                        backgroundColor: 'rgba(75, 192, 192, 0.4)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                fontColor: "#d1d5db",
+                                callback: function (value) {
+                                    return value; // Ensure proper date formatting
+                                }
+                            },
+                            gridLines: {
+                                color: "#444"
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                fontColor: "#d1d5db"
+                            },
+                            gridLines: {
+                                color: "#444"
+                            }
+                        }]
+                    },
+                    legend: {
+                        labels: {
+                            fontColor: "#d1d5db"
+                        }
+                    }
+                }
             });
         }
 
@@ -169,192 +393,498 @@
             $(".getTodayDate").text(new Date().toLocaleDateString());
         }
 
-        function renderVersionList(res) {
-            countToday = 0;
-            if (res.length === 0) {
-                $(".errorHandling").html(`No results found for: ${componentNameParam}<br><br><br>`);
-                $(".errorHandling").append('Please select a component from the dropdown menu or try:<br><br>');
-                $(".errorHandling").append('<ul style="padding-left: 20px;">');
-                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=browser" target="_self">releasetrain.io/?q=browser (Browsers)</a></li>');
-                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=mongo,express,angular,node" target="_self">releasetrain.io/?q=mongo,express,angular,node (MEAN Stack) </a></li>');
-                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=linux,apache,mysql,php" target="_self">releasetrain.io/?q=linux,apache,mysql,php (LAMP Stack)</a></li>');
-                $(".errorHandling").append('<li><a style="font-size: 9pt" href="https://releasetrain.io/?q=elasticsearch,logstach,kibana" target="_self">releasetrain.io/?q=elasticsearch,logstach,kibana (ELK Stack)</a></li>');
-                $(".errorHandling").append('</ul>');
-            } else {
-                $(".errorHandling").empty();
-            }
-
-            const displayComponents = [];
-
-            for (const item of res) {
-                const formattedDate = formatDate(item.versionReleaseDate);
-                if (!formattedDate) continue;
-
-                const avatar = getAvatarHtml(item.versionProductName, item.versionReleaseChannel === "cve", item.versionReleaseChannel === "patch", item.versionProductType);
-                const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
-
-                let releaseNotesHtml = `${avatar} <a target="_blank" href="${item.versionUrl || item.versionReleaseNotes}"><span>${versionLabel}</span></a>`;
-                if (item.user_post_reddit) {
-                    const firstRedditPost = Object.values(item.user_post_reddit)[0];
-                    if (firstRedditPost) {
-                        releaseNotesHtml += `<div style="font-size: 10pt; padding-top: 10px;">
-                            <img src="https://www.iconpacks.net/icons/2/free-reddit-logo-icon-2436-thumb.png" alt="Reddit Logo" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;">
-                            <a href="${firstRedditPost.url}" target="_blank" style="font-size: 10pt;">${firstRedditPost.title.length > 50 ? firstRedditPost.title.substring(0, 50) + '...' : firstRedditPost.title}</a>
-                            by ${firstRedditPost.author} on ${new Date(firstRedditPost.created_utc).toLocaleString()}
-                            <button class="add-component" data-component="${item.versionProductName}">+</button>
-                            <button class="remove-component" data-component="${item.versionProductName}">-</button>
-                        </div>`;
-                    }
-                }
-
-                const versionSearchTags = (item.versionSearchTags || []).map(tag =>
-                    `<span style='color: #fff; font-size: 10pt; background-color: ${tag === 'cve' ? '#ca4141' : '#47863e'};border-radius: 4px;padding: 2px 5px; margin: 1px 2px 1px 0px; display: inline-block;'>${tag}</span>`).join(' ');
-
-                const versionReleaseComments = item.versionReleaseComments ? `<span style='font-size:10pt'>${item.versionReleaseComments.replace(/^[^A-Z]+/, '').replace(/_/g, ' ')}</span>` : '';
-
-                if (isNewerThanDayAfterTomorrow(item.versionReleaseDate)) continue;
-
-                if (currDate !== item.versionReleaseDate) {
-                    $(".versionListClassSection").append(`<hr style="height:1px;border:none;"><li><h3>${formatDate(item.versionReleaseDate)}</h3></li>`);
-                    currDate = item.versionReleaseDate;
-                }
-
-                if (formattedDate.toLowerCase() === "today") countToday++;
-
-                $(".versionListClassSection").append(`<li class="versionListClassSection-item">${releaseNotesHtml}<div style="padding: 10px 0px">${versionSearchTags} ${versionReleaseComments}<br><span style="color: #797777; font-size:10pt; font-weight:bold" class="rt-class-${item.versionProductName.toLowerCase()}"></span></div></li>`);
-
-                if (!displayComponents.includes(item.versionProductName)) {
-                    displayComponents.push(item.versionProductName);
-                    getVersionForecast(item.versionProductName.toLowerCase());
-                }
-            }
-
-            document.title = countToday > 0 ? `(${countToday}) releasetrain.io` : "releasetrain.io";
-            pageNumParam++;
-        }
-
-        function getAvatarHtml(versionProductName, isCve, isSecurityPatch, initialAvatar) {
-            const productName = versionProductName.toLowerCase();
-            let avatar = initialAvatar;
-
-            switch (productName) {
-                case "chrome":
-                    avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png" alt="Chrome">';
-                    break;
-                case "ledvance":
-                    avatar = '<img class="avatar" src="./img/ledvance.png" alt="Ledvance">';
-                    break;
-                case "firefox":
-                    avatar = '<img class="avatar" src="./img/firefox.png" alt="Firefox">';
-                    break;
-                case "android studio":
-                    avatar = '<img class="avatar" src="./img/androidStudio.png" alt="Android Studio">';
-                    break;
-                case "safari":
-                    avatar = '<img class="avatar" src="./img/safari.png" alt="Safari">';
-                    break;
-                case "eclipse":
-                    avatar = '<img class="avatar" src="./img/eclipse.png" alt="Eclipse">';
-                    break;
-                case "let's encrypt":
-                    avatar = '<img class="avatar" src="./img/letsencrypt.png" alt="Let\'s Encrypt">';
-                    break;
-                case "vmware":
-                    avatar = '<img class="avatar" src="./img/vmware.png" alt="VMware">';
-                    break;
-                case "oracle":
-                    avatar = '<img class="avatar" src="./img/vboracle.png" alt="Oracle">';
-                    break;
-                case "digitalocean":
-                    avatar = '<i class="fas fa-exclamation-triangle"></i>';
-                    break;
-                default:
-                    avatar = initialAvatar && initialAvatar !== "OS" && initialAvatar !== "security"
-                        ? `<img class="avatar" src="https://avatars3.githubusercontent.com/u/${initialAvatar}" alt="${versionProductName}">`
-                        : isCve
-                            ? '<img class="avatar" src="./img/cve.png" alt="CVE">'
-                            : isSecurityPatch
-                                ? '<img class="avatar" src="./img/androidSecurityUpdate.png" alt="Security Patch">'
-                                : '<img class="avatar" src="./img/default.png" alt="Default">';
-            }
-
-            return avatar;
-        }
-
-        function onScroll() {
-            if ($(window).scrollTop() === $(document).height() - $(window).height()) {
-                getVersionList();
-            }
-        }
-
-        function formatDate(d) {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const today = new Date();
-            const releaseDate = new Date([d.slice(0, 4), d.slice(4, 6), d.slice(6, 8)].join('-'));
-            if (isSameDate(releaseDate, today)) {
-                return "Today";
-            } else if (!isNaN(releaseDate.getTime())) {
-                return `${months[releaseDate.getMonth()]}/${releaseDate.getDate()}/${releaseDate.getFullYear()}`;
-            } else {
-                return null;
-            }
-        }
-
         function isNewerThanDayAfterTomorrow(dateString) {
             const year = parseInt(dateString.substring(0, 4));
             const month = parseInt(dateString.substring(4, 6)) - 1;
             const day = parseInt(dateString.substring(6, 8));
-
             const specificDate = new Date(year, month, day);
             const today = new Date();
             const dayAfterTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
-
             return specificDate > dayAfterTomorrow;
         }
 
         function isSameDate(d1, d2) {
-            return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+            return d1.getFullYear() === d2.getFullYear() &&
+                d1.getMonth() === d2.getMonth() &&
+                d1.getDate() === d2.getDate();
+        }
+
+        function drawUpdateTypeChart(data, dateRange) {
+            const canvasId = "updateTypeChart";
+
+            // Calculate total updates
+            const totalUpdates = data.major + data.cve + data.minor + data.patch;
+
+            // Remove existing canvas if present (to allow re-rendering)
+            $("#" + canvasId).remove();
+            $("#graphSection").append(`<canvas id="${canvasId}" style="height: 200px !important; width: auto;"></canvas>`);
+
+            const ctx = document.getElementById(canvasId).getContext("2d");
+
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: ["Major Updates", "CVE Updates", "Minor Updates", "Patch Updates"],
+                    datasets: [{
+                        label: `Update Count: ${totalUpdates} (Date Range: ${dateRange})`, // 🏷️ Added total updates & date range
+                        data: [data.major, data.cve, data.minor, data.patch],
+                        backgroundColor: ["#4da6ff", "#ca4141", "#47863e", "#ffbd2e"],
+                        borderColor: ["#2b7cd3", "#8b2e2e", "#2b5d29", "#c98c1e"],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                fontColor: "#d1d5db"
+                            },
+                            gridLines: {
+                                color: "#444"
+                            }
+                        }],
+                        xAxes: [{
+                            ticks: {
+                                fontColor: "#d1d5db"
+                            },
+                            gridLines: {
+                                color: "#444"
+                            }
+                        }]
+                    },
+                    legend: {
+                        labels: {
+                            fontColor: "#d1d5db"
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to count different update types and render the bar chart
+        function processUpdateTypeCounts(res) {
+            let updateCounts = { major: 0, cve: 0, minor: 0, patch: 0 };
+            let updateDates = []; // To store valid dates in sortable `YYYYMMDD` format
+
+            res.forEach(item => {
+                // Count update types
+                switch (item.versionReleaseChannel) {
+                    case "major":
+                        updateCounts.major++;
+                        break;
+                    case "cve":
+                        updateCounts.cve++;
+                        break;
+                    case "minor":
+                        updateCounts.minor++;
+                        break;
+                    case "patch":
+                        updateCounts.patch++;
+                        break;
+                }
+
+                // Extract valid dates (YYYYMMDD format)
+                if (item.versionReleaseDate) {
+                    updateDates.push(item.versionReleaseDate); // Store directly as `YYYYMMDD` string
+                }
+            });
+
+            // Sort dates in ascending order (YYYYMMDD is already sortable as a string)
+            updateDates.sort();
+
+            // Get today's and yesterday's dates in `YYYYMMDD` format
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0].replace(/-/g, ""); // Format YYYYMMDD
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0].replace(/-/g, "");
+
+            // Get the formatted date range
+            let dateRange = "N/A";
+            if (updateDates.length > 0) {
+                let startDate = formatDate(updateDates[0]); // Earliest date
+                let endDateRaw = updateDates[updateDates.length - 1]; // Latest date in `YYYYMMDD`
+
+                // Convert end date to "Today" or "Yesterday" if applicable
+                let endDate = formatDate(endDateRaw);
+
+
+
+                dateRange = `${startDate} - ${endDate}`;
+            }
+
+            // 🏷️ Pass `dateRange` to the update chart function
+            drawUpdateTypeChart(updateCounts, dateRange);
+        }
+
+        function renderVersionList(res) {
+            countToday = 0;
+            let dailyCounts = {};
+            let groupedVersions = {};
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            let oneWeekAgo = new Date();
+            oneWeekAgo.setDate(today.getDate() - 7);
+
+            if (res.length === 0) {
+                $(".errorHandling").html("No results found.");
+            } else {
+                $(".errorHandling").empty();
+            }
+
+            $(".versionListClassSection").empty();
+            let forecastFetched = new Set();
+            let updateCounts = { major: 0, cve: 0, minor: 0, patch: 0 };
+            let yearsPresent = new Set();
+            let firstOpenFound = false; // Track first summary day with at least one version
+
+            res.forEach(item => {
+                try {
+                    let releaseDate = new Date(
+                        item.versionReleaseDate.slice(0, 4),
+                        parseInt(item.versionReleaseDate.slice(4, 6)) - 1,
+                        parseInt(item.versionReleaseDate.slice(6, 8)) + 1
+                    );
+
+                    if (isNaN(releaseDate.getTime()) || releaseDate > today) return;
+
+                    let releaseYear = releaseDate.getFullYear();
+                    yearsPresent.add(releaseYear);
+
+                    let yyyymmdd = `${releaseYear}${String(releaseDate.getMonth() + 1).padStart(2, "0")}${String(releaseDate.getDate()).padStart(2, "0")}`;
+
+                    if (releaseDate >= oneWeekAgo) {
+                        dailyCounts[yyyymmdd] = (dailyCounts[yyyymmdd] || 0) + 1;
+                    }
+
+                    let formattedDate;
+                    if (releaseDate.toDateString() === today.toDateString()) {
+                        formattedDate = "Today";
+                    } else if (releaseDate.toDateString() === yesterday.toDateString()) {
+                        formattedDate = "Yesterday";
+                    } else {
+                        formattedDate = `${dayNames[releaseDate.getDay()]}, ${monthNames[releaseDate.getMonth()]} ${releaseDate.getDate()}, ${releaseYear}`;
+                    }
+
+                    if (!groupedVersions[formattedDate]) {
+                        groupedVersions[formattedDate] = [];
+                    }
+                    groupedVersions[formattedDate].push(item);
+                } catch (error) {
+                    console.error("[ERROR] Failed to process version:", item, error);
+                }
+            });
+
+            let sortedDates = Object.keys(groupedVersions).sort((a, b) => {
+                if (a === "Today") return -1;
+                if (b === "Today") return 1;
+                if (a === "Yesterday") return -1;
+                if (b === "Yesterday") return 1;
+                return new Date(b) - new Date(a);
+            });
+
+            let lastYearSeen = null;
+
+            sortedDates.forEach((date) => {
+                let updatesCount = groupedVersions[date].length;
+                let dateObj = new Date(date);
+                let dateYear = date.includes("Today") || date.includes("Yesterday") ? currentYear : dateObj.getFullYear();
+
+                let yearHeader = "";
+                if (lastYearSeen !== dateYear) {
+                    lastYearSeen = dateYear;
+                    yearHeader = `<h3>${dateYear}</h3>`;
+                }
+
+                let isOpen = !firstOpenFound && updatesCount > 0 ? "open" : ""; // Keep only the first valid summary open
+                if (updatesCount > 0) {
+                    firstOpenFound = true; // Mark first non-empty summary as found
+                }
+
+                $(".versionListClassSection").append(`
+        ${yearHeader}
+        <details ${isOpen}>
+            <summary><b>${date}</b> (${updatesCount} updates)</summary>
+            <ul class="versionList"></ul>
+        </details>
+    `);
+
+                groupedVersions[date].forEach(item => {
+                    const avatar = item.versionReleaseChannel === "cve"
+                        ? ""
+                        : getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionProductType);
+
+                    const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
+
+                    let tags = "";
+                    if (item.versionReleaseChannel) {
+                        const tagColors = {
+                            "major": "#4da6ff",
+                            "cve": "#ca4141",
+                            "minor": "#47863e",
+                            "patch": "#ffbd2e"
+                        };
+                        tags = `<span style="color: #fff; font-size: 10pt; 
+            background-color: ${tagColors[item.versionReleaseChannel]};
+            border-radius: 4px; padding: 2px 5px; 
+            margin: 1px 5px 1px 0; display: inline-block;">
+        ${item.versionReleaseChannel.toUpperCase()}
+    </span>`;
+                    }
+
+                    let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://"))
+                        ? item.versionUrl.trim()
+                        : (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://"))
+                            ? item.versionReleaseNotes.trim()
+                            : "#";
+
+                    let releaseNotesHtml = `${avatar} <a target="_blank" href="${releaseUrl}"><span>${versionLabel}</span></a>`;
+
+                    let subtleIdHtml = item._id
+                        ? `<div style="font-size: 9pt; color: #aaa; margin-top: 4px;">
+        <a href="https://releasetrain.io/api/v/${item._id}" target="_blank" style="font-size:11pt; color: #aaa; text-decoration: none;">
+            ID: ${item._id}
+        </a>
+    </div>`
+                        : "";
+
+                    let forecastHtml = `<div class="forecast rt-class-${item.versionProductName}" style="font-size: 10pt; color: #aaa; margin-top: 4px;"></div>`;
+
+                    $(".versionListClassSection details:last-child ul").append(`
+            <li class="versionListClassSection-item">
+                ${tags} 
+                ${releaseNotesHtml}
+                ${subtleIdHtml}
+                ${forecastHtml}
+            </li>
+        `);
+
+                    if (!forecastFetched.has(item.versionProductName)) {
+                        forecastFetched.add(item.versionProductName);
+                        getVersionForecast(item.versionProductName);
+                    }
+                });
+            });
+
+            // ✅ Preserve Last 7 Days Timeline
+            console.log(dailyCounts);
+            const last7DaysData = getLast7Days(dailyCounts);
+            const last7DaysLabels = last7DaysData.map(item => formatDateForGraphs(item.original));
+            const counts = last7DaysData.map(item => item.count);
+            drawTimeSeriesChart({ labels: last7DaysLabels, counts });
+
+            // ✅ Preserve Title Update
+            document.title = countToday > 0 ? `(${countToday}) releasetrain.io` : "releasetrain.io";
+
+            // ✅ Ensure pagination progresses
+            pageNumParam++;
+
+            // ✅ Preserve Update Type Chart Processing
+            processUpdateTypeCounts(res);
+        }
+
+        function getLast7Days(dailyCounts) {
+            const today = new Date();
+            let last7Days = [];
+
+            for (let i = 6; i >= 0; i--) {
+                let date = new Date(today);
+                date.setDate(today.getDate() - i);
+
+                // Convert date to YYYYMMDD format using local time
+                let yyyymmdd = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+
+                // Ensure the last 7 days are always populated, even if missing from `dailyCounts`
+                let count = dailyCounts.hasOwnProperty(yyyymmdd) ? dailyCounts[yyyymmdd] : 0;
+
+                last7Days.push({
+                    original: yyyymmdd, // Keep the original format for reference
+                    count: count // Use existing count or default to 0
+                });
+            }
+
+            return last7Days; // Always ensures exactly 7 elements with continuous dates
+        }
+
+        function formatDateForList(yyyymmdd) {
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+            let year = yyyymmdd.slice(0, 4);
+            let monthIndex = parseInt(yyyymmdd.slice(4, 6)) - 1;
+            let day = parseInt(yyyymmdd.slice(6, 8));
+
+            let dateObj = new Date(year, monthIndex, day);
+            if (isNaN(dateObj.getTime())) return "Invalid Date";
+
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            if (dateObj.toDateString() === today.toDateString()) return "Today";
+            if (dateObj.toDateString() === yesterday.toDateString()) return "Yesterday";
+
+            return `${dayNames[dateObj.getDay()]}, ${months[monthIndex]} ${day}, ${year}`;
+        }
+
+        function formatDateForGraphs(yyyymmdd) {
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+            // Ensure input is valid and exactly 8 characters long
+            if (!yyyymmdd || yyyymmdd.length !== 8 || isNaN(yyyymmdd)) {
+                console.warn(`Invalid date input: ${yyyymmdd}`);
+                return "Invalid Date";
+            }
+
+            let year = parseInt(yyyymmdd.slice(0, 4), 10);
+            let monthIndex = parseInt(yyyymmdd.slice(4, 6), 10) - 1;
+            let day = parseInt(yyyymmdd.slice(6, 8), 10);
+
+            let dateObj = new Date(year, monthIndex, day);
+
+            // Check if date conversion is valid
+            if (isNaN(dateObj.getTime())) {
+                console.warn(`Date conversion failed for: ${yyyymmdd}`);
+                return "Invalid Date";
+            }
+
+            return `${dayNames[dateObj.getDay()]}, ${months[monthIndex]} ${day}, ${year}`;
+        }
+
+        function updateURLWithSelectedComponents() {
+            const selectedComponents = $('.component-names').select2('data')
+                .map(item => item.text)
+                .filter(text => text.trim() !== '') // Remove empty values
+                .join(',');
+
+            let newUrl = window.location.origin + window.location.pathname;
+
+            if (selectedComponents) {
+                newUrl += `?q=${encodeURIComponent(selectedComponents)}`;
+            }
+
+            // ✅ Remove `?q=` if empty
+            window.history.replaceState({}, document.title, newUrl);
+        }
+
+        // ✅ Function to update URL with selected components and refresh the page
+        function updateURLWithSelectedComponents() {
+            const selectedComponents = $('.component-names').select2('data')
+                .map(item => item.text)
+                .filter(text => text.trim() !== '') // Remove empty values
+                .join(',');
+
+            let newUrl = window.location.origin + window.location.pathname;
+
+            if (selectedComponents) {
+                newUrl += `?q=${encodeURIComponent(selectedComponents)}`;
+            }
+
+            // ✅ Prevent unnecessary reload if URL is already correct
+            if (window.location.href !== newUrl) {
+                window.history.replaceState({}, document.title, newUrl);
+                location.reload(); // ✅ Refresh the page after updating the URL
+            }
         }
 
         $(document).ready(function () {
             getAndRenderComponentList();
-
-            const query = new URLSearchParams(window.location.search).get('q');
-            if (query) {
-                componentNameParam = query;
-                const queryArgs = componentNameParam.split(',');
-                queryArgs.forEach((arg, index) => {
-                    $(".component-names").select2("trigger", "select", { data: { id: index, text: arg } });
-                    if (index === queryArgs.length - 1) {
-                        isDone = true;
-                    }
-                });
-            } else {
-                isDone = true;
-                getReleases();
-            }
-
             getVersionCount();
             getComponentCount();
             getTodayDate();
 
-            $(document).on('click', '.add-component', function () {
-                const component = $(this).data('component');
-                const select2Data = $('.component-names').select2('data');
+            // ✅ Fetch query parameter `?q=linux,android`
+            const query = new URLSearchParams(window.location.search).get("q");
+
+            if (query) {
+                componentNameParam = query;
+                const queryArgs = componentNameParam.split(",");
+
+                // ✅ Clear and update dropdown with multiple components
+                $(".component-names").empty();
+                queryArgs.forEach((arg) => {
+                    const newOption = new Option(arg, arg, true, true);
+                    $(".component-names").append(newOption);
+                });
+
+                $(".component-names").trigger("change");
+                getReleases();
+            } else {
+                getReleases(); // Load default versions if no query provided
+            }
+
+            // ✅ Update URL when components change
+            $(".component-names").on("change", function () {
+                updateURLWithSelectedComponents();
+                getReleases();
+            });
+
+            function updateURLWithSelectedComponents() {
+                const selectedComponents = $(".component-names").select2("data").map(item => item.text);
+                const queryString = selectedComponents.length > 0 ? `?q=${selectedComponents.join(",")}` : "";
+                window.history.replaceState({}, document.title, queryString ? queryString : window.location.pathname);
+            }
+
+            // ✅ Handle adding new components
+            $(document).on("click", ".add-component", function () {
+                const component = $(this).data("component");
+                const select2Data = $(".component-names").select2("data");
+
                 if (!select2Data.some(item => item.text === component)) {
                     const newOption = new Option(component, component, true, true);
-                    $('.component-names').append(newOption).trigger('change');
+                    $(".component-names").append(newOption).trigger("change");
                 }
             });
 
-            $(document).on('click', '.remove-component', function () {
-                const component = $(this).data('component');
-                const select2Data = $('.component-names').select2('data');
+            // ✅ Handle removing components
+            $(document).on("click", ".remove-component", function () {
+                const component = $(this).data("component");
+                const select2Data = $(".component-names").select2("data");
                 const newData = select2Data.filter(item => item.text !== component);
-                $('.component-names').val(newData.map(item => item.id)).trigger('change');
+
+                $(".component-names").val(newData.map(item => item.id)).trigger("change");
+            });
+
+            // ✅ Interactive LLM Chat Integration
+            $("#sendChat").click(function () {
+                const message = $("#chatInput").val().trim();
+                if (!message) return;
+                $("#chatWindow").append("<div><strong>You:</strong> " + message + "</div>");
+                $("#chatInput").val("");
+
+                $.ajax({
+                    url: "https://your-llm-api.example.com/chat",
+                    method: "POST",
+                    data: JSON.stringify({ prompt: message }),
+                    contentType: "application/json",
+                    success: function (response) {
+                        $("#chatWindow").append("<div><strong>LLM:</strong> " + response.answer + "</div>");
+                        $("#chatWindow").scrollTop($("#chatWindow")[0].scrollHeight);
+                    },
+                    error: function () {
+                        $("#chatWindow").append("<div><em>Error communicating with the chat service.</em></div>");
+                    }
+                });
+            });
+
+            // ✅ Handle pressing "Enter" to send chat
+            $("#chatInput").keypress(function (e) {
+                if (e.which === 13) {
+                    $("#sendChat").click();
+                }
             });
         });
+
     </script>
+    <script src="./lib/googleanalytics.js"></script>
 </body>
 
 </html>

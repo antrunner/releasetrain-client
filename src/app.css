@@ -1,3 +1,6 @@
+/* Dark Mode CSS – Inspired by ChatGPT's Dark Theme */
+
+/* Global Reset */
 * {
     margin: 0;
     padding: 0;
@@ -5,85 +8,99 @@
 }
 
 body {
-    padding: 0 15px;
-    background-color: #f0f0f0;
-    color: #333;
+    padding: 0 10px;
+    background-color: #1e1e1e;
+    color: #d1d5db;
     font-family: Arial, sans-serif;
     overflow-x: hidden;
 }
 
 nav {
     display: flex;
-    padding: 5px 0;
+    padding: 3px 0;
 }
 
 section {
-    margin: 20px auto;
-    max-width: 800px;
+    margin: 10px auto;
+    max-width: none;
 }
 
-h1, h2, h3, p {
+h1,
+h2,
+h3,
+p {
     line-height: 1.5;
 }
 
 h1 {
-    margin: 30px 0;
-    font-size: 24px;
+    margin: 20px 0;
+    font-size: 22px;
     text-align: center;
+    color: #e0e0e0;
 }
 
 h2 {
-    margin: 30px 0;
-    font-size: 20px;
+    margin: 20px 0;
+    font-size: 18px;
     text-align: center;
+    color: #e0e0e0;
 }
 
 h3 {
-    margin: 12px 0 5px 0;
+    margin: 8px 0 4px 0;
+    color: #e0e0e0;
 }
 
 a {
     font-size: 14px;
-    color: #007acc;
+    color: #4da6ff;
     text-decoration: none;
     vertical-align: 2px;
+}
+
+summary {
+    margin: 5px 0px;
 }
 
 a:visited {
     text-decoration: underline;
 }
 
-ol {
-    margin: 10px 0;
+ol,
+ul {
+    margin: 5px 0;
     padding: 0;
     list-style: none;
 }
 
 select {
     width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 8px;
+    margin: 8px 0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #2d2d30;
+    color: #d1d5db;
 }
 
 img.avatar {
     height: 20px;
-    margin-right: 5px;
+    margin-right: 3px;
     vertical-align: middle;
+    border-radius: 50%;
 }
 
 .versionListClassSection-item {
-    padding: 15px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #2d2d30;
+    border: 1px solid #444;
+    border-radius: 8px;
+    margin-bottom: 8px;
 }
 
 .versionListClassSection-item a {
     font-size: 16px;
-    color: #007acc;
+    color: #4da6ff;
 }
 
 .versionListClassSection-item a:hover {
@@ -92,53 +109,54 @@ img.avatar {
 
 .versionListClassSection-item .info {
     font-size: 14px;
-    color: #666;
+    color: #aaa;
 }
 
 .loadingClass {
     text-align: center;
-    padding: 20px 0;
+    padding: 10px 0;
 }
 
 .warning {
-    background-color: #ffcc00;
-    border: 1px solid #cc9900;
-    padding: 10px;
+    background-color: #444;
+    border: 1px solid #555;
+    padding: 8px;
     text-align: center;
-    margin: 10px 0;
+    margin: 8px 0;
+    border-radius: 4px;
 }
 
 .dot {
-    height: 15px;
-    width: 15px;
+    height: 12px;
+    width: 12px;
     border-radius: 50%;
     display: inline-block;
     margin: 0 2px;
 }
 
 .red {
-    background-color: red;
+    background-color: #ff5f56;
 }
 
 .orange {
-    background-color: orange;
+    background-color: #ffbd2e;
 }
 
 .yellow {
-    background-color: yellow;
+    background-color: #ffed4a;
 }
 
 .green {
-    background-color: green;
+    background-color: #27c93f;
 }
 
 @media only screen and (max-width: 600px) {
     section {
-        margin: 10px 4%;
+        margin: 5px 4%;
     }
 
     h1 {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     a {
@@ -150,23 +168,26 @@ img.avatar {
     }
 }
 
+/* Top Bar */
 .top-bar {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     width: 100%;
-    background: #fff;
+    background: #2d2d30;
     z-index: 1000;
-    padding: 10px 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 8px 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid #444;
 }
 
 .info-bar {
     font-size: 10pt;
     display: flex;
     justify-content: space-between;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
+    color: #d1d5db;
 }
 
 .select2-container {
@@ -175,4 +196,143 @@ img.avatar {
 
 .content {
     padding-top: 120px;
+}
+
+/* ✅ Adds spacing between left and right columns */
+.main-container {
+    display: flex;
+    gap: 12px;
+    /* Adds space between left and right columns */
+    margin-top: 90px;
+    /* Space for fixed top-bar */
+    height: calc(100vh - 120px);
+    padding: 10px;
+    /* Adds some internal spacing */
+}
+
+/* ✅ Left Column: Subtle scrollbar and added spacing */
+.left-column {
+    width: 30%;
+    overflow-y: auto;
+    border-right: 1px solid #444;
+    padding: 12px;
+    /* Increased padding */
+    border-radius: 8px;
+    background-color: #2d2d30;
+    margin-right: 6px;
+    /* Small margin to create space */
+}
+
+/* ✅ Right Column: Added subtle padding */
+.right-column {
+    width: 70%;
+    padding: 12px;
+    /* Increased padding */
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: #2d2d30;
+}
+
+/* ✅ Subtle Scrollbar */
+.left-column::-webkit-scrollbar {
+    width: 6px;
+}
+
+.left-column::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    /* Soft white-grey thumb */
+    border-radius: 3px;
+}
+
+.left-column::-webkit-scrollbar-track {
+    background: transparent;
+    /* Makes scrollbar track invisible */
+}
+
+/* LLM Interactive Box */
+#llmChatSection {
+    width: 100%;
+    border: 1px solid #444;
+    background: #1e1e1e;
+    padding: 5px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+#chatWindow {
+    border: 1px solid #444;
+    height: calc(100% - 35px);
+    /* Reserve space for input/button */
+    background: #2d2d30;
+    overflow: auto;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+#chatInput {
+    width: 75%;
+    padding: 5px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+    color: #d1d5db;
+}
+
+#sendChat {
+    padding: 5px 10px;
+    margin-left: 5px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+    color: #d1d5db;
+}
+
+#graphSection {
+    display: flex;
+}
+
+/* Ensure selected options in the dropdown are visible */
+.select2-container--default .select2-selection--multiple {
+    background-color: #2d2d30;
+    color: #ffffff;
+    border: 1px solid #444;
+}
+
+/* Style the selected items inside the selection box */
+.select2-container--default .select2-selection__choice {
+    background-color: #4da6ff;
+    /* Blue background for selected options */
+    color: #2d2d30;
+    /* White text for contrast */
+    border: 1px solid #2b7cd3;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Ensure dropdown options have high contrast */
+.select2-dropdown {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #444;
+}
+
+/* Style the options inside the dropdown */
+.select2-results__option {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    padding: 8px;
+}
+
+/* Highlight hovered and selected options */
+.select2-results__option--highlighted {
+    background-color: #4da6ff !important;
+    /* Bright blue for hover */
+    color: #ffffff !important;
+}
+
+.select2-results__option--selected {
+    background-color: #4da6ff !important;
+    color: #ffffff !important;
+    font-weight: bold;
 }
