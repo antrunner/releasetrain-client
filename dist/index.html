@@ -674,7 +674,6 @@
             });
 
             // ✅ Preserve Last 7 Days Timeline
-            console.log(dailyCounts);
             const last7DaysData = getLast7Days(dailyCounts);
             const last7DaysLabels = last7DaysData.map(item => formatDateForGraphs(item.original));
             const counts = last7DaysData.map(item => item.count);

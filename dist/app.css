@@ -198,40 +198,47 @@ img.avatar {
     padding-top: 120px;
 }
 
-/* ✅ Adds spacing between left and right columns */
+/* ✅ Default: Mobile-first (single column, right column hidden) */
 .main-container {
     display: flex;
+    flex-direction: column;
     gap: 12px;
-    /* Adds space between left and right columns */
     margin-top: 90px;
-    /* Space for fixed top-bar */
     height: calc(100vh - 120px);
     padding: 10px;
-    /* Adds some internal spacing */
 }
 
-/* ✅ Left Column: Subtle scrollbar and added spacing */
 .left-column {
-    width: 30%;
+    width: 100%;
     overflow-y: auto;
-    border-right: 1px solid #444;
     padding: 12px;
-    /* Increased padding */
     border-radius: 8px;
     background-color: #2d2d30;
-    margin-right: 6px;
-    /* Small margin to create space */
 }
 
-/* ✅ Right Column: Added subtle padding */
+/* ✅ Hide right column by default */
 .right-column {
-    width: 70%;
-    padding: 12px;
-    /* Increased padding */
-    overflow: hidden;
-    border-radius: 8px;
-    background-color: #2d2d30;
+    display: none;
 }
+
+/* ✅ Switch to two-column layout ONLY on laptops/desktops (1024px+) */
+@media (min-width: 1048px) {
+    .main-container {
+        flex-direction: row;
+    }
+
+    .left-column {
+        width: 30%;
+        border-right: 1px solid #444;
+        margin-right: 6px;
+    }
+
+    .right-column {
+        display: block;
+        width: 70%;
+    }
+}
+
 
 /* ✅ Subtle Scrollbar */
 .left-column::-webkit-scrollbar {
