@@ -194,51 +194,40 @@ img.avatar {
     width: 100% !important;
 }
 
-.content {
-    padding-top: 120px;
-}
-
-/* ✅ Default: Mobile-first (single column, right column hidden) */
+/* ✅ Adds spacing between left and right columns */
 .main-container {
     display: flex;
-    flex-direction: column;
     gap: 12px;
+    /* Adds space between left and right columns */
     margin-top: 90px;
+    /* Space for fixed top-bar */
     height: calc(100vh - 120px);
     padding: 10px;
+    /* Adds some internal spacing */
 }
 
+/* ✅ Left Column: Subtle scrollbar and added spacing */
 .left-column {
-    width: 100%;
+    width: 20%;
     overflow-y: auto;
+    border-right: 1px solid #444;
     padding: 12px;
+    /* Increased padding */
+    border-radius: 8px;
+    background-color: #2d2d30;
+    margin-right: 6px;
+    /* Small margin to create space */
+}
+
+/* ✅ Right Column: Added subtle padding */
+.right-column {
+    width: 80%;
+    padding: 12px;
+    /* Increased padding */
+    overflow: hidden;
     border-radius: 8px;
     background-color: #2d2d30;
 }
-
-/* ✅ Hide right column by default */
-.right-column {
-    display: none;
-}
-
-/* ✅ Switch to two-column layout ONLY on laptops/desktops (1024px+) */
-@media (min-width: 1048px) {
-    .main-container {
-        flex-direction: row;
-    }
-
-    .left-column {
-        width: 30%;
-        border-right: 1px solid #444;
-        margin-right: 6px;
-    }
-
-    .right-column {
-        display: block;
-        width: 70%;
-    }
-}
-
 
 /* ✅ Subtle Scrollbar */
 .left-column::-webkit-scrollbar {
@@ -342,4 +331,40 @@ img.avatar {
     background-color: #4da6ff !important;
     color: #ffffff !important;
     font-weight: bold;
+}
+
+.left-column {
+    transition: transform 0.3s ease, width 0.3s ease;
+}
+
+.left-column.closed {
+    transform: translateX(-100%);
+    width: 0;
+}
+
+.left-column.closed .content {
+    display: none;
+}
+
+.right-column {
+    transition: width 0.3s ease;
+}
+
+.left-column.closed ~ .right-column {
+    width: 100%;
+}
+
+.toggle-button {
+    z-index: 1000;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-button:hover {
+    background-color: #0056b3;
 }
