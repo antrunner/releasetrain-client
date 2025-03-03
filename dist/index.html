@@ -24,16 +24,15 @@
             <span>Releasetrain: v2.0.1</span>
             <span class="getComponentCount">Components: Loading...</span>
             <span class="getVersionCount">Versions: Loading...</span>
+            <span class="currentPageVersions" style="font-weight: bold; color: #007bff;">Current Page Versions: 0</span>
             <span><a href="https://github.com/antrunner/releasetrain-client">Github</a></span>
         </div>
         <select class="component-names" name="names[]" multiple="multiple"></select>
     </div>
     <!-- Main Container -->
-    <div class="main-container">
-        <!-- Toggle Button -->
-        <button class="toggle-button">Close</button>
+    <div class="main-container" style="display: flex;">
         <!-- Left Column: Realtime Feed -->
-        <div class="left-column">
+        <div class="left-column" style="flex: 1;">
             <div class="content">
                 <div class="loadingClass" style="display: none;">
                     <img src="./img/spinner.gif" alt="Loading..." />
@@ -42,34 +41,38 @@
                 <div class="errorHandling"></div>
             </div>
         </div>
-        <!-- Right Column: Split into Two Halves -->
-        <div class="right-column">
-            <div id="parentContainer" style="position: relative; display: flex; flex-direction: column;height: 100%;">
-                <!-- Other content inside this parent div -->
-                <section id="graphSection" style="display: flex; gap: 1px; margin: 1px;">
-                    <canvas id="graphCanvas" style="height: 200px;"></canvas>
-                    <canvas id="updateTypeChart" style="height: 200px;"></canvas>
-                    <canvas id="componentTypeChart" style="height: 200px;"></canvas>
-                </section>
-                <section id="llmChatSection"
-                    style="position: absolute; bottom: 0; left: 0; width: 100%; height: 180px; border-top: 1px solid #ddd; padding: 6px; background: #f9f9f9;">
-
-                    <div id="chatWindow"
-                        style="flex-grow: 1; overflow-y: auto; padding: 4px; font-size: 14px; color: #444; height: 130px;">
-                        <!-- Chat messages appear here -->
-                        <div style="color: #888; text-align: center;">Ask about software updates...</div>
-                    </div>
-
-                    <div style="display: flex; align-items: center; padding-top: 4px;">
-                        <input type="text" id="chatInput" placeholder="Ask about updates..."
-                            style="flex-grow: 1; padding: 4px; border: 1px solid #ddd; border-radius: 3px; outline: none; font-size: 14px;">
-                        <button id="sendChat"
-                            style="margin-left: 4px; padding: 4px 8px; border: none; border-radius: 3px; background: #007bff; color: white; cursor: pointer; font-size: 14px;">
-                            ➤
-                        </button>
-                    </div>
-                </section>
-            </div>
+        <!-- Second Column: Graphs -->
+        <div class="graph-column" style="flex: 1;">
+            <section id="graphSection1" style="display: flex; flex-wrap: wrap; gap: 1px; margin: 1px;">
+                <canvas id="graphCanvas" style="width: 100%; height: 200px;"></canvas>
+                <canvas id="updateTypeChart" style="width: 100%; height: 200px;"></canvas>
+            </section>
+        </div>
+        <!-- Third Column: Graphs -->
+        <div class="graph-column" style="flex: 1;">
+            <section id="graphSection2" style="display: flex; flex-wrap: wrap; gap: 1px; margin: 1px;">
+                <canvas id="componentTypeChart" style="width: 100%; height: 200px;"></canvas>
+                <!-- <canvas id="cveChart" style="width: 100%; height: 200px;"></canvas> -->
+            </section>
+        </div>
+        <!-- Fourth Column: Chat -->
+        <div class="chat-column" style="flex: 1; display: flex; flex-direction: column;">
+            <section id="llmChatSection"
+                style="flex: 1; border-left: 1px solid #ddd; padding: 6px; background: #f9f9f9;">
+                <div id="chatWindow"
+                    style="flex-grow: 1; overflow-y: auto; padding: 4px; font-size: 14px; color: #444;">
+                    <!-- Chat messages appear here -->
+                    <div style="color: #888; text-align: center;">Ask about software updates...</div>
+                </div>
+                <div style="display: flex; align-items: center; padding-top: 4px;">
+                    <input type="text" id="chatInput" placeholder="Ask about updates..."
+                        style="flex-grow: 1; padding: 4px; border: 1px solid #ddd; border-radius: 3px; outline: none; font-size: 14px;">
+                    <button id="sendChat"
+                        style="margin-left: 4px; padding: 4px 8px; border: none; border-radius: 3px; background: #007bff; color: white; cursor: pointer; font-size: 14px;">
+                        ➤
+                    </button>
+                </div>
+            </section>
         </div>
     </div>
     <!-- Scripts -->
@@ -291,7 +294,7 @@
             }
 
             new Chart(ctx, {
-                type: 'line',
+                type: 'bar', // Changed from 'line' to 'bar'
                 data: {
                     labels: formattedLabels, // ✅ Use formatted labels
                     datasets: [{
@@ -473,21 +476,21 @@
             const canvasId = "updateTypeChart";
 
             // Calculate total updates
-            const totalUpdates = data.major + data.cve + data.minor + data.patch;
+            const totalUpdates = data.major + data.other + data.minor + data.patch;
 
             // Remove existing canvas if present (to allow re-rendering)
             $("#" + canvasId).remove();
-            $("#graphSection").append(`<canvas id="${canvasId}" style="height: 200px !important; width: auto;"></canvas>`);
+            $("#graphSection1").append(`<canvas id="${canvasId}" style="flex: 1 1 100%; height: 200px;"></canvas>`);
 
             const ctx = document.getElementById(canvasId).getContext("2d");
 
             new Chart(ctx, {
                 type: "bar",
                 data: {
-                    labels: ["Major Updates", "CVE Updates", "Minor Updates", "Patch Updates"],
+                    labels: ["Major Updates", "Other Updates", "Minor Updates", "Patch Updates"],
                     datasets: [{
                         label: `Update Count: ${totalUpdates} (Date Range: ${dateRange})`, // 🏷️ Added total updates & date range
-                        data: [data.major, data.cve, data.minor, data.patch],
+                        data: [data.major, data.other, data.minor, data.patch],
                         backgroundColor: ["#4da6ff", "#ca4141", "#47863e", "#ffbd2e"],
                         borderColor: ["#2b7cd3", "#8b2e2e", "#2b5d29", "#c98c1e"],
                         borderWidth: 1
@@ -526,9 +529,10 @@
 
         // Function to count different update types and render the bar chart
         function processUpdateTypeCounts(res) {
-            let updateCounts = { major: 0, cve: 0, minor: 0, patch: 0 };
+            let updateCounts = { major: 0, other: 0, minor: 0, patch: 0 };
             let updateDates = []; // To store valid dates in sortable `YYYYMMDD` format
             let componentTypeCounts = {}; // To store counts of each component type
+            let cveCounts = { cve: 0, other: 0 };
 
             res.forEach(item => {
                 // Count update types
@@ -536,14 +540,14 @@
                     case "major":
                         updateCounts.major++;
                         break;
-                    case "cve":
-                        updateCounts.cve++;
-                        break;
                     case "minor":
                         updateCounts.minor++;
                         break;
                     case "patch":
                         updateCounts.patch++;
+                        break;
+                    default:
+                        updateCounts.other++;
                         break;
                 }
 
@@ -555,6 +559,12 @@
                 // Extract valid dates (YYYYMMDD format)
                 if (item.versionReleaseDate) {
                     updateDates.push(item.versionReleaseDate); // Store directly as `YYYYMMDD` string
+                }
+
+                if (item.isCve) {
+                    cveCounts.cve++;
+                } else {
+                    cveCounts.other++;
                 }
             });
 
@@ -587,6 +597,9 @@
 
             // 🏷️ Draw the component type chart
             drawComponentTypeChart(componentTypeCounts);
+
+            // 🏷️ Draw the CVE chart
+            drawCveChart(cveCounts);
         }
 
         function renderVersionList(res) {
@@ -610,7 +623,7 @@
 
             $(".versionListClassSection").empty();
             let forecastFetched = new Set();
-            let updateCounts = { major: 0, cve: 0, minor: 0, patch: 0 };
+            let updateCounts = { major: 0, other: 0, minor: 0, patch: 0 };
             let yearsPresent = new Set();
             let firstOpenFound = false; // Track first summary day with at least one version
 
@@ -696,7 +709,7 @@
                     if (item.versionReleaseChannel) {
                         const tagColors = {
                             "major": "#4da6ff",
-                            "cve": "#ca4141",
+                            "other": "#ca4141",
                             "minor": "#47863e",
                             "patch": "#ffbd2e"
                         };
@@ -756,6 +769,9 @@
 
             // ✅ Preserve Update Type Chart Processing
             processUpdateTypeCounts(res);
+
+            // Update the current page versions count
+            $(".currentPageVersions").text(`Current Page Versions: ${res.length}`);
         }
 
         function getLast7Days(dailyCounts) {
@@ -934,7 +950,7 @@
                     data: JSON.stringify({ prompt: message }),
                     contentType: "application/json",
                     success: function (response) {
-                        $("#chatWindow").append("<div><strong>LLM:</strong> " + response.answer + "</div>");
+                        $("#chatWindow").append("<div><strong>LLM:</trong> " + response.answer + "</div>");
                         $("#chatWindow").scrollTop($("#chatWindow")[0].scrollHeight);
                     },
                     error: function () {
@@ -956,6 +972,58 @@
                 this.textContent = leftColumn.classList.contains('closed') ? 'Open' : 'Close';
             });
         });
+
+        function drawCveChart(data) {
+            const canvasId = "cveChart";
+
+            // Remove existing canvas if present (to allow re-rendering)
+            $("#" + canvasId).remove();
+            $("#graphSection2").append(`<canvas id="${canvasId}" style="flex: 1 1 100%; height: 200px;"></canvas>`);
+
+            const ctx = document.getElementById(canvasId).getContext("2d");
+
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: ["CVE", "Other"],
+                    datasets: [{
+                        label: "CVE vs Other",
+                        data: [data.cve, data.other],
+                        backgroundColor: ["#ff6384", "#36a2eb"],
+                        borderColor: ["#ff6384", "#36a2eb"],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                fontColor: "#d1d5db"
+                            },
+                            gridLines: {
+                                color: "#444"
+                            }
+                        }],
+                        xAxes: [{
+                            ticks: {
+                                fontColor: "#d1d5db"
+                            },
+                            gridLines: {
+                                color: "#444"
+                            }
+                        }]
+                    },
+                    legend: {
+                        labels: {
+                            fontColor: "#d1d5db"
+                        }
+                    }
+                }
+            });
+        }
 
     </script>
     <script src="./lib/googleanalytics.js"></script>

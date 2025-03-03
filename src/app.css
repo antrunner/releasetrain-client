@@ -333,6 +333,11 @@ img.avatar {
     font-weight: bold;
 }
 
+/* Make the text color white when typing in the Select2 text input */
+.select2-container--default .select2-search--inline .select2-search__field {
+    color: #ffffff;
+}
+
 .left-column {
     transition: transform 0.3s ease, width 0.3s ease;
 }
