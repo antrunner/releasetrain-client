@@ -15,26 +15,89 @@
     <link href="./lib/select2.min.css" rel="stylesheet" />
     <link href="./app.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        .main-container {
+            display: flex;
+        }
+        .left-column {
+            flex: 1;
+        }
+        .graph-column {
+            flex: 1;
+        }
+        .chat-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .loadingClass {
+            display: none;
+        }
+        .currentPageVersions {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .dateRangeLabel {
+            font-weight: bold;
+            color: #007bff;
+        }
+        #graphSection1, #graphSection2 {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        #llmChatSection {
+            flex: 1;
+            border-left: 1px solid #ddd;
+            padding: 6px;
+            background: #f9f9f9;
+        }
+        #chatWindow {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 4px;
+            font-size: 14px;
+            color: #444;
+        }
+        #chatInput {
+            flex-grow: 1;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            outline: none;
+            font-size: 14px;
+        }
+        #sendChat {
+            margin-left: 4px;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
 </head>
 
 <body>
     <!-- Top Bar -->
     <div class="top-bar">
         <div class="info-bar">
-            <span>Releasetrain: v2.0.1</span>
+            <span>Releasetrain: v3.0.0</span>
             <span class="getComponentCount">Components: Loading...</span>
             <span class="getVersionCount">Versions: Loading...</span>
-            <span class="currentPageVersions" style="font-weight: bold; color: #007bff;">Current Page Versions: 0</span>
+            <span class="currentPageVersions">Current Page Versions: 0</span>
+            <span class="dateRangeLabel"></span>
             <span><a href="https://github.com/antrunner/releasetrain-client">Github</a></span>
         </div>
         <select class="component-names" name="names[]" multiple="multiple"></select>
     </div>
     <!-- Main Container -->
-    <div class="main-container" style="display: flex;">
+    <div class="main-container">
         <!-- Left Column: Realtime Feed -->
-        <div class="left-column" style="flex: 1;">
+        <div class="left-column">
             <div class="content">
-                <div class="loadingClass" style="display: none;">
+                <div class="loadingClass">
                     <img src="./img/spinner.gif" alt="Loading..." />
                 </div>
                 <ol class="versionListClassSection"></ol>
@@ -42,35 +105,29 @@
             </div>
         </div>
         <!-- Second Column: Graphs -->
-        <div class="graph-column" style="flex: 1;">
-            <section id="graphSection1" style="display: flex; flex-wrap: wrap; gap: 1px; margin: 1px;">
-                <canvas id="graphCanvas" style="width: 100%; height: 200px;"></canvas>
-                <canvas id="updateTypeChart" style="width: 100%; height: 200px;"></canvas>
+        <div class="graph-column">
+            <section id="graphSection1">
+                <canvas id="graphCanvas"></canvas>
+                <canvas id="componentTypeChart"></canvas>
             </section>
         </div>
         <!-- Third Column: Graphs -->
-        <div class="graph-column" style="flex: 1;">
-            <section id="graphSection2" style="display: flex; flex-wrap: wrap; gap: 1px; margin: 1px;">
-                <canvas id="componentTypeChart" style="width: 100%; height: 200px;"></canvas>
-                <!-- <canvas id="cveChart" style="width: 100%; height: 200px;"></canvas> -->
+        <div class="graph-column">
+            <section id="graphSection2">
+                <canvas id="updateTypeChart"></canvas>
+                <canvas id="cveChart"></canvas>
             </section>
         </div>
         <!-- Fourth Column: Chat -->
-        <div class="chat-column" style="flex: 1; display: flex; flex-direction: column;">
-            <section id="llmChatSection"
-                style="flex: 1; border-left: 1px solid #ddd; padding: 6px; background: #f9f9f9;">
-                <div id="chatWindow"
-                    style="flex-grow: 1; overflow-y: auto; padding: 4px; font-size: 14px; color: #444;">
+        <div class="chat-column">
+            <section id="llmChatSection">
+                <div id="chatWindow">
                     <!-- Chat messages appear here -->
                     <div style="color: #888; text-align: center;">Ask about software updates...</div>
                 </div>
                 <div style="display: flex; align-items: center; padding-top: 4px;">
-                    <input type="text" id="chatInput" placeholder="Ask about updates..."
-                        style="flex-grow: 1; padding: 4px; border: 1px solid #ddd; border-radius: 3px; outline: none; font-size: 14px;">
-                    <button id="sendChat"
-                        style="margin-left: 4px; padding: 4px 8px; border: none; border-radius: 3px; background: #007bff; color: white; cursor: pointer; font-size: 14px;">
-                        ➤
-                    </button>
+                    <input type="text" id="chatInput" placeholder="Ask about updates...">
+                    <button id="sendChat">➤</button>
                 </div>
             </section>
         </div>
@@ -254,7 +311,7 @@
             }
 
             // Ensure the canvas fills its container
-            canvas.height = canvas.parentNode.clientHeight;
+            canvas.height = 250;
             const ctx = canvas.getContext('2d');
 
             // ✅ Convert date labels to "Mon, Feb 25" format
@@ -350,6 +407,7 @@
             }
 
             const ctx = canvas.getContext('2d');
+            canvas.height = 250;
 
             const labels = Object.keys(data);
             const counts = Object.values(data);
@@ -480,16 +538,18 @@
 
             // Remove existing canvas if present (to allow re-rendering)
             $("#" + canvasId).remove();
-            $("#graphSection1").append(`<canvas id="${canvasId}" style="flex: 1 1 100%; height: 200px;"></canvas>`);
+            $("#graphSection2").append(`<canvas id="${canvasId}"></canvas>`);
 
             const ctx = document.getElementById(canvasId).getContext("2d");
+
+            document.getElementById(canvasId).height = 250;
 
             new Chart(ctx, {
                 type: "bar",
                 data: {
                     labels: ["Major Updates", "Other Updates", "Minor Updates", "Patch Updates"],
                     datasets: [{
-                        label: `Update Count: ${totalUpdates} (Date Range: ${dateRange})`, // 🏷️ Added total updates & date range
+                        label: `Update Type Count`, // 🏷️ Added total updates & date range
                         data: [data.major, data.other, data.minor, data.patch],
                         backgroundColor: ["#4da6ff", "#ca4141", "#47863e", "#ffbd2e"],
                         borderColor: ["#2b7cd3", "#8b2e2e", "#2b5d29", "#c98c1e"],
@@ -600,6 +660,9 @@
 
             // 🏷️ Draw the CVE chart
             drawCveChart(cveCounts);
+
+            // Update the date range label in the info-bar
+            $(".dateRangeLabel").text(`Date Range: ${dateRange}`);
         }
 
         function renderVersionList(res) {
@@ -611,7 +674,7 @@
             const today = new Date();
             const currentYear = today.getFullYear();
             const yesterday = new Date();
-            yesterday.setDate(today.getDate() - 1);
+            yesterday.setDate(today.getDate());
             let oneWeekAgo = new Date();
             oneWeekAgo.setDate(today.getDate() - 7);
 
@@ -966,11 +1029,14 @@
                 }
             });
 
-            document.querySelector('.toggle-button').addEventListener('click', function () {
-                const leftColumn = document.querySelector('.left-column');
-                leftColumn.classList.toggle('closed');
-                this.textContent = leftColumn.classList.contains('closed') ? 'Open' : 'Close';
-            });
+            const toggleButton = document.querySelector('.toggle-button');
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function () {
+                    const leftColumn = document.querySelector('.left-column');
+                    leftColumn.classList.toggle('closed');
+                    this.textContent = leftColumn.classList.contains('closed') ? 'Open' : 'Close';
+                });
+            }
         });
 
         function drawCveChart(data) {
@@ -978,7 +1044,7 @@
 
             // Remove existing canvas if present (to allow re-rendering)
             $("#" + canvasId).remove();
-            $("#graphSection2").append(`<canvas id="${canvasId}" style="flex: 1 1 100%; height: 200px;"></canvas>`);
+            $("#graphSection2").append(`<canvas id="${canvasId}" style="max-height: 250px;"></canvas>`);
 
             const ctx = document.getElementById(canvasId).getContext("2d");
 
