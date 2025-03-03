@@ -674,7 +674,7 @@
             const today = new Date();
             const currentYear = today.getFullYear();
             const yesterday = new Date();
-            yesterday.setDate(today.getDate());
+            yesterday.setDate(today.getDate() - 1);
             let oneWeekAgo = new Date();
             oneWeekAgo.setDate(today.getDate() - 7);
 
@@ -695,7 +695,7 @@
                     let releaseDate = new Date(
                         item.versionReleaseDate.slice(0, 4),
                         parseInt(item.versionReleaseDate.slice(4, 6)) - 1,
-                        parseInt(item.versionReleaseDate.slice(6, 8)) + 1
+                        parseInt(item.versionReleaseDate.slice(6, 8))
                     );
 
                     if (isNaN(releaseDate.getTime()) || releaseDate > today) return;
@@ -754,12 +754,12 @@
                 }
 
                 $(".versionListClassSection").append(`
-        ${yearHeader}
-        <details ${isOpen}>
-            <summary><b>${date}</b> (${updatesCount} updates)</summary>
-            <ul class="versionList"></ul>
-        </details>
-    `);
+                    ${yearHeader}
+                    <details ${isOpen}>
+                        <summary><b>${date}</b> (${updatesCount} updates)</summary>
+                        <ul class="versionList"></ul>
+                    </details>
+                `);
 
                 groupedVersions[date].forEach(item => {
                     const avatar = item.versionReleaseChannel === "cve"
@@ -777,11 +777,11 @@
                             "patch": "#ffbd2e"
                         };
                         tags = `<span style="color: #fff; font-size: 10pt; 
-            background-color: ${tagColors[item.versionReleaseChannel]};
-            border-radius: 4px; padding: 2px 5px; 
-            margin: 1px 5px 1px 0; display: inline-block;">
-        ${item.versionReleaseChannel.toUpperCase()}
-    </span>`;
+                            background-color: ${tagColors[item.versionReleaseChannel]};
+                            border-radius: 4px; padding: 2px 5px; 
+                            margin: 1px 5px 1px 0; display: inline-block;">
+                            ${item.versionReleaseChannel.toUpperCase()}
+                        </span>`;
                     }
 
                     let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://"))
@@ -794,22 +794,22 @@
 
                     let subtleIdHtml = item._id
                         ? `<div style="font-size: 9pt; color: #aaa; margin-top: 4px;">
-        <a href="https://releasetrain.io/api/v/${item._id}" target="_blank" style="font-size:11pt; color: #aaa; text-decoration: none;">
-            ID: ${item._id}
-        </a>
-    </div>`
+                            <a href="https://releasetrain.io/api/v/${item._id}" target="_blank" style="font-size:11pt; color: #aaa; text-decoration: none;">
+                                ID: ${item._id}
+                            </a>
+                        </div>`
                         : "";
 
                     let forecastHtml = `<div class="forecast rt-class-${item.versionProductName}" style="font-size: 10pt; color: #aaa; margin-top: 4px;"></div>`;
 
                     $(".versionListClassSection details:last-child ul").append(`
-            <li class="versionListClassSection-item">
-                ${tags} 
-                ${releaseNotesHtml}
-                ${subtleIdHtml}
-                ${forecastHtml}
-            </li>
-        `);
+                        <li class="versionListClassSection-item">
+                            ${tags} 
+                            ${releaseNotesHtml}
+                            ${subtleIdHtml}
+                            ${forecastHtml}
+                        </li>
+                    `);
 
                     if (!forecastFetched.has(item.versionProductName)) {
                         forecastFetched.add(item.versionProductName);
