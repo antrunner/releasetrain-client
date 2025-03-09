@@ -373,3 +373,15 @@ img.avatar {
 .toggle-button:hover {
     background-color: #0056b3;
 }
+
+@media (max-width: 800px) { /* Target iPads and smaller screens */
+    .info-bar,
+    .graph-column,
+    .chat-column {
+        display: none !important; /* Hide graphs and chat */
+    }
+
+    .left-column {
+        flex: 1 !important; /* Make the left column take full width */
+    }
+}
