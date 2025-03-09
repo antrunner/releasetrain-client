@@ -3,124 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>releasetrain.io</title>
-    <meta name="google-site-verification" content="e_DoTsZw_SlkIWfECBN2q7FkJBvy8xOvlQZ-ZL38xTk" />
+    <title>Software Update Lifecycle</title>
     <meta name="description" content="Software Component Version Releases">
-    <meta name="keywords" content="Version, Release, Agile">
+    <meta name="keywords" content="Version, Release, Agile, Software Updates">
     <meta name="author" content="Solomon Berhe">
     <meta http-equiv="refresh" content="3600" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-79349402-1"></script>
     <script src="../lib/googleanalytics.js"></script>
-    <link href="../img/favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            text-align: center;
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
         }
         .container {
-            max-width: 800px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
-            padding-top: 60px;
         }
-        h1, h2, h3 {
-            color: #333;
+        h1 {
+            font-size: 2.2em;
+            color: #0056b3;
         }
-        pre {
-            background: #f4f4f4;
-            padding: 10px;
-            border: 1px solid #ddd;
-            overflow-x: auto;
+        .mermaid {
+            text-align: center;
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1.8em;
         }
-        code {
-            font-family: monospace;
-            color: #c7254e;
-            background-color: #f9f2f4;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .endpoint {
-            margin-bottom: 20px;
-        }
-        .home-link {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-        .home-link:hover {
-            background-color: #0056b3;
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .container {
+                padding: 15px;
+            }
+            .mermaid {
+                font-size: 1.5em;
+            }
         }
     </style>
 </head>
 <body>
-    <a href="https://releasetrain.io" class="home-link">Return to releasetrain.io Home Page</a>
     <div class="container">
-        <h1>API Documentation</h1>
-        <h2>Base URL</h2>
-        <p><code>https://releasetrain.io/api/v</code></p>
-        
-        <h2>Component Endpoints</h2>
-        <ol>
-            <li class="endpoint">
-                <h3>Get Component by Name and Version</h3>
-                <p><strong>GET /api/c/name/:componentName/:versionNumber?</strong></p>
-                <p>Gets a component by its name and optional version number.</p>
-                <pre><code>curl releasetrain.io/api/c/name/android/Lollipop.0.0</code></pre>
-                <h4>Python Example</h4>
-                <pre><code>import requests
-
-url = 'releasetrain.io/api/c/name/android/Lollipop.0.0'
-response = requests.get(url)
-if response.status_code == 200:
-    print(response.json())
-else:
-    print('Failed to fetch data:', response.status_code)</code></pre>
-            </li>
-        </ol>
-
-        <h2>Version Endpoints</h2>
-        <ol>
-            <li class="endpoint">
-                <h3>Get Version by ID</h3>
-                <p><strong>GET /api/v/:resourceVersionId</strong></p>
-                <p>Fetches a version by its MongoDB ObjectId.</p>
-                <pre><code>curl https://releasetrain.io/api/v/1234567890abcdef12345678</code></pre>
-                <h4>Python Example</h4>
-                <pre><code>import requests
-
-url = 'https://releasetrain.io/api/v/1234567890abcdef12345678'
-response = requests.get(url)
-if response.status_code == 200:
-    print(response.json())
-else:
-    print('Failed to fetch data:', response.status_code)</code></pre>
-            </li>
-
-            <li class="endpoint">
-                <h3>Update Version</h3>
-                <p><strong>PUT /api/v/:id</strong></p>
-                <p>Updates a version document by its ID.</p>
-                <pre><code>curl -X PUT https://releasetrain.io/api/v/12345 -H "Content-Type: application/json" -d '{"newFieldName": "newValue"}'</code></pre>
-                <h4>Python Example</h4>
-                <pre><code>import requests
-
-url = 'https://releasetrain.io/api/v/12345'
-data = {'newFieldName': 'newValue'}
-response = requests.put(url, json=data)
-if response.status_code == 200:
-    print(response.text)
-else:
-    print('Failed to update data:', response.status_code)</code></pre>
-            </li>
-        </ol>
+        <h1>Software Update Lifecycle</h1>
+        <div class="mermaid">
+            graph LR;
+                A[Requirements] --> B[Design];
+                B --> C[Implementation];
+                C --> D[Testing];
+                D --> E[Deployment];
+                E --> F[Maintenance];
+                F --> G[End];
+                
+                style A fill:#dee2e6,stroke:#adb5bd,stroke-width:3px,font-size:2.2em;
+                style B fill:#ced4da,stroke:#adb5bd,stroke-width:3px,font-size:2.2em;
+                style C fill:#adb5bd,stroke:#868e96,stroke-width:3px,font-size:2.2em;
+                style D fill:#868e96,stroke:#495057,stroke-width:3px,font-size:2.2em;
+                style E fill:#495057,stroke:#343a40,stroke-width:3px,font-size:2.2em;
+                style F fill:#343a40,stroke:#212529,stroke-width:3px,font-size:2.2em;
+                style G fill:#212529,stroke:#000000,stroke-width:3px,font-size:2.2em;
+        </div>
     </div>
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
 </body>
 </html>
