@@ -196,7 +196,6 @@
         // Existing Feed Code (Endpoints preserved)
         // ==========================
         const apiBaseUrl = "https://releasetrain.io/api";
-        let pageNumParam = 1;
         let componentNameParam = "";
         let currDate = null;
         let countToday = 0;
@@ -212,7 +211,6 @@
         $(window).on('scroll', onScroll);
 
         $('.component-names').on("change", function () {
-            pageNumParam = 1;
             componentNameParam = $(this).select2('data').map(item => item.text).join(',');
             updateURLWithSelectedComponents();
             if (isDone) {
@@ -230,7 +228,6 @@
         }
 
         function getReleases() {
-            pageNumParam = 1;
             $(".versionListClassSection").empty();
             getVersionList();
         }
@@ -306,12 +303,23 @@
         }
 
         function getVersionList() {
+            const requestUrl = `${apiBaseUrl}/v?q=${componentNameParam}`;
+
             $.ajax({
-                url: `${apiBaseUrl}/component?pageNumParam=${pageNumParam}&q=${componentNameParam}`,
+                url: requestUrl,
                 type: 'GET',
                 dataType: 'json',
-                success: renderVersionList,
-                error: error => console.error('Error fetching version list:', error)
+                success: function (data) {
+                    // ✅ Call `renderVersionList` with received data
+                    renderVersionList(data.versions);
+                },
+                error: (xhr, status, error) => {
+                    console.error(`[ERROR] Fetching version list: ${error}`);
+                    console.warn(`[Response] Status: ${status}, URL: ${requestUrl}, Response:`, xhr.responseText);
+
+                    // ✅ Manually call `renderVersionList` with an empty array if error occurs
+                    renderVersionList([]);
+                }
             });
         }
 
@@ -468,6 +476,10 @@
         }
 
         function getVersionForecast(component) {
+
+            console.warn("Disabled version forecast for component:", component);
+            return;
+
             $.ajax({
                 url: `${apiBaseUrl}/v/fc?q=${component}`,
                 type: 'GET',
@@ -490,6 +502,10 @@
         }
 
         function getCoincideForecast(component) {
+
+            console.warn("Disabled version coincide for component:", component);
+            return;
+
             $.ajax({
                 url: `${apiBaseUrl}/v/fcc?q=${componentNameParam}`,
                 type: 'GET',
@@ -870,9 +886,6 @@
             // ✅ Preserve Title Update
             document.title = countToday > 0 ? `(${countToday}) releasetrain.io` : "releasetrain.io";
 
-            // ✅ Ensure pagination progresses
-            pageNumParam++;
-
             // ✅ Preserve Update Type Chart Processing
             processUpdateTypeCounts(res);
 
@@ -958,7 +971,7 @@
             let newUrl = window.location.origin + window.location.pathname;
 
             if (selectedComponents) {
-                newUrl += `?q=${encodeURIComponent(selectedComponents)}`;
+                newUrl += `?q=${selectedComponents}`;
             }
 
             // ✅ Remove `?q=` if empty
@@ -975,7 +988,7 @@
             let newUrl = window.location.origin + window.location.pathname;
 
             if (selectedComponents) {
-                newUrl += `?q=${encodeURIComponent(selectedComponents)}`;
+                newUrl += `?q=${selectedComponents}`;
             }
 
             // ✅ Prevent unnecessary reload if URL is already correct
