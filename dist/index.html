@@ -972,6 +972,10 @@
             }
         }
 
+        function getTodayDate() {
+            $(".getTodayDate").text(new Date().toLocaleDateString());
+        }
+
         $(document).ready(function () {
             getAndRenderComponentList();
             getVersionCount();
