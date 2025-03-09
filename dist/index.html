@@ -471,16 +471,21 @@
             $.ajax({
                 url: `${apiBaseUrl}/v/fc?q=${component}`,
                 type: 'GET',
-                dataType: 'text',
+                dataType: 'json',
                 success: res => {
-                    if (!res.toLowerCase().startsWith("forecast") && !res.toLowerCase().startsWith("invalid")) {
-                        $(".rt-class-" + component).text(`Next ${component} update estimation on ${res.substring(0, 17)}`);
+                    if (res && res.nextReleaseDate) {
+                        $(".rt-class-" + component).text(`Next ${component} update estimation on ${res.nextReleaseDate}`);
                         if (componentNameParam.split(",").length > 1) {
                             getCoincideForecast(component);
                         }
+                    } else {
+                        $(".rt-class-" + component).text(""); // Set empty string if no data
                     }
                 },
-                error: error => console.error('Error fetching version forecast:', error)
+                error: error => {
+                    console.error(`Error fetching version forecast for ${component}:`, error);
+                    $(".rt-class-" + component).text(""); // Set empty string on error
+                }
             });
         }
 
@@ -490,15 +495,23 @@
                 type: 'GET',
                 dataType: 'json',
                 success: res => {
-                    if (res.isCoincideReleaseDate && res.components.includes(component)) {
+                    if (res && res.isCoincideReleaseDate && Array.isArray(res.components) && res.components.includes(component)) {
                         res.components = res.components.filter(item => item !== component);
-                        const msg = `may coincide with a ${res.components.join(" and ").replace(component.toLowerCase(), "")} update.`;
+                        const msg = res.components.length > 0
+                            ? `may coincide with a ${res.components.join(" and ")} update.`
+                            : ""; // Set empty string if no other components
+
                         if (!$(`.${component}`).text().includes(msg)) {
-                            $(`.${component}`).append(`<b>${msg}</b>`);
+                            $(`.${component}`).html(`<b>${msg}</b>`);
                         }
+                    } else {
+                        $(`.${component}`).text(""); // Set empty string if no valid data
                     }
                 },
-                error: error => console.error('Error fetching coincide forecast:', error)
+                error: error => {
+                    console.error(`Error fetching coincide forecast for ${component}:`, error);
+                    $(`.${component}`).text(""); // Set empty string on error
+                }
             });
         }
 
