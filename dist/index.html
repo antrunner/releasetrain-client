@@ -794,7 +794,7 @@
                             return resolve();
                         }
 
-                        globalRedditPosts = redditPosts.reverse(); // ✅ Store fetched posts globally
+                        globalRedditPosts = redditPosts; // ✅ Store fetched posts globally
                         resolve();
                     },
                     error: error => {
