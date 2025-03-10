@@ -271,17 +271,14 @@
         }
 
 
-        function checkIfStackExists(stack_name)
-        {
+        function checkIfStackExists(stack_name) {
             console.log(stack_name);
-            
-            if (stack_name === "lamp")
-            {
+
+            if (stack_name === "lamp") {
                 return "LAMP"
-                
+
             }
-            else
-            {
+            else {
                 return "Not Found"
             }
         }
@@ -700,8 +697,7 @@
             });
         }
 
-        function drawPlantuml()
-        {
+        function drawPlantuml() {
             const canvasId = "plantuml";
 
             // Remove existing canvas if present (to allow re-rendering)
@@ -712,10 +708,10 @@
 
             document.getElementById(canvasId).height = 250;
             const image = new Image();
-            
+
 
             image.addEventListener("load", (e) => {
-                ctx.drawImage(image,10,10);
+                ctx.drawImage(image, 10, 10);
             });
             image.src = "https://hatrabbits.com/wp-content/uploads/2017/01/random.jpg";
         }
@@ -935,6 +931,8 @@
                     if (item.versionPredictedComponentType) {
                         componentTypeCounts[item.versionPredictedComponentType] =
                             (componentTypeCounts[item.versionPredictedComponentType] || 0) + 1;
+                    } else {
+                        componentTypeCounts["Not Typed"] = (componentTypeCounts["Not Typed"] || 0) + 1;
                     }
 
                     if (item.isCve) {
