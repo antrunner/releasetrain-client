@@ -92,43 +92,73 @@
 </head>
 
 <body>
+
     <!-- Top Bar -->
-    <div class="top-bar">
+    <div class="top-bar" style="
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1e1e1e;
+    padding: 6px 14px;
+    margin: 0;
+    font-size: 10pt;
+    color: #bbb;
+    border-bottom: 1px solid #333;
+    font-family: 'Consolas', 'Courier New', monospace;
+    gap: 12px;
+">
+
+        <!-- Dropdown Select (styled for better alignment) -->
+        <select class="component-names" name="names[]" multiple="multiple" style="
+        min-width: 180px;
+        padding: 4px;
+        font-family: inherit;
+        font-size: 10pt;
+        color: #bbb;
+        background: #222;
+        border: 1px solid #444;
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+    "></select>
+
+        <!-- Info Bar (aligned horizontally) -->
         <div class="info-bar" style="
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        background: #1e1e1e;
-        padding: 5px 12px;
-        margin: 5px 0;
-        font-size: 10pt;
-        color: #bbb;
-        border-bottom: 1px solid #333;
-        font-family: 'Consolas', 'Courier New', monospace;">
+        gap: 16px;
+        flex-wrap: wrap;
+    ">
 
             <span style="color: #888;">Releasetrain <span style="color: #4da6ff;">v3.0.0</span></span>
 
-            <span class="getComponentCount" style="color: #999;">Components: <span
-                    style="color: #4da6ff;">Loading...</span></span>
+            <span class="getComponentCount" style="color: #999;">Components:
+                <span style="color: #4da6ff;">Loading...</span>
+            </span>
 
-            <span class="getVersionCount" style="color: #999;">Versions: <span
-                    style="color: #4da6ff;">Loading...</span></span>
+            <span class="getVersionCount" style="color: #999;">Versions:
+                <span style="color: #4da6ff;">Loading...</span>
+            </span>
 
-            <span class="currentPageVersions" style="color: #999;">Page Versions: <span
-                    style="color: #4da6ff;">0</span></span>
+            <span class="currentPageVersions" style="color: #999;">Page Versions:
+                <span style="color: #4da6ff;">0</span>
+            </span>
 
             <span class="dateRangeLabel" style="color: #888;"></span>
 
             <span>
-                <a href="https://github.com/antrunner/releasetrain-client" target="_blank"
-                    style="color: #4da6ff; text-decoration: none; font-weight: bold;">
+                <a href="https://github.com/antrunner/releasetrain-client" target="_blank" style="
+                color: #4da6ff;
+                text-decoration: none;
+                font-weight: bold;
+            ">
                     GitHub ↗
                 </a>
             </span>
         </div>
 
-        <select class="component-names" name="names[]" multiple="multiple"></select>
     </div>
+
     <!-- Main Container -->
     <div class="main-container">
         <!-- Left Column: Realtime Feed -->
