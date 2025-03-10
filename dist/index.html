@@ -15,6 +15,9 @@
     <link href="./lib/select2.min.css" rel="stylesheet" />
     <link href="./app.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet" />
+    <script type="module" src="./app.js" defer></script>
+    <script src="https://cjrtnc.leaningtech.com/2.3/loader.js"></script>
+
     <style>
         .main-container {
             display: flex;
@@ -109,6 +112,7 @@
             <section id="graphSection1">
                 <canvas id="graphCanvas"></canvas>
                 <canvas id="componentTypeChart"></canvas>
+                <canvas id="plantuml-diagrams"></canvas>
             </section>
         </div>
         <!-- Third Column: Graphs -->
@@ -186,6 +190,7 @@
         const apiBaseUrl = "https://releasetrain.io/api";
         let pageNumParam = 1;
         let componentNameParam = "";
+        let stack_name = "";
         let currDate = null;
         let countToday = 0;
         let isDone = false;
@@ -221,6 +226,21 @@
             pageNumParam = 1;
             $(".versionListClassSection").empty();
             getVersionList();
+        }
+
+        function checkIfStackExists(stack_name)
+        {
+            console.log(stack_name);
+            
+            if (stack_name === "lamp")
+            {
+                return "LAMP"
+                
+            }
+            else
+            {
+                return "Not Found"
+            }
         }
 
         function getAndRenderComponentList() {
@@ -587,6 +607,25 @@
             });
         }
 
+        function drawPlantuml()
+        {
+            const canvasId = "plantuml";
+
+            // Remove existing canvas if present (to allow re-rendering)
+            $("#" + canvasId).remove();
+            $("#graphSection1").append(`<canvas id="${canvasId}"></canvas>`);
+
+            const ctx = document.getElementById(canvasId).getContext("2d");
+
+            document.getElementById(canvasId).height = 250;
+            const image = new Image();
+            
+
+            image.addEventListener("load", (e) => {
+                ctx.drawImage(image,10,10);
+            });
+            image.src = "https://hatrabbits.com/wp-content/uploads/2017/01/random.jpg";
+        }
         // Function to count different update types and render the bar chart
         function processUpdateTypeCounts(res) {
             let updateCounts = { major: 0, other: 0, minor: 0, patch: 0 };
