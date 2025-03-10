@@ -29,7 +29,11 @@ module.exports = function(grunt) {
                     'dist/index.html': 'src/index.html',
                     'dist/doc/index.html': 'src/doc/index.html',
                     'dist/research/index.html': 'src/research/index.html',
-                    'dist/reset.css': 'src/reset.css'
+                    'dist/reset.css': 'src/reset.css',
+                    'dist/plantuml-core.jar': 'src/plantuml-core.jar',
+                    'dist/plantuml-core.jar.js': 'src/plantuml-core.jar.js',
+                    'dist/plantuml.js': 'src/plantuml.js',
+                    'dist/app.js': 'src/app.js'
                 }
             }
         },
