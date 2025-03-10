@@ -109,18 +109,7 @@
 ">
 
         <!-- Dropdown Select (styled for better alignment) -->
-        <select class="component-names" name="names[]" multiple="multiple" style="
-        min-width: 180px;
-        padding: 4px;
-        font-family: inherit;
-        font-size: 10pt;
-        color: #bbb;
-        background: #222;
-        border: 1px solid #444;
-        border-radius: 4px;
-        outline: none;
-        cursor: pointer;
-    "></select>
+        <select class="component-names" name="names[]" multiple="multiple"></select>
 
         <!-- Info Bar (aligned horizontally) -->
         <div class="info-bar" style="
@@ -1131,6 +1120,18 @@
         }
 
         $(document).ready(function () {
+
+            // Add placeholder elements before fetching data
+            $(".versionListClassSection").html('<div class="skeleton-loader"></div><div class="skeleton-loader"></div>');
+
+            $('.component-names').select2({
+                placeholder: "Select software components", // ✅ Placeholder text
+                allowClear: true, // ✅ Enables '×' to clear selection
+                width: 'resolve', // ✅ Adjusts width dynamically
+                theme: "classic", // ✅ Optional: Choose a clean theme
+                minimumResultsForSearch: 1, // ✅ Enable search when >1 items
+            });
+
             getAndRenderComponentList();
             getVersionCount();
             getComponentCount();
