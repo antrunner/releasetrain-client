@@ -22,38 +22,48 @@
         .main-container {
             display: flex;
         }
+
         .left-column {
             flex: 1;
         }
+
         .graph-column {
             flex: 1;
         }
+
         .chat-column {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
+
         .loadingClass {
             display: none;
         }
+
         .currentPageVersions {
             font-weight: bold;
             color: #007bff;
         }
+
         .dateRangeLabel {
             font-weight: bold;
             color: #007bff;
         }
-        #graphSection1, #graphSection2 {
+
+        #graphSection1,
+        #graphSection2 {
             display: flex;
             flex-wrap: wrap;
         }
+
         #llmChatSection {
             flex: 1;
             border-left: 1px solid #ddd;
             padding: 6px;
             background: #f9f9f9;
         }
+
         #chatWindow {
             flex-grow: 1;
             overflow-y: auto;
@@ -61,6 +71,7 @@
             font-size: 14px;
             color: #444;
         }
+
         #chatInput {
             flex-grow: 1;
             padding: 4px;
@@ -69,6 +80,7 @@
             outline: none;
             font-size: 14px;
         }
+
         #sendChat {
             margin-left: 4px;
             padding: 4px 8px;
@@ -83,18 +95,62 @@
 </head>
 
 <body>
+
     <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="info-bar">
-            <span>Releasetrain: v3.0.0</span>
-            <span class="getComponentCount">Components: Loading...</span>
-            <span class="getVersionCount">Versions: Loading...</span>
-            <span class="currentPageVersions">Current Page Versions: 0</span>
-            <span class="dateRangeLabel"></span>
-            <span><a href="https://github.com/antrunner/releasetrain-client">Github</a></span>
-        </div>
+    <div class="top-bar" style="
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1e1e1e;
+    padding: 6px 14px;
+    margin: 0;
+    font-size: 10pt;
+    color: #bbb;
+    border-bottom: 1px solid #333;
+    font-family: 'Consolas', 'Courier New', monospace;
+    gap: 12px;
+">
+
+        <!-- Dropdown Select (styled for better alignment) -->
         <select class="component-names" name="names[]" multiple="multiple"></select>
+
+        <!-- Info Bar (aligned horizontally) -->
+        <div class="info-bar" style="
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    ">
+
+            <span style="color: #888;">Releasetrain <span style="color: #4da6ff;">v3.0.0</span></span>
+
+            <span class="getComponentCount" style="color: #999;">Components:
+                <span style="color: #4da6ff;">Loading...</span>
+            </span>
+
+            <span class="getVersionCount" style="color: #999;">Versions:
+                <span style="color: #4da6ff;">Loading...</span>
+            </span>
+
+            <span class="currentPageVersions" style="color: #999;">Page Versions:
+                <span style="color: #4da6ff;">0</span>
+            </span>
+
+            <span class="dateRangeLabel" style="color: #888;"></span>
+
+            <span>
+                <a href="https://github.com/antrunner/releasetrain-client" target="_blank" style="
+                color: #4da6ff;
+                text-decoration: none;
+                font-weight: bold;
+            ">
+                    GitHub ↗
+                </a>
+            </span>
+        </div>
+
     </div>
+
     <!-- Main Container -->
     <div class="main-container">
         <!-- Left Column: Realtime Feed -->
@@ -149,6 +205,9 @@
         // Initialize Mermaid for UML rendering (if used)
         mermaid.initialize({ startOnLoad: true });
 
+        // 🔹 Global storage for Reddit posts
+        let globalRedditPosts = [];
+
         // Define helper functions first
         function isSameDate(d1, d2) {
             return d1.getFullYear() === d2.getFullYear() &&
@@ -177,18 +236,10 @@
             }
         }
 
-        // Define onScroll to avoid ReferenceError
-        function onScroll() {
-            if ($(window).scrollTop() === $(document).height() - $(window).height()) {
-                getVersionList();
-            }
-        }
-
         // ==========================
         // Existing Feed Code (Endpoints preserved)
         // ==========================
         const apiBaseUrl = "https://releasetrain.io/api";
-        let pageNumParam = 1;
         let componentNameParam = "";
         let stack_name = "";
         let currDate = null;
@@ -201,11 +252,7 @@
             complete: () => loader.hide()
         });
 
-        $(document.body).on('touchmove', onScroll);
-        $(window).on('scroll', onScroll);
-
         $('.component-names').on("change", function () {
-            pageNumParam = 1;
             componentNameParam = $(this).select2('data').map(item => item.text).join(',');
             updateURLWithSelectedComponents();
             if (isDone) {
@@ -222,11 +269,6 @@
             window.history.replaceState({}, document.title, `?q=${selectedComponents}`);
         }
 
-        function getReleases() {
-            pageNumParam = 1;
-            $(".versionListClassSection").empty();
-            getVersionList();
-        }
 
         function checkIfStackExists(stack_name)
         {
@@ -311,16 +353,6 @@
                                 : '<img class="avatar" src="./img/default.png" alt="Default">';
             }
             return avatar;
-        }
-
-        function getVersionList() {
-            $.ajax({
-                url: `${apiBaseUrl}/component?pageNumParam=${pageNumParam}&q=${componentNameParam}`,
-                type: 'GET',
-                dataType: 'json',
-                success: renderVersionList,
-                error: error => console.error('Error fetching version list:', error)
-            });
         }
 
         function drawTimeSeriesChart(data) {
@@ -476,62 +508,122 @@
         }
 
         function getVersionForecast(component) {
+
+            console.warn("Disabled version forecast for component:", component);
+            return;
+
             $.ajax({
                 url: `${apiBaseUrl}/v/fc?q=${component}`,
                 type: 'GET',
-                dataType: 'text',
+                dataType: 'json',
                 success: res => {
-                    if (!res.toLowerCase().startsWith("forecast") && !res.toLowerCase().startsWith("invalid")) {
-                        $(".rt-class-" + component).text(`Next ${component} update estimation on ${res.substring(0, 17)}`);
+                    if (res && res.nextReleaseDate) {
+                        $(".rt-class-" + component).text(`Next ${component} update estimation on ${res.nextReleaseDate}`);
                         if (componentNameParam.split(",").length > 1) {
                             getCoincideForecast(component);
                         }
+                    } else {
+                        $(".rt-class-" + component).text(""); // Set empty string if no data
                     }
                 },
-                error: error => console.error('Error fetching version forecast:', error)
+                error: error => {
+                    console.error(`Error fetching version forecast for ${component}:`, error);
+                    $(".rt-class-" + component).text(""); // Set empty string on error
+                }
             });
         }
 
         function getCoincideForecast(component) {
+
+            console.warn("Disabled version coincide for component:", component);
+            return;
+
             $.ajax({
                 url: `${apiBaseUrl}/v/fcc?q=${componentNameParam}`,
                 type: 'GET',
                 dataType: 'json',
                 success: res => {
-                    if (res.isCoincideReleaseDate && res.components.includes(component)) {
+                    if (res && res.isCoincideReleaseDate && Array.isArray(res.components) && res.components.includes(component)) {
                         res.components = res.components.filter(item => item !== component);
-                        const msg = `may coincide with a ${res.components.join(" and ").replace(component.toLowerCase(), "")} update.`;
+                        const msg = res.components.length > 0
+                            ? `may coincide with a ${res.components.join(" and ")} update.`
+                            : ""; // Set empty string if no other components
+
                         if (!$(`.${component}`).text().includes(msg)) {
-                            $(`.${component}`).append(`<b>${msg}</b>`);
+                            $(`.${component}`).html(`<b>${msg}</b>`);
                         }
+                    } else {
+                        $(`.${component}`).text(""); // Set empty string if no valid data
                     }
                 },
-                error: error => console.error('Error fetching coincide forecast:', error)
+                error: error => {
+                    console.error(`Error fetching coincide forecast for ${component}:`, error);
+                    $(`.${component}`).text(""); // Set empty string on error
+                }
             });
         }
 
+        // ✅ Fetch version count
         function getVersionCount() {
             $.ajax({
                 url: `${apiBaseUrl}/v/count`,
                 type: 'GET',
                 dataType: 'json',
-                success: res => $(".getVersionCount").text(`Versions: ${res}`),
-                error: error => console.error('Error fetching version count:', error)
+                success: res => {
+                    if (res.totalVersions !== undefined) {
+                        $(".getVersionCount").text(`Versions: ${res.totalVersions}`);
+                    } else {
+                        console.warn('Unexpected response structure for version count:', res);
+                        $(".getVersionCount").text(`Versions: N/A`);
+                    }
+                },
+                error: error => {
+                    console.error('Error fetching version count:', error);
+                    $(".getVersionCount").text(`Versions: Error`);
+                }
             });
         }
 
+        // ✅ Fetch version count
+        function getVersionCount() {
+            $.ajax({
+                url: `${apiBaseUrl}/v/count`,
+                type: 'GET',
+                dataType: 'json',
+                success: res => {
+                    if (res.totalVersions !== undefined) {
+                        $(".getVersionCount").text(`Versions: ${res.totalVersions}`);
+                    } else {
+                        console.warn('Unexpected response structure for version count:', res);
+                        $(".getVersionCount").text(`Versions: N/A`);
+                    }
+                },
+                error: error => {
+                    console.error('Error fetching version count:', error);
+                    $(".getVersionCount").text(`Versions: Error`);
+                }
+            });
+        }
+
+        // ✅ Fetch component count
         function getComponentCount() {
             $.ajax({
                 url: `${apiBaseUrl}/c/count`,
                 type: 'GET',
                 dataType: 'json',
-                success: res => $(".getComponentCount").text(`Components: ${res}`),
-                error: error => console.error('Error fetching component count:', error)
+                success: res => {
+                    if (res.totalComponents !== undefined) {
+                        $(".getComponentCount").text(`Components: ${res.totalComponents}`);
+                    } else {
+                        console.warn('Unexpected response structure for component count:', res);
+                        $(".getComponentCount").text(`Components: N/A`);
+                    }
+                },
+                error: error => {
+                    console.error('Error fetching component count:', error);
+                    $(".getComponentCount").text(`Components: Error`);
+                }
             });
-        }
-
-        function getTodayDate() {
-            $(".getTodayDate").text(new Date().toLocaleDateString());
         }
 
         function isNewerThanDayAfterTomorrow(dateString) {
@@ -704,12 +796,96 @@
             $(".dateRangeLabel").text(`Date Range: ${dateRange}`);
         }
 
+        async function getReleases() {
+            $(".versionListClassSection").empty();
+
+            try {
+                const versionData = await getVersionList(); // ✅ Fetch versions first
+
+                await getAllRedditPosts(); // ✅ Then fetch Reddit posts
+
+                renderVersionList(versionData); // ✅ Finally, render everything
+
+            } catch (error) {
+                console.error("[ERROR] Failed in getReleases():", error);
+            }
+        }
+
+        // ✅ Ensure getVersionList() returns a Promise
+        function getVersionList() {
+            const requestUrl = `${apiBaseUrl}/v?q=${componentNameParam}`;
+
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: requestUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        const versionCount = data.versions ? data.versions.length : 0;
+
+                        // ✅ Update "Page Versions" count dynamically
+                        document.querySelector(".currentPageVersions span").textContent = versionCount;
+
+                        resolve(data.versions || []); // ✅ Always return an array (default empty)
+                    },
+                    error: (xhr, status, error) => {
+                        console.error(`[ERROR] Fetching version list: ${error}`);
+                        console.warn(`[Response] Status: ${status}, URL: ${requestUrl}, Response:`, xhr.responseText);
+                        reject(error); // ❌ Reject if AJAX fails
+                    }
+                });
+            });
+        }
+
+        /**
+         * 🔹 Fetch all Reddit posts from the last 10 days and store them globally.
+         */
+        function getAllRedditPosts() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: `${apiBaseUrl}/reddit`, // Fetch latest 10 days of Reddit posts
+                    type: 'GET',
+                    dataType: 'json',
+                    success: redditPosts => {
+                        if (!Array.isArray(redditPosts) || redditPosts.length === 0) {
+                            globalRedditPosts = [];
+                            return resolve();
+                        }
+
+                        globalRedditPosts = redditPosts; // ✅ Store fetched posts globally
+                        resolve();
+                    },
+                    error: error => {
+                        console.error("[REDDIT] Error fetching posts:", error);
+                        globalRedditPosts = [];
+                        reject(error);
+                    }
+                });
+            });
+        }
+
+        // Convert UTC timestamp to "X days ago" format
+        function timeAgo(utcTimestamp) {
+            const postDate = new Date(utcTimestamp); // Convert to milliseconds
+            const today = new Date();
+            const diffTime = Math.abs(today - postDate);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            return diffDays === 0 ? "Today" : diffDays === 1 ? "Yesterday" : `${diffDays} days ago`;
+        }
+
+        /**
+         * 🔹 Render version list and include Reddit posts if subreddit matches version name.
+         * 🔹 Updates four charts: Update Type, Component Type, Time Series, and CVE.
+         */
         function renderVersionList(res) {
             countToday = 0;
             let dailyCounts = {};
             let groupedVersions = {};
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            let updateCounts = { major: 0, other: 0, minor: 0, patch: 0 };
+            let componentTypeCounts = {};
+            let cveCounts = { cve: 0, other: 0 };
+
             const today = new Date();
             const currentYear = today.getFullYear();
             const yesterday = new Date();
@@ -724,10 +900,7 @@
             }
 
             $(".versionListClassSection").empty();
-            let forecastFetched = new Set();
-            let updateCounts = { major: 0, other: 0, minor: 0, patch: 0 };
-            let yearsPresent = new Set();
-            let firstOpenFound = false; // Track first summary day with at least one version
+            let firstOpenFound = false;
 
             res.forEach(item => {
                 try {
@@ -739,28 +912,36 @@
 
                     if (isNaN(releaseDate.getTime()) || releaseDate > today) return;
 
-                    let releaseYear = releaseDate.getFullYear();
-                    yearsPresent.add(releaseYear);
-
-                    let yyyymmdd = `${releaseYear}${String(releaseDate.getMonth() + 1).padStart(2, "0")}${String(releaseDate.getDate()).padStart(2, "0")}`;
-
-                    if (releaseDate >= oneWeekAgo) {
-                        dailyCounts[yyyymmdd] = (dailyCounts[yyyymmdd] || 0) + 1;
-                    }
-
-                    let formattedDate;
-                    if (releaseDate.toDateString() === today.toDateString()) {
-                        formattedDate = "Today";
-                    } else if (releaseDate.toDateString() === yesterday.toDateString()) {
-                        formattedDate = "Yesterday";
-                    } else {
-                        formattedDate = `${dayNames[releaseDate.getDay()]}, ${monthNames[releaseDate.getMonth()]} ${releaseDate.getDate()}, ${releaseYear}`;
-                    }
+                    let formattedDate = releaseDate.toDateString() === today.toDateString() ? "Today" :
+                        releaseDate.toDateString() === yesterday.toDateString() ? "Yesterday" :
+                            `${releaseDate.toDateString()}`;
 
                     if (!groupedVersions[formattedDate]) {
                         groupedVersions[formattedDate] = [];
                     }
                     groupedVersions[formattedDate].push(item);
+
+                    // ✅ Collect data for charts
+                    if (releaseDate >= oneWeekAgo) {
+                        let yyyymmdd = releaseDate.toISOString().split("T")[0].replace(/-/g, "");
+                        dailyCounts[yyyymmdd] = (dailyCounts[yyyymmdd] || 0) + 1;
+                    }
+
+                    if (item.versionReleaseChannel) {
+                        updateCounts[item.versionReleaseChannel] = (updateCounts[item.versionReleaseChannel] || 0) + 1;
+                    }
+
+                    if (item.versionPredictedComponentType) {
+                        componentTypeCounts[item.versionPredictedComponentType] =
+                            (componentTypeCounts[item.versionPredictedComponentType] || 0) + 1;
+                    }
+
+                    if (item.isCve) {
+                        cveCounts.cve++;
+                    } else {
+                        cveCounts.other++;
+                    }
+
                 } catch (error) {
                     console.error("[ERROR] Failed to process version:", item, error);
                 }
@@ -774,106 +955,98 @@
                 return new Date(b) - new Date(a);
             });
 
-            let lastYearSeen = null;
+            let htmlBuffer = ""; // ✅ Efficient UI rendering with buffer
 
             sortedDates.forEach((date) => {
                 let updatesCount = groupedVersions[date].length;
-                let dateObj = new Date(date);
-                let dateYear = date.includes("Today") || date.includes("Yesterday") ? currentYear : dateObj.getFullYear();
-
-                let yearHeader = "";
-                if (lastYearSeen !== dateYear) {
-                    lastYearSeen = dateYear;
-                    yearHeader = `<h3>${dateYear}</h3>`;
-                }
-
-                let isOpen = !firstOpenFound && updatesCount > 0 ? "open" : ""; // Keep only the first valid summary open
+                let isOpen = !firstOpenFound && updatesCount > 0 ? "open" : "";
                 if (updatesCount > 0) {
-                    firstOpenFound = true; // Mark first non-empty summary as found
+                    firstOpenFound = true;
                 }
 
-                $(".versionListClassSection").append(`
-                    ${yearHeader}
-                    <details ${isOpen}>
-                        <summary><b>${date}</b> (${updatesCount} updates)</summary>
-                        <ul class="versionList"></ul>
-                    </details>
-                `);
+                htmlBuffer += `
+        <details ${isOpen}>
+            <summary><b>${date}</b> (${updatesCount} updates)</summary>
+            <ul class="versionList">`;
 
                 groupedVersions[date].forEach(item => {
-                    const avatar = item.versionReleaseChannel === "cve"
-                        ? ""
-                        : getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionProductType);
-
+                    const avatar = getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionProductType);
                     const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
 
                     let tags = "";
                     if (item.versionReleaseChannel) {
-                        const tagColors = {
-                            "major": "#4da6ff",
-                            "other": "#ca4141",
-                            "minor": "#47863e",
-                            "patch": "#ffbd2e"
-                        };
-                        tags = `<span style="color: #fff; font-size: 10pt; 
-                            background-color: ${tagColors[item.versionReleaseChannel]};
-                            border-radius: 4px; padding: 2px 5px; 
-                            margin: 1px 5px 1px 0; display: inline-block;">
-                            ${item.versionReleaseChannel.toUpperCase()}
-                        </span>`;
+                        const tagColors = { "major": "#4da6ff", "other": "#ca4141", "minor": "#47863e", "patch": "#ffbd2e" };
+                        tags = `<span style="color: #fff; font-size: 10pt; background-color: ${tagColors[item.versionReleaseChannel]}; border-radius: 4px; padding: 2px 5px; margin: 1px 5px 1px 0; display: inline-block;">
+                    ${item.versionReleaseChannel.toUpperCase()}
+                </span>`;
                     }
 
-                    let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://"))
-                        ? item.versionUrl.trim()
-                        : (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://"))
-                            ? item.versionReleaseNotes.trim()
-                            : "#";
+                    let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://")) ? item.versionUrl.trim() :
+                        (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://")) ? item.versionReleaseNotes.trim() : "#";
 
                     let releaseNotesHtml = `${avatar} <a target="_blank" href="${releaseUrl}"><span>${versionLabel}</span></a>`;
 
-                    let subtleIdHtml = item._id
-                        ? `<div style="font-size: 9pt; color: #aaa; margin-top: 4px;">
-                            <a href="https://releasetrain.io/api/v/${item._id}" target="_blank" style="font-size:11pt; color: #aaa; text-decoration: none;">
+                    // ✅ Find matching Reddit posts
+                    const matchingRedditPosts = globalRedditPosts.filter(post =>
+                        post.subreddit.toLowerCase() === item.versionProductName.toLowerCase()
+                    );
+
+                    let redditHtml = "";
+                    if (matchingRedditPosts.length > 0) {
+
+                        redditHtml = `<ul class="reddit-summary" style="list-style: none; padding-left: 0; font-size: 10pt; color: #777;">`;
+
+                        matchingRedditPosts.forEach(post => {
+
+                            const postDate = timeAgo(post.created_utc);
+
+                            redditHtml += `
+                                <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: 9pt; color: #555;">
+                                    <img src="./img/reddit-icon.svg" alt="Reddit" style="width: 14px; height: 14px; margin-top: 3px; opacity: 0.7;">
+                                    <div>
+                                        <a href="${post.url}" target="_blank" style="color: #0079d3; text-decoration: none; font-size: 9pt;">
+                                            ${post.title}
+                                        </a>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            ${postDate} | ▲ ${post.score} | 💬 ${post.num_comments} | Posted by u/${post.author}
+                                        </div>
+                                    </div>
+                                </div>`;
+                        });
+
+                        redditHtml += `</ul>`;
+                    }
+
+                    let versionResource = item._id
+                        ? `
+                    <div style="display: flex; align-items: flex-start; gap: 6px; margin: 4px 0px; font-size: 9pt; color: #555;">
+                        <div>
+                            <a href="https://releasetrain.io/api/v/${item._id}" target="_blank" style="color: #888; text-decoration: none; font-size: 9pt;">
                                 ID: ${item._id}
                             </a>
-                        </div>`
+                        </div>
+                    </div>`
                         : "";
 
-                    let forecastHtml = `<div class="forecast rt-class-${item.versionProductName}" style="font-size: 10pt; color: #aaa; margin-top: 4px;"></div>`;
-
-                    $(".versionListClassSection details:last-child ul").append(`
-                        <li class="versionListClassSection-item">
-                            ${tags} 
-                            ${releaseNotesHtml}
-                            ${subtleIdHtml}
-                            ${forecastHtml}
-                        </li>
-                    `);
-
-                    if (!forecastFetched.has(item.versionProductName)) {
-                        forecastFetched.add(item.versionProductName);
-                        getVersionForecast(item.versionProductName);
-                    }
+                    htmlBuffer += `
+                    <li class="versionListClassSection-item">
+                        ${tags} 
+                        ${releaseNotesHtml}
+                        ${versionResource}
+                        ${redditHtml}
+                    </li>`;
                 });
+
+                htmlBuffer += `</ul></details>`;
             });
 
-            // ✅ Preserve Last 7 Days Timeline
-            const last7DaysData = getLast7Days(dailyCounts);
-            const last7DaysLabels = last7DaysData.map(item => formatDateForGraphs(item.original));
-            const counts = last7DaysData.map(item => item.count);
-            drawTimeSeriesChart({ labels: last7DaysLabels, counts });
+            $(".versionListClassSection").html(htmlBuffer); // ✅ Efficient bulk UI update
 
-            // ✅ Preserve Title Update
-            document.title = countToday > 0 ? `(${countToday}) releasetrain.io` : "releasetrain.io";
-
-            // ✅ Ensure pagination progresses
-            pageNumParam++;
-
-            // ✅ Preserve Update Type Chart Processing
-            processUpdateTypeCounts(res);
-
-            // Update the current page versions count
-            $(".currentPageVersions").text(`Current Page Versions: ${res.length}`);
+            // ✅ Update the charts
+            drawTimeSeriesChart({ labels: Object.keys(dailyCounts), counts: Object.values(dailyCounts) });
+            drawUpdateTypeChart(updateCounts);
+            drawComponentTypeChart(componentTypeCounts);
+            drawCveChart(cveCounts);
         }
 
         function getLast7Days(dailyCounts) {
@@ -954,7 +1127,7 @@
             let newUrl = window.location.origin + window.location.pathname;
 
             if (selectedComponents) {
-                newUrl += `?q=${encodeURIComponent(selectedComponents)}`;
+                newUrl += `?q=${selectedComponents}`;
             }
 
             // ✅ Remove `?q=` if empty
@@ -971,7 +1144,7 @@
             let newUrl = window.location.origin + window.location.pathname;
 
             if (selectedComponents) {
-                newUrl += `?q=${encodeURIComponent(selectedComponents)}`;
+                newUrl += `?q=${selectedComponents}`;
             }
 
             // ✅ Prevent unnecessary reload if URL is already correct
@@ -981,7 +1154,23 @@
             }
         }
 
+        function getTodayDate() {
+            $(".getTodayDate").text(new Date().toLocaleDateString());
+        }
+
         $(document).ready(function () {
+
+            // Add placeholder elements before fetching data
+            $(".versionListClassSection").html('<div class="skeleton-loader"></div><div class="skeleton-loader"></div>');
+
+            $('.component-names').select2({
+                placeholder: "Select software components", // ✅ Placeholder text
+                allowClear: true, // ✅ Enables '×' to clear selection
+                width: 'resolve', // ✅ Adjusts width dynamically
+                theme: "classic", // ✅ Optional: Choose a clean theme
+                minimumResultsForSearch: 1, // ✅ Enable search when >1 items
+            });
+
             getAndRenderComponentList();
             getVersionCount();
             getComponentCount();

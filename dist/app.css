@@ -355,7 +355,7 @@ img.avatar {
     transition: width 0.3s ease;
 }
 
-.left-column.closed ~ .right-column {
+.left-column.closed~.right-column {
     width: 100%;
 }
 
@@ -372,4 +372,89 @@ img.avatar {
 
 .toggle-button:hover {
     background-color: #0056b3;
+}
+
+/* Ensure fixed height for content before data loads */
+.versionListClassSection {
+    min-height: 400px;
+    /* Reserve space to avoid shifts */
+    overflow-y: auto;
+}
+
+/* Style for the loading spinner */
+.loadingClass {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+    /* Prevents jumpiness */
+}
+
+/* Prevents layout shifts when content updates */
+.versionListClassSection-item {
+    min-height: 50px;
+    /* Reserve space for each item */
+    transition: opacity 0.3s ease-in-out;
+    /* Smooth transition */
+}
+
+.skeleton-loader {
+    background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    height: 50px;
+    width: 100%;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+/* Custom styling for select2 */
+.select2-container--default .select2-selection--multiple {
+    background: #222 !important;
+    border: 1px solid #444 !important;
+    color: #bbb !important;
+    min-height: 36px;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+/* Placeholder text styling */
+.select2-container--default .select2-selection__placeholder {
+    color: #777 !important;
+    /* ✅ Subtle grey placeholder */
+}
+
+/* Selected item styling */
+.select2-container--default .select2-selection__choice {
+    background: #333 !important;
+    border: 1px solid #555 !important;
+    color: #fff !important;
+    padding: 3px 6px;
+    border-radius: 3px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+@media (max-width: 800px) {
+
+    /* Target iPads and smaller screens */
+    .info-bar,
+    .graph-column,
+    .chat-column {
+        display: none !important;
+        /* Hide graphs and chat */
+    }
+
+    .left-column {
+        flex: 1 !important;
+        /* Make the left column take full width */
+    }
 }
