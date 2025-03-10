@@ -998,30 +998,36 @@
 
                         matchingRedditPosts.forEach(post => {
                             const postDate = timeAgo(post.created_utc);
-                            const predictedType = post.classification && Array.isArray(post.classification.componentType)
+
+                            // Check if classification.componentType exists and is an array
+                            let predictedType = post.classification && Array.isArray(post.classification.componentType)
                                 ? post.classification.componentType.join(", ") // Join array elements into a string
                                 : "Unknown"; // Default value if no classification is available
 
+                            // If type is "REPOSITORY" (case insensitive), set to "Unknown"
+                            if (predictedType.toLowerCase().includes("repository")) {
+                                predictedType = "Unknown";
+                            }
+
                             redditHtml += `
-                            <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: 9pt; color: #555;">
-                                <img src="./img/reddit-icon.svg" alt="Reddit" style="width: 14px; height: 14px; margin-top: 3px; opacity: 0.7;">
-                                <div>
-                                    <a href="${post.url}" target="_blank" style="color: #0079d3; text-decoration: none; font-size: 9pt;">
-                                        ${post.title}
-                                    </a>
-                                    <div style="color: #888; font-size: 8pt; margin-top: 2px;">
-                                        ${postDate} | ▲ ${post.score} | 💬 ${post.num_comments} | Posted by u/${post.author}
+                                <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: 9pt; color: #555;">
+                                    <img src="./img/reddit-icon.svg" alt="Reddit" style="width: 14px; height: 14px; margin-top: 3px; opacity: 0.7;">
+                                    <div>
+                                        <a href="${post.url}" target="_blank" style="color: #0079d3; text-decoration: none; font-size: 9pt;">
+                                            ${post.title}
+                                        </a>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            ${postDate} | ▲ ${post.score} | 💬 ${post.num_comments} | Posted by u/${post.author}
+                                        </div>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            🏷️ <strong>Predicted Type:</strong> ${predictedType}
+                                        </div>
                                     </div>
-                                    <div style="color: #888; font-size: 8pt; margin-top: 2px;">
-                                        🏷️ <strong>Predicted Type:</strong> ${predictedType}
-                                    </div>
-                                </div>
-                            </div>`;
+                                </div>`;
                         });
 
                         redditHtml += `</ul>`;
                     }
-
 
                     let versionResource = item._id
                         ? `
