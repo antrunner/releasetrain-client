@@ -928,12 +928,14 @@
                         updateCounts[item.versionReleaseChannel] = (updateCounts[item.versionReleaseChannel] || 0) + 1;
                     }
 
-                    if (item.versionPredictedComponentType) {
-                        componentTypeCounts[item.versionPredictedComponentType] =
-                            (componentTypeCounts[item.versionPredictedComponentType] || 0) + 1;
+                    if (item.classification && Array.isArray(item.classification.componentType) && item.classification.componentType.length > 0) {
+                        item.classification.componentType.forEach(predictedType => {
+                            componentTypeCounts[predictedType] = (componentTypeCounts[predictedType] || 0) + 1;
+                        });
                     } else {
                         componentTypeCounts["Not Typed"] = (componentTypeCounts["Not Typed"] || 0) + 1;
                     }
+
 
                     if (item.isCve) {
                         cveCounts.cve++;
