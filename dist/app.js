@@ -40,6 +40,22 @@ const allowedOperatingSystems = [
     "fedora", "android-x86", "raspbian", "kali-linux", "opensolaris", "zorin", "popos", "puppylinux", "steamos", "beaglebone"
 ];
 
+// Define all the stacks to verify and create the fullstring query
+const check_stack = ["lamp", "lemp", "unn", "rails", "dws", "flask", "spring", "crp", "dds", "usp"];
+// create dictionary for stack values to create the query string
+const stack_dict = {
+    "lamp": "component=name:apache&component=name:linux&component=name:mysql&component=name:php",
+    "lemp": "component=name:nginx&component=name:mysql&component=name:php&component=name:linux",
+    "unn": "component=name:ubuntu&component=name:nginx&component=name:nodejs",
+    "rails": "component=name:macos&component=name:rails&component=name:postgresql",
+    "dws": "component=name:django&component=name:windows&component=name:sqlite",
+    "flask": "component=name:flask&component=name:arch&component=name:postgresql",
+    "spring": "component=name:redhat&component=name:spring&component=name:java",
+    "crp": "component=name:centos&component=name:rails&component=name:postgresql",
+    "dds": "component=name:debian&component=name:django&component=name:sqlite",
+    "usp": "component=name:ubuntu&component=name:prisma&component=name:svelte"
+};
+
 let versions = [];
 let osList = [];
 let tree = {};
@@ -48,43 +64,43 @@ let counterId = 0;
 let startTime = Date.now();  // Start time to calculate the generation time
 let endTime;
 
+//script should not run for empty values
+if (window.location.search === "") {
+    console.log("No query string found");
+    // exit
+    throw new Error();
+}   
+
 let fullQueryString = window.location.search.substring(1);
-let checkStack = fullQueryString.split("=")[1];
-console.log("Check Stack:", checkStack);
+console.log(fullQueryString);
 
-if (checkStack === "lamp")
+let stack = fullQueryString.split("=")[1];
+console.log("Check Stack:", stack);
+
+if (check_stack.includes(stack))
 {
-    fullQueryString = fullQueryString.replace("q=lamp", "component=name:apache&component=name:linux&component=name:mysql&component=name:php");
-    //fullQueryString = "component=name:apache&component=name:linux&component=name:mysql&component=name:php";
-
-    $.ajax({
-        url: `${urlSelectOS}`,
-        type: 'GET',
-        dataType: 'json',
-        success: handleOsData,
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.error("Error fetching data:", textStatus, errorThrown);
-        }
-    });
+    fullQueryString = fullQueryString.replace("q=lamp", stack_dict[stack]);
 }
 else
 {
-    console.log("No query string found");
+    // if its single component just add the component name
+    fullQueryString = fullQueryString.replace(`q=${stack}`, `component=name:${stack}`);
+    console.log(fullQueryString);
     // exit
 }
 
 // Log the full query string
 // console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
 // // Use the full query string in your AJAX request
-// $.ajax({
-//     url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`, // Pass the full query string directly
-//     type: 'GET',
-//     dataType: 'json',
-//     success: handleData,
-//     error: function (jqXHR, textStatus, errorThrown) {
-//         console.error("Error fetching data:", textStatus, errorThrown);
-//     }
-// });
+$.ajax({
+    url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`, // Pass the full query string directly
+    type: 'GET',
+    dataType: 'json',
+    success: handleData,
+    error: function (jqXHR, textStatus, errorThrown) {
+        console.error("Error fetching data:", textStatus, errorThrown);
+    }
+});
 
 
 
@@ -332,31 +348,47 @@ function myRender(container, diagramData) {
     let startTime = window.startTime || Date.now(); // Ensure startTime exists
 
     plantuml.renderPng(code)
-        .then((blob) => {
-            let imageUrl = URL.createObjectURL(blob);
-            let image = new Image();
+    .then((blob) => {
+        let imageUrl = URL.createObjectURL(blob);
+        let image = new Image();
 
-            image.onload = () => {
-                // Draw the image on the canvas once it's loaded
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
-                ctx.drawImage(image, 0, 0); // Draw the diagram onto the canvas
+        image.onload = () => {
+            // Get canvas and image dimensions
+            let canvasWidth = canvas.width;
+            let canvasHeight = canvas.height;
+            let imgWidth = image.width;
+            let imgHeight = image.height;
 
-                if (loader) loader.style.display = 'none'; // Hide loader safely
+            // Calculate scale while maintaining aspect ratio
+            let scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
+            let scaledWidth = imgWidth * scale;
+            let scaledHeight = imgHeight * scale;
 
-                let endTime = Date.now();
-                let generationTime = ((endTime - startTime) / 1000).toFixed(2);
+            // Calculate position to center the image
+            let offsetX = (canvasWidth - scaledWidth) / 2;
+            let offsetY = (canvasHeight - scaledHeight) / 2;
 
-                let timeElement = document.getElementById("generationTime");
-                if (timeElement) timeElement.textContent = generationTime;
+            // Clear canvas and draw the scaled image centered
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
 
-                if (typeof hideLoader === 'function') hideLoader(); // Check before calling
-            };
+            if (loader) loader.style.display = 'none'; // Hide loader safely
 
-            image.src = imageUrl; // Set the image source to the blob URL
-        })
-        .catch((error) => {
-            console.error('Error rendering PlantUML diagram:', error);
-        });
+            let endTime = Date.now();
+            let generationTime = ((endTime - startTime) / 1000).toFixed(2);
+
+            let timeElement = document.getElementById("generationTime");
+            if (timeElement) timeElement.textContent = generationTime;
+
+            if (typeof hideLoader === 'function') hideLoader(); // Check before calling
+        };
+
+        image.src = imageUrl; // Set the image source to the blob URL
+    })
+    .catch((error) => {
+        console.error('Error rendering PlantUML diagram:', error);
+    });
+
 }
 
 function formatDate(inputDate) {
@@ -493,6 +525,8 @@ function formatDateWithRelativeTime(dateStr) {
 
     return `${formatDate(date)} ${relativeTime}`;
 }
+
+
 
 // Function to group components by stack
 function getStack(getComponent) {
