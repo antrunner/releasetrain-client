@@ -1,6 +1,6 @@
 import plantuml from './plantuml.js';
 // Set environment flag
-const IS_PRODUCTION = false;  // Change to `true` for production
+const IS_PRODUCTION = true;  // Change to `true` for production
 
 // Define URLs and paths for both environments
 const config = {
