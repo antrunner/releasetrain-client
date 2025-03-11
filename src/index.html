@@ -368,10 +368,22 @@
 
             // ✅ Ensure the labels are properly formatted
             let formattedLabels = data.labels.map(label => {
+                
                 if (label === "Today" || label === "Yesterday") return label;
 
                 // Convert from YYYY-MM-DD to Date object safely
-                let dateObj = new Date(label);
+                let year = label.slice(0, 4);
+                let month = label.slice(4, 6) - 1; // Months are zero-based in JavaScript (0 = January)
+                let day = label.slice(6, 8);
+
+                // Ensure values are valid before creating the Date object
+                if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                    console.warn(`Invalid date detected: ${label}`);
+                    return label; // Return raw label if invalid
+                }
+
+                let dateObj = new Date(year, month, day);
+
                 if (isNaN(dateObj.getTime())) {
                     console.warn(`Invalid date detected: ${label}`);
                     return label; // Return raw label if invalid
@@ -970,7 +982,6 @@
 
                 groupedVersions[date].forEach(item => {
                     const avatar = getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionUrl, item.versionProductType);
-                    console.log(item.versionUrl);
                     const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
 
                     let tags = "";
