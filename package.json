@@ -1,23 +1,26 @@
 {
   "name": "releasetrain",
   "version": "1.0.0",
-  "description": "releasetrain client",
+  "description": "Client for managing release tracking",
   "main": "src/app.js",
   "scripts": {
     "build": "grunt",
-    "dev": "http-server .",
-    "prod": "npm run build && http-server dist",
-    "test": "jest"
+    "dev": "http-server . --log-ip --verbose",
+    "prod": "npm run build && npm start",
+    "test": "jest --runInBand --detectOpenHandles --verbose",
+    "start": "http-server dist --log-ip --verbose",
+    "debug": "node --inspect-brk src/app.js",
+    "lint": "eslint . --fix"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/antrunner/releasetrain-client.git"
   },
   "keywords": [
-    "client",
-    "version",
     "release",
-    "tracking"
+    "versioning",
+    "tracking",
+    "client"
   ],
   "author": "berhes",
   "license": "ISC",
@@ -30,7 +33,8 @@
     "grunt-contrib-uglify-es": "^3.3.0",
     "grunt-minify-html": "^3.0.0",
     "http-server": "^0.12.3",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "eslint": "^8.56.0"
   },
   "dependencies": {
     "@sakirtemel/plantuml.js": "^1.0.1",

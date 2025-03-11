@@ -132,6 +132,10 @@
                 <span style="color: #4da6ff;">Loading...</span>
             </span>
 
+            <span class="getRedditCount" style="color: #999;">Reddit:
+                <span style="color: #4da6ff;">Loading...</span>
+            </span>
+
             <span class="currentPageVersions" style="color: #999;">Page Versions:
                 <span style="color: #4da6ff;">0</span>
             </span>
@@ -582,23 +586,23 @@
             });
         }
 
-        // ✅ Fetch version count
-        function getVersionCount() {
+        // ✅ Fetch reddit count
+        function getRedditCount() {
             $.ajax({
-                url: `${apiBaseUrl}/v/count`,
+                url: `${apiBaseUrl}/reddit/count`,
                 type: 'GET',
                 dataType: 'json',
                 success: res => {
-                    if (res.totalVersions !== undefined) {
-                        $(".getVersionCount").text(`Versions: ${res.totalVersions}`);
+                    if (res.totalRedditPosts !== undefined) {
+                        $(".getRedditCount").text(`Reddit: ${res.totalRedditPosts}`);
                     } else {
                         console.warn('Unexpected response structure for version count:', res);
-                        $(".getVersionCount").text(`Versions: N/A`);
+                        $(".getRedditCount").text(`Reddit: N/A`);
                     }
                 },
                 error: error => {
                     console.error('Error fetching version count:', error);
-                    $(".getVersionCount").text(`Versions: Error`);
+                    $(".getRedditCount").text(`Reddit: Error`);
                 }
             });
         }
@@ -1186,6 +1190,7 @@
             getAndRenderComponentList();
             getVersionCount();
             getComponentCount();
+            getRedditCount()
             getTodayDate();
 
             // ✅ Fetch query parameter `?q=linux,android`
