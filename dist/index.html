@@ -311,50 +311,44 @@
             });
         }
 
-        function getAvatarHtml(versionProductName, isCve, isSecurityPatch, initialAvatar) {
+        function getAvatarHtml(versionProductName, isCve, isSecurityPatch, versionUrl, initialAvatar) {
             const productName = versionProductName.toLowerCase();
-            let avatar = initialAvatar;
-            switch (productName) {
-                case "chrome":
-                    avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png" alt="Chrome">';
-                    break;
-                case "ledvance":
-                    avatar = '<img class="avatar" src="./img/ledvance.png" alt="Ledvance">';
-                    break;
-                case "firefox":
-                    avatar = '<img class="avatar" src="./img/firefox.png" alt="Firefox">';
-                    break;
-                case "android studio":
-                    avatar = '<img class="avatar" src="./img/androidStudio.png" alt="Android Studio">';
-                    break;
-                case "safari":
-                    avatar = '<img class="avatar" src="./img/safari.png" alt="Safari">';
-                    break;
-                case "eclipse":
-                    avatar = '<img class="avatar" src="./img/eclipse.png" alt="Eclipse">';
-                    break;
-                case "let\'s encrypt":
-                    avatar = '<img class="avatar" src="./img/letsencrypt.png" alt="Let\'s Encrypt">';
-                    break;
-                case "vmware":
-                    avatar = '<img class="avatar" src="./img/vmware.png" alt="VMware">';
-                    break;
-                case "oracle":
-                    avatar = '<img class="avatar" src="./img/vboracle.png" alt="Oracle">';
-                    break;
-                case "digitalocean":
-                    avatar = '<i class="fas fa-exclamation-triangle"></i>';
-                    break;
-                default:
-                    avatar = initialAvatar && initialAvatar !== "OS" && initialAvatar !== "security"
-                        ? `<img class="avatar" src="https://avatars3.githubusercontent.com/u/${initialAvatar}" alt="${versionProductName}">`
-                        : isCve
-                            ? '<img class="avatar" src="./img/cve.png" alt="CVE">'
-                            : isSecurityPatch
-                                ? '<img class="avatar" src="./img/androidSecurityUpdate.png" alt="Security Patch">'
-                                : '<img class="avatar" src="./img/default.png" alt="Default">';
+            const productAvatars = {
+                "chrome": "./img/Google-Chrome-Chromium-icon.png",
+                "ledvance": "./img/ledvance.png",
+                "firefox": "./img/firefox.png",
+                "android studio": "./img/androidStudio.png",
+                "safari": "./img/safari.png",
+                "eclipse": "./img/eclipse.png",
+                "let's encrypt": "./img/letsencrypt.png",
+                "vmware": "./img/vmware.png",
+                "oracle": "./img/vboracle.png"
+            };
+
+            if (productAvatars[productName]) {
+                return `<img class="avatar" src="${productAvatars[productName]}" alt="${versionProductName}">`;
             }
-            return avatar;
+
+            if (productName === "digitalocean") {
+                return '<i class="fas fa-exclamation-triangle"></i>';
+            }
+
+            // Show an exclamation mark if the URL is NVD
+            if (versionUrl && versionUrl.startsWith("https://nvd.nist.gov/")) {
+                return '<img class="avatar" src="./img/cve.png" alt="CVE">';
+            }
+
+            // GitHub avatar always wins
+            if (versionUrl && versionUrl.includes("github.com/")) {
+                return `<img class="avatar" src="https://github.com/${versionUrl.split('/')[3]}.png" alt="${versionProductName}">`;
+            }
+
+            // Handle generic git-based avatars
+            if (versionUrl && versionUrl.startsWith("https://git")) {
+                return `<img class="avatar" src="${versionUrl}.png" alt="${versionProductName}">`;
+            }
+
+            return `<img class="avatar" src="./img/default.png" alt="${versionProductName}">`;
         }
 
         function drawTimeSeriesChart(data) {
@@ -975,7 +969,8 @@
             <ul class="versionList">`;
 
                 groupedVersions[date].forEach(item => {
-                    const avatar = getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionProductType);
+                    const avatar = getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionUrl, item.versionProductType);
+                    console.log(item.versionUrl);
                     const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
 
                     let tags = "";
