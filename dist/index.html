@@ -1111,82 +1111,91 @@
 
         // Function to sort versions by date (chronologically)
         function sortByTriageBreaking() {
-            // Create a Reddit post count map
-            let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
-                let subreddit = post.subreddit || "";
-                acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
-                return acc;
-            }, {});
+            $(".loadingClass").show(); // Show loading spinner before sorting
 
-            versionData.sort((a, b) => {
+            setTimeout(() => { // Add a slight delay to allow UI updates
+                let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
+                    let subreddit = post.subreddit || "";
+                    acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
+                    return acc;
+                }, {});
 
-                // Priority: Move "major" release channels to the top
-                if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
-                if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+                versionData.sort((a, b) => {
+                    // Priority: Move "major" release channels to the top
+                    if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
+                    if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
 
-                // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
-                let redditCountA = redditPostCounts[a.versionProductName] || 0;
-                let redditCountB = redditPostCounts[b.versionProductName] || 0;
-                if (redditCountA !== redditCountB) return redditCountB - redditCountA; // More Reddit posts = higher priority
+                    // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
+                    let redditCountA = redditPostCounts[a.versionProductName] || 0;
+                    let redditCountB = redditPostCounts[b.versionProductName] || 0;
+                    if (redditCountA !== redditCountB) return redditCountB - redditCountA; // More Reddit posts = higher priority
 
-                // Priority: Items where classification.componentType contains "OS"
-                let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
-                let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
-                if (isOS_A !== isOS_B) return isOS_B - isOS_A; // Move OS to the top
+                    // Priority: Items where classification.componentType contains "OS"
+                    let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
+                    let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
+                    if (isOS_A !== isOS_B) return isOS_B - isOS_A; // Move OS to the top
 
-                // Priority: Prioritize isCve = true
-                if (a.isCve && !b.isCve) return -1;
-                if (b.isCve && !a.isCve) return 1;
+                    // Priority: Prioritize isCve = true
+                    if (a.isCve && !b.isCve) return -1;
+                    if (b.isCve && !a.isCve) return 1;
 
-                // Priority: Sort by triage (higher values first)
-                let triageA = a.triage || 0;
-                let triageB = b.triage || 0;
-                return triageB - triageA;
-            });
+                    // Priority: Sort by triage (higher values first)
+                    let triageA = a.triage || 0;
+                    let triageB = b.triage || 0;
+                    return triageB - triageA;
+                });
 
-            renderVersionList(versionData); // Re-render after sorting        }
-            highlightActiveButton("#sortByTriageBreaking"); // Highlight the active button
+                renderVersionList(versionData); // Re-render after sorting
+                highlightActiveButton("#sortByTriageBreaking"); // Highlight the active button
+
+                $(".loadingClass").hide(); // Hide loading spinner after sorting is complete
+            }, 50); // Delay ensures UI updates before execution starts
         }
 
         // Function to sort versions by triage (custom logic)
         function sortByTriageSecurity() {
-            // Create a Reddit post count map
-            let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
-                let subreddit = post.subreddit || "";
-                acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
-                return acc;
-            }, {});
+            $(".loadingClass").show(); // Show loading spinner before sorting
 
-            versionData.sort((a, b) => {
+            setTimeout(() => { // Ensure UI updates before sorting starts
+                // Create a Reddit post count map
+                let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
+                    let subreddit = post.subreddit || "";
+                    acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
+                    return acc;
+                }, {});
 
-                // Priority: Prioritize isCve = true
-                if (a.isCve && !b.isCve) return -1;
-                if (b.isCve && !a.isCve) return 1;
+                versionData.sort((a, b) => {
+                    // Priority: Prioritize isCve = true
+                    if (a.isCve && !b.isCve) return -1;
+                    if (b.isCve && !a.isCve) return 1;
 
-                // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
-                let redditCountA = redditPostCounts[a.versionProductName] || 0;
-                let redditCountB = redditPostCounts[b.versionProductName] || 0;
-                if (redditCountA !== redditCountB) return redditCountB - redditCountA; // More Reddit posts = higher priority
+                    // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
+                    let redditCountA = redditPostCounts[a.versionProductName] || 0;
+                    let redditCountB = redditPostCounts[b.versionProductName] || 0;
+                    if (redditCountA !== redditCountB) return redditCountB - redditCountA; // More Reddit posts = higher priority
 
-                // Priority: Items where classification.componentType contains "OS"
-                let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
-                let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
-                if (isOS_A !== isOS_B) return isOS_B - isOS_A; // Move OS to the top
+                    // Priority: Items where classification.componentType contains "OS"
+                    let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
+                    let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
+                    if (isOS_A !== isOS_B) return isOS_B - isOS_A; // Move OS to the top
 
-                // Priority: Move "major" release channels to the top
-                if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
-                if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+                    // Priority: Move "major" release channels to the top
+                    if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
+                    if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
 
-                // Priority: Sort by triage (higher values first)
-                let triageA = a.triage || 0;
-                let triageB = b.triage || 0;
-                return triageB - triageA;
-            });
+                    // Priority: Sort by triage (higher values first)
+                    let triageA = a.triage || 0;
+                    let triageB = b.triage || 0;
+                    return triageB - triageA;
+                });
 
-            renderVersionList(versionData); // Re-render after sorting
-            highlightActiveButton("#sortByTriageSecurity"); // Highlight the active button
+                renderVersionList(versionData); // Re-render after sorting
+                highlightActiveButton("#sortByTriageSecurity"); // Highlight the active button
 
+                $(".loadingClass").hide(); // Hide loading spinner after sorting is complete
+            }, 50); // Small delay to allow UI update before execution
         }
+
 
         function highlightActiveButton(activeButtonId) {
             $(".btn-dark").removeClass("btn-active"); // Remove highlight from all buttons
