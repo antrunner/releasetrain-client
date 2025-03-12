@@ -112,11 +112,6 @@ img.avatar {
     color: #aaa;
 }
 
-.loadingClass {
-    text-align: center;
-    padding: 10px 0;
-}
-
 .warning {
     background-color: #444;
     border: 1px solid #555;
@@ -392,15 +387,6 @@ img.avatar {
     overflow-y: auto;
 }
 
-/* Style for the loading spinner */
-.loadingClass {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100px;
-    /* Prevents jumpiness */
-}
-
 /* Prevents layout shifts when content updates */
 .versionListClassSection-item {
     min-height: 50px;
@@ -488,10 +474,6 @@ img.avatar {
     flex-direction: column;
 }
 
-.loadingClass {
-    display: none;
-}
-
 .currentPageVersions {
     font-weight: bold;
     color: #007bff;
@@ -566,4 +548,31 @@ img.avatar {
     border-color: #4da6ff !important;
     color: #ffffff !important;
     font-weight: bold;
+}
+
+.loadingClass {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background: #333; /* Dark background */
+    overflow: hidden;
+    display: none; /* Initially hidden */
+}
+
+.loadingClass::after {
+    content: "";
+    position: absolute;
+    width: 40%;
+    height: 100%;
+    background: #4da6ff; /* Blue progress bar */
+    animation: loadingMove 1.5s infinite ease-in-out;
+}
+
+@keyframes loadingMove {
+    0% {
+        left: -40%;
+    }
+    100% {
+        left: 100%;
+    }
 }
