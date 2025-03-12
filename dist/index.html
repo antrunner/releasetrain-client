@@ -926,12 +926,35 @@
                     const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
 
                     let tags = "";
+
+                    // ✅ Wrap everything in a single row layout
+                    tags += `<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px;">`;
+
+                    // ✅ Add version release channel tag if available
                     if (item.versionReleaseChannel) {
                         const tagColors = { "major": "#4da6ff", "other": "#ca4141", "minor": "#47863e", "patch": "#ffbd2e" };
-                        tags = `<span style="color: #fff; font-size: 10pt; background-color: ${tagColors[item.versionReleaseChannel]}; border-radius: 4px; padding: 2px 5px; margin: 1px 5px 1px 0; display: inline-block;">
-                    ${item.versionReleaseChannel.toUpperCase()}
-                </span>`;
+                        tags += `<a href="#" style="text-decoration: none;">
+                            <span style="color: #fff; font-size: 8pt; background-color: ${tagColors[item.versionReleaseChannel]}; border-radius: 3px; padding: 1px 4px; display: inline-block;">
+                                ${item.versionReleaseChannel.toLowerCase()}
+                            </span>
+                        </a>`;
                     }
+
+                    // ✅ Add classification.componentType as tags if available and not "UNKNOWN"
+                    if (item.classification && item.classification.componentType) {
+                        item.classification.componentType.forEach(type => {
+                            if (type !== "UNKNOWN") {
+                                tags += `<a href="#" style="text-decoration: none;">
+                            <span style="color: #fff; font-size: 8pt; background-color: #6e5494; border-radius: 3px; padding: 1px 4px; display: inline-block;">
+                                ${type.toLowerCase()}
+                            </span>
+                        </a>`;
+                            }
+                        });
+                    }
+
+                    // ✅ Close the div for proper row alignment
+                    tags += `</div>`;
 
                     let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://")) ? item.versionUrl.trim() :
                         (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://")) ? item.versionReleaseNotes.trim() : "#";
@@ -954,11 +977,6 @@
                             let predictedType = post.classification && Array.isArray(post.classification.componentType)
                                 ? post.classification.componentType.join(", ") // Join array elements into a string
                                 : "Unknown"; // Default value if no classification is available
-
-                            // If type is "REPOSITORY" (case insensitive), set to "Unknown"
-                            if (predictedType.toLowerCase().includes("repository")) {
-                                predictedType = "Unknown";
-                            }
 
                             redditHtml += `
                                 <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: 9pt; color: #555;">
@@ -993,8 +1011,8 @@
 
                     htmlBuffer += `
                     <li class="versionListClassSection-item">
-                        ${tags} 
                         ${releaseNotesHtml}
+                        ${tags} 
                         ${versionResource}
                         ${redditHtml}
                     </li>`;
