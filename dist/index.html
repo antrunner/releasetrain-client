@@ -1130,19 +1130,20 @@
                     let sortedData = [...versionData]; // Clone to avoid modifying original
 
                     sortedData.sort((a, b) => {
-                        // Priority: Move "OS" classification items to the top
-                        let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
-                        let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
-                        if (isOS_A !== isOS_B) return isOS_B - isOS_A;
+
+                        // Priority: Move "major" release channels to the top
+                        if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
+                        if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
 
                         // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
                         let redditCountA = redditPostCounts[a.versionProductName] || 0;
                         let redditCountB = redditPostCounts[b.versionProductName] || 0;
                         if (redditCountA !== redditCountB) return redditCountB - redditCountA;
 
-                        // Priority: Move "major" release channels to the top
-                        if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
-                        if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+                        // Priority: Move "OS" classification items to the top
+                        let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
+                        let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
+                        if (isOS_A !== isOS_B) return isOS_B - isOS_A;
 
                         // Priority: Prioritize isCve = true
                         if (a.isCve && !b.isCve) return -1;
