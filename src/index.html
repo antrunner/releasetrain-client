@@ -17,110 +17,18 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet" />
     <script type="module" src="./app.js" defer></script>
     <script src="https://cjrtnc.leaningtech.com/2.3/loader.js"></script>
-
-    <style>
-        .main-container {
-            display: flex;
-        }
-
-        .left-column {
-            flex: 1;
-        }
-
-        .graph-column {
-            flex: 1;
-        }
-
-        .chat-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .loadingClass {
-            display: none;
-        }
-
-        .currentPageVersions {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        .dateRangeLabel {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        #graphSection1,
-        #graphSection2 {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        #llmChatSection {
-            flex: 1;
-            border-left: 1px solid #ddd;
-            padding: 6px;
-            background: #f9f9f9;
-        }
-
-        #chatWindow {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 4px;
-            font-size: 14px;
-            color: #444;
-        }
-
-        #chatInput {
-            flex-grow: 1;
-            padding: 4px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        #sendChat {
-            margin-left: 4px;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 3px;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-        }
-    </style>
 </head>
 
 <body>
 
     <!-- Top Bar -->
-    <div class="top-bar" style="
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #1e1e1e;
-    padding: 6px 14px;
-    margin: 0;
-    font-size: 10pt;
-    color: #bbb;
-    border-bottom: 1px solid #333;
-    font-family: 'Consolas', 'Courier New', monospace;
-    gap: 12px;
-">
+    <div class="top-bar">
 
         <!-- Dropdown Select (styled for better alignment) -->
         <select class="component-names" name="names[]" multiple="multiple"></select>
 
         <!-- Info Bar (aligned horizontally) -->
-        <div class="info-bar" style="
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-    ">
+        <div class="info-bar">
 
             <span style="color: #888;">Releasetrain <span style="color: #4da6ff;">v3.1.0</span></span>
 
@@ -142,23 +50,43 @@
 
             <span class="dateRangeLabel" style="color: #888;"></span>
 
+            <!-- Discord link with matching styling -->
+            <!-- <span>
+                <a href="https://discord.gg/mMruEzZe" target="_blank" style="
+            color: #4da6ff;
+            text-decoration: none;
+            font-weight: bold;
+        ">
+                    Discord ↗
+                </a>
+            </span> -->
+
             <span>
                 <a href="https://github.com/antrunner/releasetrain-client" target="_blank" style="
-                color: #4da6ff;
-                text-decoration: none;
-                font-weight: bold;
-            ">
+            color: #4da6ff;
+            text-decoration: none;
+            font-weight: bold;
+        ">
                     GitHub ↗
                 </a>
             </span>
         </div>
-
     </div>
 
     <!-- Main Container -->
     <div class="main-container">
+
         <!-- Left Column: Realtime Feed -->
         <div class="left-column">
+
+            <!-- Sorting Buttons -->
+            <div class="sort-buttons">
+                <button id="sortByTriageBreaking" class="btn-dark">Triage by Breaking</button>
+                <button id="sortByTriageSecurity" class="btn-dark">Triage by Security</button>
+            </div>
+
+            <hr noshade="no">
+
             <div class="content">
                 <div class="loadingClass">
                     <img src="./img/spinner.gif" alt="Loading..." />
@@ -167,6 +95,7 @@
                 <div class="errorHandling"></div>
             </div>
         </div>
+
         <!-- Second Column: Graphs -->
         <div class="graph-column">
             <section id="graphSection1">
@@ -212,6 +141,8 @@
 
         // 🔹 Global storage for Reddit posts
         let globalRedditPosts = [];
+
+        let versionData = []; // Global variable to store version data
 
         // Define helper functions first
         function isSameDate(d1, d2) {
@@ -368,7 +299,7 @@
 
             // ✅ Ensure the labels are properly formatted
             let formattedLabels = data.labels.map(label => {
-                
+
                 if (label === "Today" || label === "Yesterday") return label;
 
                 // Convert from YYYY-MM-DD to Date object safely
@@ -781,14 +712,13 @@
             if (updateDates.length > 0) {
                 let startDate = formatDate(updateDates[0]); // Earliest date
                 let endDateRaw = updateDates[updateDates.length - 1]; // Latest date in `YYYYMMDD`
-
                 // Convert end date to "Today" or "Yesterday" if applicable
                 let endDate = formatDate(endDateRaw);
-
-
-
                 dateRange = `${startDate} - ${endDate}`;
             }
+
+            // Update the date range label in the info-bar
+            $(".dateRangeLabel").text(`Date Range: ${dateRange}`);
 
             // 🏷️ Pass `dateRange` to the update chart function
             drawUpdateTypeChart(updateCounts, dateRange);
@@ -798,16 +728,15 @@
 
             // 🏷️ Draw the CVE chart
             drawCveChart(cveCounts);
-
-            // Update the date range label in the info-bar
-            $(".dateRangeLabel").text(`Date Range: ${dateRange}`);
         }
 
         async function getReleases() {
             $(".versionListClassSection").empty();
 
             try {
-                const versionData = await getVersionList(); // ✅ Fetch versions first
+                versionData = await getVersionList(); // ✅ Fetch versions first
+
+                console.log(versionData)
 
                 await getAllRedditPosts(); // ✅ Then fetch Reddit posts
 
@@ -1180,6 +1109,90 @@
             $(".getTodayDate").text(new Date().toLocaleDateString());
         }
 
+        // Function to sort versions by date (chronologically)
+        function sortByTriageBreaking() {
+            // Create a Reddit post count map
+            let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
+                let subreddit = post.subreddit || "";
+                acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
+                return acc;
+            }, {});
+
+            versionData.sort((a, b) => {
+
+                // Priority: Move "major" release channels to the top
+                if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
+                if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+
+                // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
+                let redditCountA = redditPostCounts[a.versionProductName] || 0;
+                let redditCountB = redditPostCounts[b.versionProductName] || 0;
+                if (redditCountA !== redditCountB) return redditCountB - redditCountA; // More Reddit posts = higher priority
+
+                // Priority: Items where classification.componentType contains "OS"
+                let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
+                let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
+                if (isOS_A !== isOS_B) return isOS_B - isOS_A; // Move OS to the top
+
+                // Priority: Prioritize isCve = true
+                if (a.isCve && !b.isCve) return -1;
+                if (b.isCve && !a.isCve) return 1;
+
+                // Priority: Sort by triage (higher values first)
+                let triageA = a.triage || 0;
+                let triageB = b.triage || 0;
+                return triageB - triageA;
+            });
+
+            renderVersionList(versionData); // Re-render after sorting        }
+            highlightActiveButton("#sortByTriageBreaking"); // Highlight the active button
+        }
+
+        // Function to sort versions by triage (custom logic)
+        function sortByTriageSecurity() {
+            // Create a Reddit post count map
+            let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
+                let subreddit = post.subreddit || "";
+                acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
+                return acc;
+            }, {});
+
+            versionData.sort((a, b) => {
+
+                // Priority: Prioritize isCve = true
+                if (a.isCve && !b.isCve) return -1;
+                if (b.isCve && !a.isCve) return 1;
+
+                // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
+                let redditCountA = redditPostCounts[a.versionProductName] || 0;
+                let redditCountB = redditPostCounts[b.versionProductName] || 0;
+                if (redditCountA !== redditCountB) return redditCountB - redditCountA; // More Reddit posts = higher priority
+
+                // Priority: Items where classification.componentType contains "OS"
+                let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
+                let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
+                if (isOS_A !== isOS_B) return isOS_B - isOS_A; // Move OS to the top
+
+                // Priority: Move "major" release channels to the top
+                if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
+                if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+
+                // Priority: Sort by triage (higher values first)
+                let triageA = a.triage || 0;
+                let triageB = b.triage || 0;
+                return triageB - triageA;
+            });
+
+            renderVersionList(versionData); // Re-render after sorting
+            highlightActiveButton("#sortByTriageSecurity"); // Highlight the active button
+
+        }
+
+        function highlightActiveButton(activeButtonId) {
+            $(".btn-dark").removeClass("btn-active"); // Remove highlight from all buttons
+            $(activeButtonId).addClass("btn-active"); // Highlight the clicked button
+        }
+
         $(document).ready(function () {
 
             // Add placeholder elements before fetching data
@@ -1341,6 +1354,11 @@
                 }
             });
         }
+
+        // Attach event listeners to buttons
+        $("#sortByTriageBreaking").on("click", sortByTriageBreaking);
+        $("#sortByTriageSecurity").on("click", sortByTriageSecurity);
+
 
     </script>
     <script src="./lib/googleanalytics.js"></script>
