@@ -141,8 +141,17 @@
 
         // 🔹 Global storage for Reddit posts
         let globalRedditPosts = [];
-
+        let redditPostCounts = {};
         let versionData = []; // Global variable to store version data
+
+        // Precompute Reddit post counts when the page loads
+        function computeRedditPostCounts() {
+            redditPostCounts = globalRedditPosts.reduce((acc, post) => {
+                let subreddit = post.subreddit || "";
+                acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
+                return acc;
+            }, {});
+        }
 
         // Define helper functions first
         function isSameDate(d1, d2) {
@@ -1114,11 +1123,6 @@
             $(".loadingClass").show(); // Show loading spinner before sorting
 
             setTimeout(() => { // Add a slight delay to allow UI updates
-                let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
-                    let subreddit = post.subreddit || "";
-                    acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
-                    return acc;
-                }, {});
 
                 versionData.sort((a, b) => {
                     // Priority: Move "major" release channels to the top
@@ -1157,12 +1161,6 @@
             $(".loadingClass").show(); // Show loading spinner before sorting
 
             setTimeout(() => { // Ensure UI updates before sorting starts
-                // Create a Reddit post count map
-                let redditPostCounts = globalRedditPosts.reduce((acc, post) => {
-                    let subreddit = post.subreddit || "";
-                    acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
-                    return acc;
-                }, {});
 
                 versionData.sort((a, b) => {
                     // Priority: Prioritize isCve = true
@@ -1220,6 +1218,8 @@
             getComponentCount();
             getRedditCount()
             getTodayDate();
+
+            computeRedditPostCounts();
 
             // ✅ Fetch query parameter `?q=linux,android`
             const query = new URLSearchParams(window.location.search).get("q");
