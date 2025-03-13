@@ -1271,7 +1271,7 @@
             }, 50);
         }
 
-        // Function to sort versions by triage security (including securityType priority)
+        // Function to sort versions by triage security (including securityType priority & version ranking)
         function sortByTriageSecurity() {
             $(".loadingClass").show(); // Show loading animation
 
@@ -1280,30 +1280,40 @@
                     let sortedData = [...versionData]; // Clone to avoid modifying the original
 
                     sortedData.sort((a, b) => {
-                        // Priority: Prioritize isCve = true
+                        // Priority 1: Prioritize isCve = true
                         if (a.isCve && !b.isCve) return -1;
                         if (b.isCve && !a.isCve) return 1;
 
-                        // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
+                        // Priority 2: Sort by securityType count (more security elements = higher rank)
+                        let securityCountA = a.classification?.securityType?.length || 0;
+                        let securityCountB = b.classification?.securityType?.length || 0;
+                        if (securityCountA !== securityCountB) return securityCountB - securityCountA;
+
+                        // Priority 3: Sort by higher version number
+                        let versionA = a.versionNumber ? a.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
+                        let versionB = b.versionNumber ? b.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
+
+                        for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
+                            let numA = versionA[i] || 0;
+                            let numB = versionB[i] || 0;
+                            if (numA !== numB) return numB - numA; // Higher version first
+                        }
+
+                        // Priority 4: Move "major" release channels to the top (but after security-based sorting)
+                        if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
+                        if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+
+                        // Priority 5: Sort by most Reddit posts (subreddit matches versionProductName)
                         let redditCountA = redditPostCounts[a.versionProductName] || 0;
                         let redditCountB = redditPostCounts[b.versionProductName] || 0;
                         if (redditCountA !== redditCountB) return redditCountB - redditCountA;
 
-                        // Priority: Move "OS" classification items to the top
+                        // Priority 6: Move "OS" classification items to the top
                         let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
                         let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
                         if (isOS_A !== isOS_B) return isOS_B - isOS_A;
 
-                        // Priority: Move high-security issues to the top (check classification.securityType)
-                        let securityPriority = a.classification?.securityType?.length || 0;
-                        let securityPriorityB = b.classification?.securityType?.length || 0;
-                        if (securityPriority !== securityPriorityB) return securityPriorityB - securityPriority;
-
-                        // Priority: Move "major" release channels to the top
-                        if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
-                        if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
-
-                        // Priority: Sort by triage (higher values first)
+                        // Priority 7: Sort by triage (higher values first)
                         let triageA = a.triage || 0;
                         let triageB = b.triage || 0;
                         return triageB - triageA;
@@ -1318,6 +1328,7 @@
                 $(".loadingClass").fadeOut(); // Hide loading animation after sorting
             }, 50);
         }
+
 
         function highlightActiveButton(activeButtonId) {
             $(".btn-dark").removeClass("btn-active"); // Remove highlight from all buttons
