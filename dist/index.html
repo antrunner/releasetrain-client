@@ -1163,8 +1163,21 @@
                     sortedData.sort((a, b) => {
 
                         // Priority: Move "major" release channels to the top
-                        if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
-                        if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+                        let isMajorA = a.versionReleaseChannel === "major" ? 1 : 0;
+                        let isMajorB = b.versionReleaseChannel === "major" ? 1 : 0;
+                        if (isMajorA !== isMajorB) return isMajorB - isMajorA;
+
+                        // If both are major updates, sort by higher version number
+                        if (isMajorA && isMajorB) {
+                            let versionA = a.versionNumber.split('.').map(num => parseInt(num, 10));
+                            let versionB = b.versionNumber.split('.').map(num => parseInt(num, 10));
+
+                            for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
+                                let numA = versionA[i] || 0;
+                                let numB = versionB[i] || 0;
+                                if (numA !== numB) return numB - numA; // Higher version first
+                            }
+                        }
 
                         // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
                         let redditCountA = redditPostCounts[a.versionProductName] || 0;
@@ -1176,13 +1189,18 @@
                         let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
                         if (isOS_A !== isOS_B) return isOS_B - isOS_A;
 
-                        // Priority: Move "Fully Broken" to the top, then "Partially Broken"
-                        let breakingPriority = { "Fully Broken": 2, "Partially Broken": 1 };
+                        // Priority: Move "Critical Failure" to the top, then "Limited Functionality"
+                        let breakingPriority = { "Critical Failure": 2, "Limited Functionality": 1 };
                         let breakingA = a.classification?.breakingType?.[0] || "";
                         let breakingB = b.classification?.breakingType?.[0] || "";
                         let priorityA = breakingPriority[breakingA] || 0;
                         let priorityB = breakingPriority[breakingB] || 0;
                         if (priorityA !== priorityB) return priorityB - priorityA;
+
+                        // New Priority: If both have breakingType, sort by the one with more values
+                        let breakingCountA = a.classification?.breakingType?.length || 0;
+                        let breakingCountB = b.classification?.breakingType?.length || 0;
+                        if (breakingCountA !== breakingCountB) return breakingCountB - breakingCountA;
 
                         // Priority: Prioritize isCve = true
                         if (a.isCve && !b.isCve) return -1;
