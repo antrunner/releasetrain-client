@@ -81,8 +81,9 @@
 
             <!-- Sorting Buttons -->
             <div class="sort-buttons">
-                <button id="sortByTriageBreaking" class="btn-dark">Triage by Breaking</button>
-                <button id="sortByTriageSecurity" class="btn-dark">Triage by Security</button>
+                <button id="sortByTriageLastUpdate" class="btn-dark active">Recent Updates</button>
+                <button id="sortByTriageBreaking" class="btn-dark">Failure Impact</button>
+                <button id="sortByTriageSecurity" class="btn-dark">Security Impact</button>
             </div>
 
             <hr noshade="no">
@@ -146,6 +147,7 @@
 
         let cachedTriageBreakingData = null; // Store sorted results specific to TriageBreaking
         let cachedTriageSecurityData = null; // Store sorted results specific to TriageSecurity
+        let cachedTriageLastUpdateData = null; // Store sorted results specific to LastUpdate
 
         // Precompute Reddit post counts when the page loads
         function computeRedditPostCounts() {
@@ -921,7 +923,7 @@
 
                 groupedVersions[date].forEach(item => {
                     const avatar = getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionUrl, item.versionProductType);
-                    const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
+                    const versionLabel = `${item.versionProductName.substring(0, 20)}`;
 
 
                     let tags = "";
@@ -929,14 +931,20 @@
                     // ✅ Wrap everything in a single row layout
                     tags += `<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px;">`;
 
+                    // ✅ Highlight versionNumber if it exists
+                    if (item.versionNumber) {
+                        tags += `<span style="font-weight: bold; font-size: 8pt; color: #333; background-color: #f4f4f4; border-radius: 3px; padding: 1px 4px; display: inline-block;">
+                            ${item.versionNumber}
+                        </span>`;
+                    }
+
                     // ✅ Add version release channel tag if available
                     if (item.versionReleaseChannel) {
                         const tagColors = { "major": "#4da6ff", "other": "#ca4141", "minor": "#47863e", "patch": "#ffbd2e" };
-                        tags += `<a href="#" style="text-decoration: none;">
+                        tags += `
                             <span style="color: #fff; font-size: 8pt; background-color: ${tagColors[item.versionReleaseChannel]}; border-radius: 3px; padding: 1px 4px; display: inline-block;">
                                 ${item.versionReleaseChannel.toLowerCase()}
-                            </span>
-                        </a>`;
+                            </span>`;
                     }
 
                     // ✅ Define colors for classification categories
@@ -958,21 +966,37 @@
                                 values.forEach(value => {
                                     if (value !== "UNKNOWN") {
                                         const tagColor = categoryColors[category] || "#6e5494"; // Default color if category not explicitly set
-                                        tags += `<a href="#" style="text-decoration: none;">
+                                        tags += `
                                             <span style="color: #fff; font-size: 8pt; background-color: ${tagColor}; border-radius: 3px; padding: 1px 4px; display: inline-block;">
                                                 ${formatTagText(value)}
                                             </span>
-                                        </a>`;
+                                        `;
                                     }
                                 });
                             }
                         });
                     }
 
-                    let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://")) ? item.versionUrl.trim() :
-                        (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://")) ? item.versionReleaseNotes.trim() : "#";
+                    let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://"))
+                        ? item.versionUrl.trim()
+                        : (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://"))
+                            ? item.versionReleaseNotes.trim()
+                            : "#";
 
-                    let releaseNotesHtml = `${avatar} <a target="_blank" href="${releaseUrl}"><span>${versionLabel}</span></a>`;
+                    let timeOnly = item.versionTimestampLastUpdate
+                        ? new Date(item.versionTimestampLastUpdate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : "";
+
+                    // Ensures everything stays in one row with proper spacing
+                    let releaseNotesHtml = `
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            ${avatar}
+                            <a target="_blank" href="${releaseUrl}" style="font-weight: bold; text-decoration: none; color: #007bff;">
+                                ${versionLabel}
+                            </a>
+                            ${timeOnly ? `<span style="font-size: 0.85em; color: #666;">(${timeOnly})</span>` : ""}
+                        </div>
+                    `;
 
                     // ✅ Find matching Reddit posts
                     const matchingRedditPosts = globalRedditPosts.filter(post =>
@@ -1150,6 +1174,31 @@
 
         function getTodayDate() {
             $(".getTodayDate").text(new Date().toLocaleDateString());
+        }
+
+        // Function to sort versions by last update timestamp (most recent first)
+        function sortByTriageLastUpdate() {
+            $(".loadingClass").show(); // Show loading animation
+
+            setTimeout(() => { // Ensure UI updates before sorting starts
+                if (!cachedTriageLastUpdateData) { // If not cached, sort and store
+                    let sortedData = [...versionData]; // Clone to avoid modifying original
+
+                    sortedData.sort((a, b) => {
+                        let timeA = new Date(a.versionTimestampLastUpdate).getTime();
+                        let timeB = new Date(b.versionTimestampLastUpdate).getTime();
+
+                        return timeB - timeA; // Sort most recent updates first
+                    });
+
+                    cachedTriageLastUpdateData = sortedData; // Store sorted results for Last Update
+                }
+
+                renderVersionList(cachedTriageLastUpdateData); // Use cached sorted results
+                highlightActiveButton("#sortByTriageLastUpdate"); // Highlight the active button
+
+                $(".loadingClass").fadeOut(); // Hide loading animation after sorting
+            }, 50);
         }
 
         // Function to sort versions by triage breaking (including breakingType priority)
@@ -1439,10 +1488,32 @@
             });
         }
 
-        // Attach event listeners to buttons
-        $("#sortByTriageBreaking").on("click", sortByTriageBreaking);
-        $("#sortByTriageSecurity").on("click", sortByTriageSecurity);
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll(".sort-buttons button");
 
+            function setActiveButton(selectedButton) {
+                buttons.forEach(button => button.classList.remove("active")); // Remove active from all
+                selectedButton.classList.add("active"); // Add active to selected button
+            }
+
+            document.getElementById("sortByTriageLastUpdate").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageLastUpdate();
+            });
+
+            document.getElementById("sortByTriageBreaking").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageBreaking();
+            });
+
+            document.getElementById("sortByTriageSecurity").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageSecurity();
+            });
+
+            // Ensure the default selected button (sortByTriageLastUpdate) is activated on load
+            setActiveButton(document.getElementById("sortByTriageLastUpdate"));
+        });
 
     </script>
     <script src="./lib/googleanalytics.js"></script>

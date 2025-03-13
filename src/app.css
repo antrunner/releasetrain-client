@@ -532,7 +532,7 @@ img.avatar {
     color: #d1d5db;
     padding: 8px 12px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 10px;
     cursor: pointer;
     transition: background 0.2s ease-in-out;
 }
@@ -575,4 +575,40 @@ img.avatar {
     100% {
         left: 100%;
     }
+}
+
+.sort-buttons {
+    display: flex;
+    justify-content: space-evenly; /* Equal spacing */
+    align-items: center;
+    width: 100%;
+    gap: 1vw; /* Responsive spacing */
+    padding: 1vw;
+}
+
+.sort-buttons button {
+    flex: 1; /* Each button takes equal space */
+    max-width: 30%;
+    min-width: 30%;
+    padding: 1vw 1vw;
+    font-size: 0.8rem; /* Dynamic font size */
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    background-color: #333;
+    color: white;
+}
+
+.sort-buttons button:hover {
+    background-color: #555;
+    transform: scale(1.05);
+}
+
+/* Active button style */
+.sort-buttons .active {
+    background-color: #007bff; /* Highlight active button */
+    color: white;
 }
