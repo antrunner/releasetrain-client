@@ -1,6 +1,6 @@
-# Releasetrain Client
+# Releasetrain client
 
-Releasetrain Client is an open-source framework designed to track version releases efficiently.
+Releasetrain client is an open-source framework designed to track software updates.
 
 ## Installation
 
@@ -31,6 +31,13 @@ Access the application at:
 ## Contributing
 
 Contributions are welcome! Feel free to submit issues or pull requests to help improve the project.
+
+### Tips for Contributors
+- Start by reading or adding [existing issues](https://github.com/antrunner/releasetrain-client/issues) requirements
+- Follow the project's coding standards and guidelines
+- Keep pull requests focused on a single feature or bug fix
+- Write clear commit messages and document your changes
+- Test your changes thoroughly before submitting a pull request
 
 ## License
 
