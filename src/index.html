@@ -1216,15 +1216,15 @@
                         let isMajorB = b.versionReleaseChannel === "major" ? 1 : 0;
                         if (isMajorA !== isMajorB) return isMajorB - isMajorA;
 
-                        // If both are major updates, sort by higher version number
-                        if (isMajorA && isMajorB) {
-                            let versionA = a.versionNumber.split('.').map(num => parseInt(num, 10));
-                            let versionB = b.versionNumber.split('.').map(num => parseInt(num, 10));
+                        // Priority: Move "OS" classification items to the top (case insensitive)
+                        const componentPriority = ["os", "server", "database"];
+                        // Loop over componentPriority to find the highest priority match and apply sorting
+                        for (let i = 0; i < componentPriority.length; i++) {
+                            let hasA = Array.isArray(a.classification?.componentType) && a.classification.componentType.some(type => type.toLowerCase() === componentPriority[i]);
+                            let hasB = Array.isArray(b.classification?.componentType) && b.classification.componentType.some(type => type.toLowerCase() === componentPriority[i]);
 
-                            for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
-                                let numA = versionA[i] || 0;
-                                let numB = versionB[i] || 0;
-                                if (numA !== numB) return numB - numA; // Higher version first
+                            if (hasA !== hasB) {
+                                return hasB - hasA; // Higher priority component goes first
                             }
                         }
 
@@ -1233,10 +1233,18 @@
                         let redditCountB = redditPostCounts[b.versionProductName] || 0;
                         if (redditCountA !== redditCountB) return redditCountB - redditCountA;
 
-                        // Priority: Move "OS" classification items to the top
-                        let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
-                        let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
-                        if (isOS_A !== isOS_B) return isOS_B - isOS_A;
+                        // Priority 3: Sort by higher version number (only if the first part is less than 4 digits)
+                        let versionA = a.versionNumber ? a.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
+                        let versionB = b.versionNumber ? b.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
+
+                        // Check if the first part of the version is less than 4 digits (to avoid treating years as versions)
+                        if (versionA.length > 0 && versionB.length > 0 && versionA[0] < 1000 && versionB[0] < 1000) {
+                            for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
+                                let numA = versionA[i] || 0;
+                                let numB = versionB[i] || 0;
+                                if (numA !== numB) return numB - numA; // Higher version first
+                            }
+                        }
 
                         // Priority: Move "Critical Failure" to the top, then "Limited Functionality"
                         let breakingPriority = { "Critical Failure": 2, "Limited Functionality": 1 };
@@ -1289,14 +1297,17 @@
                         let securityCountB = b.classification?.securityType?.length || 0;
                         if (securityCountA !== securityCountB) return securityCountB - securityCountA;
 
-                        // Priority 3: Sort by higher version number
+                        // Priority 3: Sort by higher version number (only if the first part is less than 4 digits)
                         let versionA = a.versionNumber ? a.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
                         let versionB = b.versionNumber ? b.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
 
-                        for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
-                            let numA = versionA[i] || 0;
-                            let numB = versionB[i] || 0;
-                            if (numA !== numB) return numB - numA; // Higher version first
+                        // Check if the first part of the version is less than 4 digits (to avoid treating years as versions)
+                        if (versionA.length > 0 && versionB.length > 0 && versionA[0] < 1000 && versionB[0] < 1000) {
+                            for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
+                                let numA = versionA[i] || 0;
+                                let numB = versionB[i] || 0;
+                                if (numA !== numB) return numB - numA; // Higher version first
+                            }
                         }
 
                         // Priority 4: Move "major" release channels to the top (but after security-based sorting)
