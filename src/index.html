@@ -1012,10 +1012,10 @@
                         matchingRedditPosts.forEach(post => {
                             const postDate = timeAgo(post.created_utc);
 
-                            // Check if classification.componentType exists and is an array
-                            let predictedType = post.classification && Array.isArray(post.classification.componentType)
-                                ? post.classification.componentType.join(", ") // Join array elements into a string
-                                : "N/A"; // Default value if no classification is available
+                            // Check if classification.componentType exists, is an array, and is not empty
+                            let predictedType = post.classification && Array.isArray(post.classification.componentType) && post.classification.componentType.length > 0
+                                ? post.classification.componentType.map(type => `<span style="display: inline-block; background: #eee; color: #555; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
+                                : `<span style="color: #888; font-size: 8pt;">N/A</span>`; // Default value if no classification is available
 
                             redditHtml += `
                                 <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: 9pt; color: #555;">
