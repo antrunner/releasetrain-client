@@ -1211,21 +1211,92 @@
 
                     sortedData.sort((a, b) => {
 
+                        // Priority: Prioritize isCve = false
+                        if (a.isCve && !b.isCve) return 1;
+                        if (b.isCve && !a.isCve) return -1;
+
+                        // Priority: Move "OS" classification items to the top (case insensitive)
+                        const componentPriority = ["os", "server", "language", "database", "browser"];
+                        const componentNonPriority = ["app", "ide", "github", "web", "repository", "design"];
+
+                        let priorityA = Infinity; // Default to neutral if no priority is found
+                        let priorityB = Infinity; // Default to neutral if no priority is found
+
+                        for (let i = 0; i < componentPriority.length; i++) {
+                            if (Array.isArray(a.classification?.componentType) && a.classification.componentType.some(type => type.toLowerCase() === componentPriority[i])) {
+                                priorityA = i; // Assign priority index if found
+                            }
+                            if (Array.isArray(b.classification?.componentType) && b.classification.componentType.some(type => type.toLowerCase() === componentPriority[i])) {
+                                priorityB = i; // Assign priority index if found
+                            }
+                        }
+
+                        let isEmptyA = !Array.isArray(a.classification?.componentType) || a.classification.componentType.length === 0; // Check if componentType is empty
+                        let isEmptyB = !Array.isArray(b.classification?.componentType) || b.classification.componentType.length === 0; // Check if componentType is empty
+
+                        if (isEmptyA && isEmptyB) {
+                            priorityA = priorityB = Infinity; // Treat both as neutral if empty
+                        }
+
+                        if (isEmptyA !== isEmptyB) {
+                            if (isEmptyA) priorityA = componentPriority.length; // Assign mid-priority to empty
+                            if (isEmptyB) priorityB = componentPriority.length; // Assign mid-priority to empty
+                        }
+
+                        if (priorityA !== priorityB) {
+                            return priorityA - priorityB; // Lower index means higher priority
+                        }
+
+                        let versionTagsA = a.versionSearchTags?.length || 0;
+                        let versionTagsB = b.versionSearchTags?.length || 0;
+
+                        if (versionTagsA !== versionTagsB && versionTagsA < 5 && versionTagsB < 5) {
+                            return versionTagsA - versionTagsB; // Prefer fewer version tags
+                        }
+
+                        let countA = a.classification?.componentType?.length || 0;
+                        let countB = b.classification?.componentType?.length || 0;
+                        if (priorityA !== -1 && priorityB !== -1 && countA !== countB) {
+                            return countA - countB; // Prefer fewer elements
+                        }
+
+                        let hasNonPriorityA = Array.isArray(a.classification?.componentType) && a.classification.componentType.some(type => componentNonPriority.includes(type.toLowerCase()));
+                        let hasNonPriorityB = Array.isArray(b.classification?.componentType) && b.classification.componentType.some(type => componentNonPriority.includes(type.toLowerCase()));
+
+                        if (hasNonPriorityA !== hasNonPriorityB) {
+                            return hasNonPriorityA - hasNonPriorityB; // Push non-priority components lower
+                        }
+
                         // Priority: Move "major" release channels to the top
                         let isMajorA = a.versionReleaseChannel === "major" ? 1 : 0;
                         let isMajorB = b.versionReleaseChannel === "major" ? 1 : 0;
                         if (isMajorA !== isMajorB) return isMajorB - isMajorA;
 
-                        // Priority: Move "OS" classification items to the top (case insensitive)
-                        const componentPriority = ["os", "server", "database"];
-                        // Loop over componentPriority to find the highest priority match and apply sorting
-                        for (let i = 0; i < componentPriority.length; i++) {
-                            let hasA = Array.isArray(a.classification?.componentType) && a.classification.componentType.some(type => type.toLowerCase() === componentPriority[i]);
-                            let hasB = Array.isArray(b.classification?.componentType) && b.classification.componentType.some(type => type.toLowerCase() === componentPriority[i]);
+                        // Priority: Sort by higher version number
+                        let versionPartsA = a.versionNumber ? a.versionNumber.split('.').map(num => parseInt(num, 10) || 0) : [];
+                        if (versionPartsA.length === 1) versionPartsA = [versionPartsA[0], 0, 0]; // Only master version exists
+                        else if (versionPartsA.length === 2) versionPartsA = [versionPartsA[0], versionPartsA[1], 0]; // Master and minor exist, patch defaults to 0
 
-                            if (hasA !== hasB) {
-                                return hasB - hasA; // Higher priority component goes first
-                            }
+                        let versionPartsB = b.versionNumber ? b.versionNumber.split('.').map(num => parseInt(num, 10) || 0) : [];
+                        if (versionPartsB.length === 1) versionPartsB = [versionPartsB[0], 0, 0]; // Only master version exists
+                        else if (versionPartsB.length === 2) versionPartsB = [versionPartsB[0], versionPartsB[1], 0]; // Master and minor exist, patch defaults to 0
+
+                        let [masterA, minorA, patchA] = versionPartsA;
+                        let [masterB, minorB, patchB] = versionPartsB;
+
+                        if (masterA !== masterB) {
+                            console.log(`Comparing Master: ${a.versionNumber} vs ${b.versionNumber} → Winner: ${masterB > masterA ? b.versionNumber : a.versionNumber}`);
+                            return masterB - masterA; // Higher master version wins
+                        }
+
+                        if (minorA !== minorB) {
+                            console.log(`Comparing Minor: ${a.versionNumber} vs ${b.versionNumber} → Winner: ${minorB > minorA ? b.versionNumber : a.versionNumber}`);
+                            return minorB - minorA; // Higher minor version wins
+                        }
+
+                        if (patchA !== patchB) {
+                            console.log(`Comparing Patch: ${a.versionNumber} vs ${b.versionNumber} → Winner: ${patchB > patchA ? b.versionNumber : a.versionNumber}`);
+                            return patchB - patchA; // Higher patch version wins
                         }
 
                         // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
@@ -1233,35 +1304,18 @@
                         let redditCountB = redditPostCounts[b.versionProductName] || 0;
                         if (redditCountA !== redditCountB) return redditCountB - redditCountA;
 
-                        // Priority 3: Sort by higher version number (only if the first part is less than 4 digits)
-                        let versionA = a.versionNumber ? a.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
-                        let versionB = b.versionNumber ? b.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
-
-                        // Check if the first part of the version is less than 4 digits (to avoid treating years as versions)
-                        if (versionA.length > 0 && versionB.length > 0 && versionA[0] < 1000 && versionB[0] < 1000) {
-                            for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
-                                let numA = versionA[i] || 0;
-                                let numB = versionB[i] || 0;
-                                if (numA !== numB) return numB - numA; // Higher version first
-                            }
-                        }
-
                         // Priority: Move "Critical Failure" to the top, then "Limited Functionality"
                         let breakingPriority = { "Critical Failure": 2, "Limited Functionality": 1 };
                         let breakingA = a.classification?.breakingType?.[0] || "";
                         let breakingB = b.classification?.breakingType?.[0] || "";
-                        let priorityA = breakingPriority[breakingA] || 0;
-                        let priorityB = breakingPriority[breakingB] || 0;
+                        priorityA = breakingPriority[breakingA] || 0;
+                        priorityB = breakingPriority[breakingB] || 0;
                         if (priorityA !== priorityB) return priorityB - priorityA;
 
-                        // New Priority: If both have breakingType, sort by the one with more values
+                        // Priority: If both have breakingType, sort by the one with more values
                         let breakingCountA = a.classification?.breakingType?.length || 0;
                         let breakingCountB = b.classification?.breakingType?.length || 0;
                         if (breakingCountA !== breakingCountB) return breakingCountB - breakingCountA;
-
-                        // Priority: Prioritize isCve = true
-                        if (a.isCve && !b.isCve) return -1;
-                        if (b.isCve && !a.isCve) return 1;
 
                         // Priority: Sort by triage (higher values first)
                         let triageA = a.triage || 0;
