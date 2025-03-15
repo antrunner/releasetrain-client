@@ -84,6 +84,7 @@
                 <button id="sortByTriageLastUpdate" class="btn-dark active">Recent Updates</button>
                 <button id="sortByTriageBreaking" class="btn-dark">Failure Impact</button>
                 <button id="sortByTriageSecurity" class="btn-dark">Security Impact</button>
+                <button id="sortByTriageLegal" class="btn-dark">Legal Impact</button>
             </div>
 
             <hr noshade="no">
@@ -148,6 +149,7 @@
         let cachedTriageBreakingData = null; // Store sorted results specific to TriageBreaking
         let cachedTriageSecurityData = null; // Store sorted results specific to TriageSecurity
         let cachedTriageLastUpdateData = null; // Store sorted results specific to LastUpdate
+        let cachedTriageLegalData = null;
 
         // Precompute Reddit post counts when the page loads
         function computeRedditPostCounts() {
@@ -1394,6 +1396,47 @@
             }, 50);
         }
 
+        // Function to sort versions by triage security (including securityType priority & version ranking)
+        // Function to sort versions by triage security (including legal safety and privacy emphasis)
+        function sortByTriageLegal() {
+            $(".loadingClass").show(); // Show loading animation
+
+            setTimeout(() => { // Ensure UI updates before sorting starts
+                if (!cachedTriageLegalData) { // If not cached, sort and store
+                    let sortedData = [...versionData]; // Clone to avoid modifying the original
+
+                    sortedData.sort((a, b) => {
+                        // Check for legal and privacy keywords
+                        const keywords = ['legal', 'privacy', 'safety'];
+                        const countKeywords = (types) => types.filter(type => keywords.some(keyword => type.includes(keyword))).length;
+
+                        let keywordCountA = countKeywords(a.classification?.securityType || []);
+                        let keywordCountB = countKeywords(b.classification?.securityType || []);
+
+                        if (keywordCountA !== keywordCountB) {
+                            return keywordCountB - keywordCountA; // Prioritize versions with more legal/privacy types
+                        }
+
+                        // Fallback to count of securityType
+                        let securityCountA = a.classification?.securityType?.length || 0;
+                        let securityCountB = b.classification?.securityType?.length || 0;
+                        if (securityCountA !== securityCountB) {
+                            return securityCountB - securityCountA; // More security elements = higher rank
+                        }
+
+                        // Further fallback, if needed (e.g., by version number or date)
+                        return 0;
+                    });
+
+                    cachedTriageLegalData = sortedData; // Store sorted results for TriageSecurity
+                }
+
+                renderVersionList(cachedTriageLegalData); // Use cached sorted results
+                highlightActiveButton("#sortByTriageLegal"); // Highlight the active button
+
+                $(".loadingClass").fadeOut(); // Hide loading animation after sorting
+            }, 50);
+        }
 
         function highlightActiveButton(activeButtonId) {
             $(".btn-dark").removeClass("btn-active"); // Remove highlight from all buttons
@@ -1586,6 +1629,12 @@
                 setActiveButton(this);
                 sortByTriageSecurity();
             });
+
+            document.getElementById("sortByTriageLegal").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageLegal();
+            });
+
 
             // Ensure the default selected button (sortByTriageLastUpdate) is activated on load
             setActiveButton(document.getElementById("sortByTriageLastUpdate"));
