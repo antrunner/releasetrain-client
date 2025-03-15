@@ -1014,8 +1014,18 @@
 
                             // Check if classification.componentType exists, is an array, and is not empty
                             let predictedType = post.classification && Array.isArray(post.classification.componentType) && post.classification.componentType.length > 0
-                                ? post.classification.componentType.map(type => `<span style="display: inline-block; background: #eee; color: #555; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
+                                ? post.classification.componentType.filter(type => type.toLowerCase() !== "unknown").map(type => `<span style="display: inline-block; background: #4da6ff; color: white; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
                                 : `<span style="color: #888; font-size: 8pt;">N/A</span>`; // Default value if no classification is available
+
+                            // Check if classification.securityType exists and add styling
+                            let securityType = post.classification && Array.isArray(post.classification.securityType) && post.classification.securityType.length > 0
+                                ? post.classification.securityType.filter(type => type.toLowerCase() !== "unknown").map(type => `<span style="display: inline-block; background: #ca4141; color: white; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
+                                : `<span style="color: #888; font-size: 8pt;">N/A</span>`;
+
+                            // Check if classification.breakingType exists and add styling
+                            let breakingType = post.classification && Array.isArray(post.classification.breakingType) && post.classification.breakingType.length > 0
+                                ? post.classification.breakingType.filter(type => type.toLowerCase() !== "unknown").map(type => `<span style="display: inline-block; background: #ff9800; color: white; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
+                                : `<span style="color: #888; font-size: 8pt;">N/A</span>`;
 
                             redditHtml += `
                                 <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: 9pt; color: #555;">
@@ -1030,10 +1040,15 @@
                                         <div style="color: #888; font-size: 8pt; margin-top: 2px;">
                                             🏷️ <strong>Predicted Type:</strong> ${predictedType}
                                         </div>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            🔒 <strong>Security Type:</strong> ${securityType}
+                                        </div>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            ⚠️ <strong>Breaking Type:</strong> ${breakingType}
+                                        </div>
                                     </div>
                                 </div>`;
                         });
-
                         redditHtml += `</ul>`;
                     }
 
