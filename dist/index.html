@@ -1269,6 +1269,14 @@
                             return hasNonPriorityA - hasNonPriorityB; // Push non-priority components lower
                         }
 
+                        // Priority: Move "Critical Failure" to the top, then "Limited Functionality", then "Breaking Update"
+                        let breakingPriority = { "Critical Failure": 3, "Limited Functionality": 2, "Breaking Update": 1 };
+                        let breakingA = a.classification?.breakingType?.[0] || "";
+                        let breakingB = b.classification?.breakingType?.[0] || "";
+                        priorityA = breakingPriority[breakingA] || 0;
+                        priorityB = breakingPriority[breakingB] || 0;
+                        if (priorityA !== priorityB) return priorityB - priorityA;
+
                         // Priority: Move "major" release channels to the top
                         let isMajorA = a.versionReleaseChannel === "major" ? 1 : 0;
                         let isMajorB = b.versionReleaseChannel === "major" ? 1 : 0;
@@ -1305,14 +1313,6 @@
                         let redditCountA = redditPostCounts[a.versionProductName] || 0;
                         let redditCountB = redditPostCounts[b.versionProductName] || 0;
                         if (redditCountA !== redditCountB) return redditCountB - redditCountA;
-
-                        // Priority: Move "Critical Failure" to the top, then "Limited Functionality"
-                        let breakingPriority = { "Critical Failure": 2, "Limited Functionality": 1 };
-                        let breakingA = a.classification?.breakingType?.[0] || "";
-                        let breakingB = b.classification?.breakingType?.[0] || "";
-                        priorityA = breakingPriority[breakingA] || 0;
-                        priorityB = breakingPriority[breakingB] || 0;
-                        if (priorityA !== priorityB) return priorityB - priorityA;
 
                         // Priority: If both have breakingType, sort by the one with more values
                         let breakingCountA = a.classification?.breakingType?.length || 0;
