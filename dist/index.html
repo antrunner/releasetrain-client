@@ -17,112 +17,20 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" rel="stylesheet" />
     <script type="module" src="./app.js" defer></script>
     <script src="https://cjrtnc.leaningtech.com/2.3/loader.js"></script>
-
-    <style>
-        .main-container {
-            display: flex;
-        }
-
-        .left-column {
-            flex: 1;
-        }
-
-        .graph-column {
-            flex: 1;
-        }
-
-        .chat-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .loadingClass {
-            display: none;
-        }
-
-        .currentPageVersions {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        .dateRangeLabel {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        #graphSection1,
-        #graphSection2 {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        #llmChatSection {
-            flex: 1;
-            border-left: 1px solid #ddd;
-            padding: 6px;
-            background: #f9f9f9;
-        }
-
-        #chatWindow {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 4px;
-            font-size: 14px;
-            color: #444;
-        }
-
-        #chatInput {
-            flex-grow: 1;
-            padding: 4px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        #sendChat {
-            margin-left: 4px;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 3px;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-        }
-    </style>
 </head>
 
 <body>
 
     <!-- Top Bar -->
-    <div class="top-bar" style="
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #1e1e1e;
-    padding: 6px 14px;
-    margin: 0;
-    font-size: 10pt;
-    color: #bbb;
-    border-bottom: 1px solid #333;
-    font-family: 'Consolas', 'Courier New', monospace;
-    gap: 12px;
-">
+    <div class="top-bar">
 
         <!-- Dropdown Select (styled for better alignment) -->
         <select class="component-names" name="names[]" multiple="multiple"></select>
 
         <!-- Info Bar (aligned horizontally) -->
-        <div class="info-bar" style="
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-    ">
+        <div class="info-bar">
 
-            <span style="color: #888;">Releasetrain <span style="color: #4da6ff;">v3.0.0</span></span>
+            <span style="color: #888;">Releasetrain <span style="color: #4da6ff;">v3.1.0</span></span>
 
             <span class="getComponentCount" style="color: #999;">Components:
                 <span style="color: #4da6ff;">Loading...</span>
@@ -132,29 +40,55 @@
                 <span style="color: #4da6ff;">Loading...</span>
             </span>
 
+            <span class="getRedditCount" style="color: #999;">Reddit:
+                <span style="color: #4da6ff;">Loading...</span>
+            </span>
+
             <span class="currentPageVersions" style="color: #999;">Page Versions:
                 <span style="color: #4da6ff;">0</span>
             </span>
 
             <span class="dateRangeLabel" style="color: #888;"></span>
 
+            <!-- Discord link with matching styling -->
+            <!-- <span>
+                <a href="https://discord.gg/mMruEzZe" target="_blank" style="
+            color: #4da6ff;
+            text-decoration: none;
+            font-weight: bold;
+        ">
+                    Discord ↗
+                </a>
+            </span> -->
+
             <span>
                 <a href="https://github.com/antrunner/releasetrain-client" target="_blank" style="
-                color: #4da6ff;
-                text-decoration: none;
-                font-weight: bold;
-            ">
+            color: #4da6ff;
+            text-decoration: none;
+            font-weight: bold;
+        ">
                     GitHub ↗
                 </a>
             </span>
         </div>
-
     </div>
 
     <!-- Main Container -->
     <div class="main-container">
+
         <!-- Left Column: Realtime Feed -->
         <div class="left-column">
+
+            <!-- Sorting Buttons -->
+            <div class="sort-buttons">
+                <button id="sortByTriageLastUpdate" class="btn-dark active">Recent Updates</button>
+                <button id="sortByTriageBreaking" class="btn-dark">Failure Impact</button>
+                <button id="sortByTriageSecurity" class="btn-dark">Security Impact</button>
+                <button id="sortByTriageLegal" class="btn-dark">Legal Impact</button>
+            </div>
+
+            <hr noshade="no">
+
             <div class="content">
                 <div class="loadingClass">
                     <img src="./img/spinner.gif" alt="Loading..." />
@@ -163,12 +97,12 @@
                 <div class="errorHandling"></div>
             </div>
         </div>
+
         <!-- Second Column: Graphs -->
         <div class="graph-column">
             <section id="graphSection1">
                 <canvas id="graphCanvas"></canvas>
                 <canvas id="componentTypeChart"></canvas>
-                <canvas id="plantuml-diagrams"></canvas>
             </section>
         </div>
         <!-- Third Column: Graphs -->
@@ -180,6 +114,8 @@
         </div>
         <!-- Fourth Column: Chat -->
         <div class="chat-column">
+            <canvas id="plantuml-diagrams"></canvas>
+
             <section id="llmChatSection">
                 <div id="chatWindow">
                     <!-- Chat messages appear here -->
@@ -207,6 +143,22 @@
 
         // 🔹 Global storage for Reddit posts
         let globalRedditPosts = [];
+        let redditPostCounts = {};
+        let versionData = []; // Global variable to store version data
+
+        let cachedTriageBreakingData = null; // Store sorted results specific to TriageBreaking
+        let cachedTriageSecurityData = null; // Store sorted results specific to TriageSecurity
+        let cachedTriageLastUpdateData = null; // Store sorted results specific to LastUpdate
+        let cachedTriageLegalData = null;
+
+        // Precompute Reddit post counts when the page loads
+        function computeRedditPostCounts() {
+            redditPostCounts = globalRedditPosts.reduce((acc, post) => {
+                let subreddit = post.subreddit || "";
+                acc[subreddit] = (acc[subreddit] || 0) + 1; // Count posts per subreddit
+                return acc;
+            }, {});
+        }
 
         // Define helper functions first
         function isSameDate(d1, d2) {
@@ -270,17 +222,14 @@
         }
 
 
-        function checkIfStackExists(stack_name)
-        {
+        function checkIfStackExists(stack_name) {
             console.log(stack_name);
-            
-            if (stack_name === "lamp")
-            {
+
+            if (stack_name === "lamp") {
                 return "LAMP"
-                
+
             }
-            else
-            {
+            else {
                 return "Not Found"
             }
         }
@@ -309,50 +258,44 @@
             });
         }
 
-        function getAvatarHtml(versionProductName, isCve, isSecurityPatch, initialAvatar) {
+        function getAvatarHtml(versionProductName, isCve, isSecurityPatch, versionUrl, initialAvatar) {
             const productName = versionProductName.toLowerCase();
-            let avatar = initialAvatar;
-            switch (productName) {
-                case "chrome":
-                    avatar = '<img class="avatar" src="./img/Google-Chrome-Chromium-icon.png" alt="Chrome">';
-                    break;
-                case "ledvance":
-                    avatar = '<img class="avatar" src="./img/ledvance.png" alt="Ledvance">';
-                    break;
-                case "firefox":
-                    avatar = '<img class="avatar" src="./img/firefox.png" alt="Firefox">';
-                    break;
-                case "android studio":
-                    avatar = '<img class="avatar" src="./img/androidStudio.png" alt="Android Studio">';
-                    break;
-                case "safari":
-                    avatar = '<img class="avatar" src="./img/safari.png" alt="Safari">';
-                    break;
-                case "eclipse":
-                    avatar = '<img class="avatar" src="./img/eclipse.png" alt="Eclipse">';
-                    break;
-                case "let\'s encrypt":
-                    avatar = '<img class="avatar" src="./img/letsencrypt.png" alt="Let\'s Encrypt">';
-                    break;
-                case "vmware":
-                    avatar = '<img class="avatar" src="./img/vmware.png" alt="VMware">';
-                    break;
-                case "oracle":
-                    avatar = '<img class="avatar" src="./img/vboracle.png" alt="Oracle">';
-                    break;
-                case "digitalocean":
-                    avatar = '<i class="fas fa-exclamation-triangle"></i>';
-                    break;
-                default:
-                    avatar = initialAvatar && initialAvatar !== "OS" && initialAvatar !== "security"
-                        ? `<img class="avatar" src="https://avatars3.githubusercontent.com/u/${initialAvatar}" alt="${versionProductName}">`
-                        : isCve
-                            ? '<img class="avatar" src="./img/cve.png" alt="CVE">'
-                            : isSecurityPatch
-                                ? '<img class="avatar" src="./img/androidSecurityUpdate.png" alt="Security Patch">'
-                                : '<img class="avatar" src="./img/default.png" alt="Default">';
+            const productAvatars = {
+                "chrome": "./img/Google-Chrome-Chromium-icon.png",
+                "ledvance": "./img/ledvance.png",
+                "firefox": "./img/firefox.png",
+                "android studio": "./img/androidStudio.png",
+                "safari": "./img/safari.png",
+                "eclipse": "./img/eclipse.png",
+                "let's encrypt": "./img/letsencrypt.png",
+                "vmware": "./img/vmware.png",
+                "oracle": "./img/vboracle.png"
+            };
+
+            if (productAvatars[productName]) {
+                return `<img class="avatar" src="${productAvatars[productName]}" alt="${versionProductName}">`;
             }
-            return avatar;
+
+            if (productName === "digitalocean") {
+                return '<i class="fas fa-exclamation-triangle"></i>';
+            }
+
+            // Show an exclamation mark if the URL is NVD
+            if (versionUrl && versionUrl.startsWith("https://nvd.nist.gov/")) {
+                return '<img class="avatar" src="./img/cve.png" alt="CVE">';
+            }
+
+            // GitHub avatar always wins
+            if (versionUrl && versionUrl.includes("github.com/")) {
+                return `<img class="avatar" src="https://github.com/${versionUrl.split('/')[3]}.png" alt="${versionProductName}">`;
+            }
+
+            // Handle generic git-based avatars
+            if (versionUrl && versionUrl.startsWith("https://git")) {
+                return `<img class="avatar" src="${versionUrl}.png" alt="${versionProductName}">`;
+            }
+
+            return `<img class="avatar" src="./img/default.png" alt="${versionProductName}">`;
         }
 
         function drawTimeSeriesChart(data) {
@@ -372,10 +315,22 @@
 
             // ✅ Ensure the labels are properly formatted
             let formattedLabels = data.labels.map(label => {
+
                 if (label === "Today" || label === "Yesterday") return label;
 
                 // Convert from YYYY-MM-DD to Date object safely
-                let dateObj = new Date(label);
+                let year = label.slice(0, 4);
+                let month = label.slice(4, 6) - 1; // Months are zero-based in JavaScript (0 = January)
+                let day = label.slice(6, 8);
+
+                // Ensure values are valid before creating the Date object
+                if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                    console.warn(`Invalid date detected: ${label}`);
+                    return label; // Return raw label if invalid
+                }
+
+                let dateObj = new Date(year, month, day);
+
                 if (isNaN(dateObj.getTime())) {
                     console.warn(`Invalid date detected: ${label}`);
                     return label; // Return raw label if invalid
@@ -584,23 +539,23 @@
             });
         }
 
-        // ✅ Fetch version count
-        function getVersionCount() {
+        // ✅ Fetch reddit count
+        function getRedditCount() {
             $.ajax({
-                url: `${apiBaseUrl}/v/count`,
+                url: `${apiBaseUrl}/reddit/count`,
                 type: 'GET',
                 dataType: 'json',
                 success: res => {
-                    if (res.totalVersions !== undefined) {
-                        $(".getVersionCount").text(`Versions: ${res.totalVersions}`);
+                    if (res.totalRedditPosts !== undefined) {
+                        $(".getRedditCount").text(`Reddit: ${res.totalRedditPosts}`);
                     } else {
                         console.warn('Unexpected response structure for version count:', res);
-                        $(".getVersionCount").text(`Versions: N/A`);
+                        $(".getRedditCount").text(`Reddit: N/A`);
                     }
                 },
                 error: error => {
                     console.error('Error fetching version count:', error);
-                    $(".getVersionCount").text(`Versions: Error`);
+                    $(".getRedditCount").text(`Reddit: Error`);
                 }
             });
         }
@@ -699,8 +654,7 @@
             });
         }
 
-        function drawPlantuml()
-        {
+        function drawPlantuml() {
             const canvasId = "plantuml";
 
             // Remove existing canvas if present (to allow re-rendering)
@@ -711,10 +665,10 @@
 
             document.getElementById(canvasId).height = 250;
             const image = new Image();
-            
+
 
             image.addEventListener("load", (e) => {
-                ctx.drawImage(image,10,10);
+                ctx.drawImage(image, 10, 10);
             });
             image.src = "https://hatrabbits.com/wp-content/uploads/2017/01/random.jpg";
         }
@@ -774,14 +728,13 @@
             if (updateDates.length > 0) {
                 let startDate = formatDate(updateDates[0]); // Earliest date
                 let endDateRaw = updateDates[updateDates.length - 1]; // Latest date in `YYYYMMDD`
-
                 // Convert end date to "Today" or "Yesterday" if applicable
                 let endDate = formatDate(endDateRaw);
-
-
-
                 dateRange = `${startDate} - ${endDate}`;
             }
+
+            // Update the date range label in the info-bar
+            $(".dateRangeLabel").text(`Date Range: ${dateRange}`);
 
             // 🏷️ Pass `dateRange` to the update chart function
             drawUpdateTypeChart(updateCounts, dateRange);
@@ -791,16 +744,13 @@
 
             // 🏷️ Draw the CVE chart
             drawCveChart(cveCounts);
-
-            // Update the date range label in the info-bar
-            $(".dateRangeLabel").text(`Date Range: ${dateRange}`);
         }
 
         async function getReleases() {
             $(".versionListClassSection").empty();
 
             try {
-                const versionData = await getVersionList(); // ✅ Fetch versions first
+                versionData = await getVersionList(); // ✅ Fetch versions first
 
                 await getAllRedditPosts(); // ✅ Then fetch Reddit posts
 
@@ -931,10 +881,14 @@
                         updateCounts[item.versionReleaseChannel] = (updateCounts[item.versionReleaseChannel] || 0) + 1;
                     }
 
-                    if (item.versionPredictedComponentType) {
-                        componentTypeCounts[item.versionPredictedComponentType] =
-                            (componentTypeCounts[item.versionPredictedComponentType] || 0) + 1;
+                    if (item.classification && Array.isArray(item.classification.componentType) && item.classification.componentType.length > 0) {
+                        item.classification.componentType.forEach(predictedType => {
+                            componentTypeCounts[predictedType] = (componentTypeCounts[predictedType] || 0) + 1;
+                        });
+                    } else {
+                        componentTypeCounts["Not Typed"] = (componentTypeCounts["Not Typed"] || 0) + 1;
                     }
+
 
                     if (item.isCve) {
                         cveCounts.cve++;
@@ -970,21 +924,81 @@
             <ul class="versionList">`;
 
                 groupedVersions[date].forEach(item => {
-                    const avatar = getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionProductType);
-                    const versionLabel = `${item.versionProductName.substring(0, 20)} (${item.versionNumber})`;
+                    const avatar = getAvatarHtml(item.versionProductName, false, item.versionReleaseChannel === "patch", item.versionUrl, item.versionProductType);
+                    const versionLabel = `${item.versionProductName.substring(0, 20)}`;
+
 
                     let tags = "";
-                    if (item.versionReleaseChannel) {
-                        const tagColors = { "major": "#4da6ff", "other": "#ca4141", "minor": "#47863e", "patch": "#ffbd2e" };
-                        tags = `<span style="color: #fff; font-size: 10pt; background-color: ${tagColors[item.versionReleaseChannel]}; border-radius: 4px; padding: 2px 5px; margin: 1px 5px 1px 0; display: inline-block;">
-                    ${item.versionReleaseChannel.toUpperCase()}
-                </span>`;
+
+                    // ✅ Wrap everything in a single row layout
+                    tags += `<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px;">`;
+
+                    // ✅ Highlight versionNumber if it exists
+                    if (item.versionNumber) {
+                        tags += `<span style="font-weight: bold; font-size: 8pt; color: #333; background-color: #f4f4f4; border-radius: 3px; padding: 1px 4px; display: inline-block;">
+                            ${item.versionNumber}
+                        </span>`;
                     }
 
-                    let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://")) ? item.versionUrl.trim() :
-                        (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://")) ? item.versionReleaseNotes.trim() : "#";
+                    // ✅ Add version release channel tag if available
+                    if (item.versionReleaseChannel) {
+                        const tagColors = { "major": "#4da6ff", "other": "#ca4141", "minor": "#47863e", "patch": "#ffbd2e" };
+                        tags += `
+                            <span style="color: #fff; font-size: 8pt; background-color: ${tagColors[item.versionReleaseChannel]}; border-radius: 3px; padding: 1px 4px; display: inline-block;">
+                                ${item.versionReleaseChannel.toLowerCase()}
+                            </span>`;
+                    }
 
-                    let releaseNotesHtml = `${avatar} <a target="_blank" href="${releaseUrl}"><span>${versionLabel}</span></a>`;
+                    // ✅ Define colors for classification categories
+                    const categoryColors = {
+                        securityType: "#ca4141", // Red for security-related issues
+                        breakingType: "#ff9800", // Orange for breaking issues
+                        componentType: "#4da6ff" // Blue for component classification
+                    };
+
+                    // ✅ Function to format tag text (lowercase and remove underscores)
+                    const formatTagText = text => text.toLowerCase().replace(/_/g, "");
+
+                    // ✅ Iterate over classification attributes and apply colors accordingly
+                    if (item.classification) {
+                        Object.keys(item.classification).forEach(category => {
+                            const values = item.classification[category];
+
+                            if (Array.isArray(values)) {
+                                values.forEach(value => {
+                                    if (value !== "UNKNOWN") {
+                                        const tagColor = categoryColors[category] || "#6e5494"; // Default color if category not explicitly set
+                                        tags += `
+                                            <span style="color: #fff; font-size: 8pt; background-color: ${tagColor}; border-radius: 3px; padding: 1px 4px; display: inline-block;">
+                                                ${formatTagText(value)}
+                                            </span>
+                                        `;
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    let releaseUrl = (item.versionUrl && item.versionUrl.trim().startsWith("https://"))
+                        ? item.versionUrl.trim()
+                        : (item.versionReleaseNotes && item.versionReleaseNotes.trim().startsWith("https://"))
+                            ? item.versionReleaseNotes.trim()
+                            : "#";
+
+                    let timeOnly = item.versionTimestampLastUpdate
+                        ? new Date(item.versionTimestampLastUpdate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : "";
+
+                    // Ensures everything stays in one row with proper spacing
+                    let releaseNotesHtml = `
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            ${avatar}
+                            <a target="_blank" href="${releaseUrl}" style="font-weight: bold; text-decoration: none; color: #007bff;">
+                                ${versionLabel}
+                            </a>
+                            ${timeOnly ? `<span style="font-size: 0.85em; color: #666;">(${timeOnly})</span>` : ""}
+                        </div>
+                    `;
 
                     // ✅ Find matching Reddit posts
                     const matchingRedditPosts = globalRedditPosts.filter(post =>
@@ -993,12 +1007,25 @@
 
                     let redditHtml = "";
                     if (matchingRedditPosts.length > 0) {
-
                         redditHtml = `<ul class="reddit-summary" style="list-style: none; padding-left: 0; font-size: 10pt; color: #777;">`;
 
                         matchingRedditPosts.forEach(post => {
-
                             const postDate = timeAgo(post.created_utc);
+
+                            // Check if classification.componentType exists, is an array, and is not empty
+                            let predictedType = post.classification && Array.isArray(post.classification.componentType) && post.classification.componentType.length > 0
+                                ? post.classification.componentType.filter(type => type.toLowerCase() !== "unknown").map(type => `<span style="display: inline-block; background: #4da6ff; color: white; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
+                                : `<span style="color: #888; font-size: 8pt;">N/A</span>`; // Default value if no classification is available
+
+                            // Check if classification.securityType exists and add styling
+                            let securityType = post.classification && Array.isArray(post.classification.securityType) && post.classification.securityType.length > 0
+                                ? post.classification.securityType.filter(type => type.toLowerCase() !== "unknown").map(type => `<span style="display: inline-block; background: #ca4141; color: white; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
+                                : `<span style="color: #888; font-size: 8pt;">N/A</span>`;
+
+                            // Check if classification.breakingType exists and add styling
+                            let breakingType = post.classification && Array.isArray(post.classification.breakingType) && post.classification.breakingType.length > 0
+                                ? post.classification.breakingType.filter(type => type.toLowerCase() !== "unknown").map(type => `<span style="display: inline-block; background: #ff9800; color: white; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 8pt;">${type.toLowerCase()}</span>`).join(" ")
+                                : `<span style="color: #888; font-size: 8pt;">N/A</span>`;
 
                             redditHtml += `
                                 <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: 9pt; color: #555;">
@@ -1010,16 +1037,24 @@
                                         <div style="color: #888; font-size: 8pt; margin-top: 2px;">
                                             ${postDate} | ▲ ${post.score} | 💬 ${post.num_comments} | Posted by u/${post.author}
                                         </div>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            🏷️ <strong>Predicted Type:</strong> ${predictedType}
+                                        </div>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            🔒 <strong>Security Type:</strong> ${securityType}
+                                        </div>
+                                        <div style="color: #888; font-size: 8pt; margin-top: 2px;">
+                                            ⚠️ <strong>Breaking Type:</strong> ${breakingType}
+                                        </div>
                                     </div>
                                 </div>`;
                         });
-
                         redditHtml += `</ul>`;
                     }
 
                     let versionResource = item._id
                         ? `
-                    <div style="display: flex; align-items: flex-start; gap: 6px; margin: 4px 0px; font-size: 9pt; color: #555;">
+                    <div style="width: 100%; margin: 4px 0px; font-size: 9pt; color: #555; display: block;">
                         <div>
                             <a href="https://releasetrain.io/api/v/${item._id}" target="_blank" style="color: #888; text-decoration: none; font-size: 9pt;">
                                 ID: ${item._id}
@@ -1030,8 +1065,8 @@
 
                     htmlBuffer += `
                     <li class="versionListClassSection-item">
-                        ${tags} 
                         ${releaseNotesHtml}
+                        ${tags} 
                         ${versionResource}
                         ${redditHtml}
                     </li>`;
@@ -1158,6 +1193,271 @@
             $(".getTodayDate").text(new Date().toLocaleDateString());
         }
 
+        // Function to sort versions by last update timestamp (most recent first)
+        function sortByTriageLastUpdate() {
+            $(".loadingClass").show(); // Show loading animation
+
+            setTimeout(() => { // Ensure UI updates before sorting starts
+                if (!cachedTriageLastUpdateData) { // If not cached, sort and store
+                    let sortedData = [...versionData]; // Clone to avoid modifying original
+
+                    sortedData.sort((a, b) => {
+                        let timeA = new Date(a.versionTimestampLastUpdate).getTime();
+                        let timeB = new Date(b.versionTimestampLastUpdate).getTime();
+
+                        return timeB - timeA; // Sort most recent updates first
+                    });
+
+                    cachedTriageLastUpdateData = sortedData; // Store sorted results for Last Update
+                }
+
+                renderVersionList(cachedTriageLastUpdateData); // Use cached sorted results
+                highlightActiveButton("#sortByTriageLastUpdate"); // Highlight the active button
+
+                $(".loadingClass").fadeOut(); // Hide loading animation after sorting
+            }, 50);
+        }
+
+        // Function to sort versions by triage breaking (including breakingType priority)
+        function sortByTriageBreaking() {
+            $(".loadingClass").show(); // Show loading animation
+
+            setTimeout(() => { // Ensure UI updates before sorting starts
+                if (!cachedTriageBreakingData) { // If not cached, sort and store
+                    let sortedData = [...versionData]; // Clone to avoid modifying original
+
+                    sortedData.sort((a, b) => {
+
+                        // Priority: Prioritize isCve = false
+                        if (a.isCve && !b.isCve) return 1;
+                        if (b.isCve && !a.isCve) return -1;
+
+                        // Priority: Move "OS" classification items to the top (case insensitive)
+                        const componentPriority = ["os", "server", "language", "database", "browser"];
+                        const componentNonPriority = ["app", "ide", "github", "web", "repository", "design"];
+
+                        let priorityA = Infinity; // Default to neutral if no priority is found
+                        let priorityB = Infinity; // Default to neutral if no priority is found
+
+                        for (let i = 0; i < componentPriority.length; i++) {
+                            if (Array.isArray(a.classification?.componentType) && a.classification.componentType.some(type => type.toLowerCase() === componentPriority[i])) {
+                                priorityA = i; // Assign priority index if found
+                            }
+                            if (Array.isArray(b.classification?.componentType) && b.classification.componentType.some(type => type.toLowerCase() === componentPriority[i])) {
+                                priorityB = i; // Assign priority index if found
+                            }
+                        }
+
+                        let isEmptyA = !Array.isArray(a.classification?.componentType) || a.classification.componentType.length === 0; // Check if componentType is empty
+                        let isEmptyB = !Array.isArray(b.classification?.componentType) || b.classification.componentType.length === 0; // Check if componentType is empty
+
+                        if (isEmptyA && isEmptyB) {
+                            priorityA = priorityB = Infinity; // Treat both as neutral if empty
+                        }
+
+                        if (isEmptyA !== isEmptyB) {
+                            if (isEmptyA) priorityA = componentPriority.length; // Assign mid-priority to empty
+                            if (isEmptyB) priorityB = componentPriority.length; // Assign mid-priority to empty
+                        }
+
+                        if (priorityA !== priorityB) {
+                            return priorityA - priorityB; // Lower index means higher priority
+                        }
+
+                        let versionTagsA = a.versionSearchTags?.length || 0;
+                        let versionTagsB = b.versionSearchTags?.length || 0;
+
+                        if (versionTagsA !== versionTagsB && (versionTagsA < 5 || versionTagsB < 5)) {
+                            return versionTagsA - versionTagsB; // Prefer fewer version tags
+                        }
+
+                        let countA = a.classification?.componentType?.length || 0;
+                        let countB = b.classification?.componentType?.length || 0;
+                        if (priorityA !== -1 && priorityB !== -1 && countA !== countB) {
+                            return countA - countB; // Prefer fewer elements
+                        }
+
+                        let hasNonPriorityA = Array.isArray(a.classification?.componentType) && a.classification.componentType.some(type => componentNonPriority.includes(type.toLowerCase()));
+                        let hasNonPriorityB = Array.isArray(b.classification?.componentType) && b.classification.componentType.some(type => componentNonPriority.includes(type.toLowerCase()));
+
+                        if (hasNonPriorityA !== hasNonPriorityB) {
+                            return hasNonPriorityA - hasNonPriorityB; // Push non-priority components lower
+                        }
+
+                        // Priority: Move "Critical Failure" to the top, then "Limited Functionality", then "Breaking Update"
+                        let breakingPriority = { "Critical Failure": 3, "Limited Functionality": 2, "Breaking Update": 1 };
+                        let breakingA = a.classification?.breakingType?.[0] || "";
+                        let breakingB = b.classification?.breakingType?.[0] || "";
+                        priorityA = breakingPriority[breakingA] || 0;
+                        priorityB = breakingPriority[breakingB] || 0;
+                        if (priorityA !== priorityB) return priorityB - priorityA;
+
+                        // Priority: Move "major" release channels to the top
+                        let isMajorA = a.versionReleaseChannel === "major" ? 1 : 0;
+                        let isMajorB = b.versionReleaseChannel === "major" ? 1 : 0;
+                        if (isMajorA !== isMajorB) return isMajorB - isMajorA;
+
+                        // Priority: Sort by higher version number
+                        let versionPartsA = a.versionNumber ? a.versionNumber.split('.').map(num => parseInt(num, 10) || 0) : [];
+                        if (versionPartsA.length === 1) versionPartsA = [versionPartsA[0], 0, 0]; // Only master version exists
+                        else if (versionPartsA.length === 2) versionPartsA = [versionPartsA[0], versionPartsA[1], 0]; // Master and minor exist, patch defaults to 0
+
+                        let versionPartsB = b.versionNumber ? b.versionNumber.split('.').map(num => parseInt(num, 10) || 0) : [];
+                        if (versionPartsB.length === 1) versionPartsB = [versionPartsB[0], 0, 0]; // Only master version exists
+                        else if (versionPartsB.length === 2) versionPartsB = [versionPartsB[0], versionPartsB[1], 0]; // Master and minor exist, patch defaults to 0
+
+                        let [masterA, minorA, patchA] = versionPartsA;
+                        let [masterB, minorB, patchB] = versionPartsB;
+
+                        if (masterA !== masterB) {
+                            console.log(`Comparing Master: ${a.versionNumber} vs ${b.versionNumber} → Winner: ${masterB > masterA ? b.versionNumber : a.versionNumber}`);
+                            return masterB - masterA; // Higher master version wins
+                        }
+
+                        if (minorA !== minorB) {
+                            console.log(`Comparing Minor: ${a.versionNumber} vs ${b.versionNumber} → Winner: ${minorB > minorA ? b.versionNumber : a.versionNumber}`);
+                            return minorB - minorA; // Higher minor version wins
+                        }
+
+                        if (patchA !== patchB) {
+                            console.log(`Comparing Patch: ${a.versionNumber} vs ${b.versionNumber} → Winner: ${patchB > patchA ? b.versionNumber : a.versionNumber}`);
+                            return patchB - patchA; // Higher patch version wins
+                        }
+
+                        // Priority: Sort by most Reddit posts (subreddit matches versionProductName)
+                        let redditCountA = redditPostCounts[a.versionProductName] || 0;
+                        let redditCountB = redditPostCounts[b.versionProductName] || 0;
+                        if (redditCountA !== redditCountB) return redditCountB - redditCountA;
+
+                        // Priority: If both have breakingType, sort by the one with more values
+                        let breakingCountA = a.classification?.breakingType?.length || 0;
+                        let breakingCountB = b.classification?.breakingType?.length || 0;
+                        if (breakingCountA !== breakingCountB) return breakingCountB - breakingCountA;
+
+                        // Priority: Sort by triage (higher values first)
+                        let triageA = a.triage || 0;
+                        let triageB = b.triage || 0;
+                        return triageB - triageA;
+                    });
+
+                    cachedTriageBreakingData = sortedData; // Store sorted results for TriageBreaking
+                }
+
+                renderVersionList(cachedTriageBreakingData); // Use cached sorted results
+                highlightActiveButton("#sortByTriageBreaking"); // Highlight the active button
+
+                $(".loadingClass").fadeOut(); // Hide loading animation after sorting
+            }, 50);
+        }
+
+        // Function to sort versions by triage security (including securityType priority & version ranking)
+        function sortByTriageSecurity() {
+            $(".loadingClass").show(); // Show loading animation
+
+            setTimeout(() => { // Ensure UI updates before sorting starts
+                if (!cachedTriageSecurityData) { // If not cached, sort and store
+                    let sortedData = [...versionData]; // Clone to avoid modifying the original
+
+                    sortedData.sort((a, b) => {
+                        // Priority 1: Prioritize isCve = true
+                        if (a.isCve && !b.isCve) return -1;
+                        if (b.isCve && !a.isCve) return 1;
+
+                        // Priority 2: Sort by securityType count (more security elements = higher rank)
+                        let securityCountA = a.classification?.securityType?.length || 0;
+                        let securityCountB = b.classification?.securityType?.length || 0;
+                        if (securityCountA !== securityCountB) return securityCountB - securityCountA;
+
+                        // Priority 3: Sort by higher version number (only if the first part is less than 4 digits)
+                        let versionA = a.versionNumber ? a.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
+                        let versionB = b.versionNumber ? b.versionNumber.split('.').map(num => parseInt(num, 10)) : [];
+
+                        // Check if the first part of the version is less than 4 digits (to avoid treating years as versions)
+                        if (versionA.length > 0 && versionB.length > 0 && versionA[0] < 1000 && versionB[0] < 1000) {
+                            for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
+                                let numA = versionA[i] || 0;
+                                let numB = versionB[i] || 0;
+                                if (numA !== numB) return numB - numA; // Higher version first
+                            }
+                        }
+
+                        // Priority 4: Move "major" release channels to the top (but after security-based sorting)
+                        if (a.versionReleaseChannel === "major" && b.versionReleaseChannel !== "major") return -1;
+                        if (b.versionReleaseChannel === "major" && a.versionReleaseChannel !== "major") return 1;
+
+                        // Priority 5: Sort by most Reddit posts (subreddit matches versionProductName)
+                        let redditCountA = redditPostCounts[a.versionProductName] || 0;
+                        let redditCountB = redditPostCounts[b.versionProductName] || 0;
+                        if (redditCountA !== redditCountB) return redditCountB - redditCountA;
+
+                        // Priority 6: Move "OS" classification items to the top
+                        let isOS_A = a.classification?.componentType?.includes("OS") ? 1 : 0;
+                        let isOS_B = b.classification?.componentType?.includes("OS") ? 1 : 0;
+                        if (isOS_A !== isOS_B) return isOS_B - isOS_A;
+
+                        // Priority 7: Sort by triage (higher values first)
+                        let triageA = a.triage || 0;
+                        let triageB = b.triage || 0;
+                        return triageB - triageA;
+                    });
+
+                    cachedTriageSecurityData = sortedData; // Store sorted results for TriageSecurity
+                }
+
+                renderVersionList(cachedTriageSecurityData); // Use cached sorted results
+                highlightActiveButton("#sortByTriageSecurity"); // Highlight the active button
+
+                $(".loadingClass").fadeOut(); // Hide loading animation after sorting
+            }, 50);
+        }
+
+        // Function to sort versions by triage security (including securityType priority & version ranking)
+        // Function to sort versions by triage security (including legal safety and privacy emphasis)
+        function sortByTriageLegal() {
+            $(".loadingClass").show(); // Show loading animation
+
+            setTimeout(() => { // Ensure UI updates before sorting starts
+                if (!cachedTriageLegalData) { // If not cached, sort and store
+                    let sortedData = [...versionData]; // Clone to avoid modifying the original
+
+                    sortedData.sort((a, b) => {
+                        // Check for legal and privacy keywords
+                        const keywords = ['legal', 'privacy', 'safety'];
+                        const countKeywords = (types) => types.filter(type => keywords.some(keyword => type.includes(keyword))).length;
+
+                        let keywordCountA = countKeywords(a.classification?.securityType || []);
+                        let keywordCountB = countKeywords(b.classification?.securityType || []);
+
+                        if (keywordCountA !== keywordCountB) {
+                            return keywordCountB - keywordCountA; // Prioritize versions with more legal/privacy types
+                        }
+
+                        // Fallback to count of securityType
+                        let securityCountA = a.classification?.securityType?.length || 0;
+                        let securityCountB = b.classification?.securityType?.length || 0;
+                        if (securityCountA !== securityCountB) {
+                            return securityCountB - securityCountA; // More security elements = higher rank
+                        }
+
+                        // Further fallback, if needed (e.g., by version number or date)
+                        return 0;
+                    });
+
+                    cachedTriageLegalData = sortedData; // Store sorted results for TriageSecurity
+                }
+
+                renderVersionList(cachedTriageLegalData); // Use cached sorted results
+                highlightActiveButton("#sortByTriageLegal"); // Highlight the active button
+
+                $(".loadingClass").fadeOut(); // Hide loading animation after sorting
+            }, 50);
+        }
+
+        function highlightActiveButton(activeButtonId) {
+            $(".btn-dark").removeClass("btn-active"); // Remove highlight from all buttons
+            $(activeButtonId).addClass("btn-active"); // Highlight the clicked button
+        }
+
         $(document).ready(function () {
 
             // Add placeholder elements before fetching data
@@ -1174,7 +1474,10 @@
             getAndRenderComponentList();
             getVersionCount();
             getComponentCount();
+            getRedditCount()
             getTodayDate();
+
+            computeRedditPostCounts();
 
             // ✅ Fetch query parameter `?q=linux,android`
             const query = new URLSearchParams(window.location.search).get("q");
@@ -1318,6 +1621,39 @@
                 }
             });
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll(".sort-buttons button");
+
+            function setActiveButton(selectedButton) {
+                buttons.forEach(button => button.classList.remove("active")); // Remove active from all
+                selectedButton.classList.add("active"); // Add active to selected button
+            }
+
+            document.getElementById("sortByTriageLastUpdate").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageLastUpdate();
+            });
+
+            document.getElementById("sortByTriageBreaking").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageBreaking();
+            });
+
+            document.getElementById("sortByTriageSecurity").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageSecurity();
+            });
+
+            document.getElementById("sortByTriageLegal").addEventListener("click", function () {
+                setActiveButton(this);
+                sortByTriageLegal();
+            });
+
+
+            // Ensure the default selected button (sortByTriageLastUpdate) is activated on load
+            setActiveButton(document.getElementById("sortByTriageLastUpdate"));
+        });
 
     </script>
     <script src="./lib/googleanalytics.js"></script>

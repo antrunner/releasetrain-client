@@ -1,16 +1,10 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
-    // Project configuration.
+    // Project configuration
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        // uglify: {
-        //     options: {
-        //         banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
-        //     },
-        //     build: {
 
-        //     }
-        // },
+        // Minify HTML
         minifyHtml: {
             options: {
                 cdata: true
@@ -29,31 +23,34 @@ module.exports = function(grunt) {
                     'dist/index.html': 'src/index.html',
                     'dist/doc/index.html': 'src/doc/index.html',
                     'dist/research/index.html': 'src/research/index.html',
-                    'dist/reset.css': 'src/reset.css'
+                    'dist/reset.css': 'src/reset.css',
+                    'dist/plantuml-core.jar': 'src/plantuml-core.jar',
+                    'dist/plantuml-core.jar.js': 'src/plantuml-core.jar.js',
+                    'dist/plantuml.js': 'src/plantuml.js',
+                    'dist/app.js': 'src/app.js'
                 }
             }
         },
-        // Configuration for copy tasks
+
+        // Copy task for static files
         copy: {
             dist: {
                 files: [
                     {
-                        expand: true,      // Enable dynamic expansion
-                        cwd: 'src/',       // Src matches are relative to this path
-                        src: ['**'],       // Pattern to match all files and subfolders
-                        dest: 'dist/',     // Destination path prefix
-                        dot: false          // Include hidden files
+                        expand: true,  // Enable dynamic expansion
+                        cwd: 'src/',   // Base path
+                        src: ['**'],   // Copy all files
+                        dest: 'dist/', // Destination path
+                        dot: false     // Exclude hidden files
                     }
                 ]
             }
         }
     });
 
-    // Load the plugin that provides the "uglify" task.
-    // grunt.loadNpmTasks('grunt-contrib-uglify-es');
-    // grunt.loadNpmTasks('grunt-minify-html');
+    // Load necessary Grunt tasks
     grunt.loadNpmTasks('grunt-contrib-copy');
 
-    // Default task(s).
+    // Default task
     grunt.registerTask('default', ['copy']);
 };

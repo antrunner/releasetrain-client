@@ -112,11 +112,6 @@ img.avatar {
     color: #aaa;
 }
 
-.loadingClass {
-    text-align: center;
-    padding: 10px 0;
-}
-
 .warning {
     background-color: #444;
     border: 1px solid #555;
@@ -175,11 +170,19 @@ img.avatar {
     left: 0;
     right: 0;
     width: 100%;
-    background: #2d2d30;
     z-index: 1000;
-    padding: 8px 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    border-bottom: 1px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1e1e1e;
+    padding: 6px 14px;
+    margin: 0;
+    font-size: 10pt;
+    color: #bbb;
+    border-bottom: 1px solid #333;
+    font-family: 'Consolas', 'Courier New', monospace;
+    gap: 12px;
 }
 
 .info-bar {
@@ -188,6 +191,9 @@ img.avatar {
     justify-content: space-between;
     padding-bottom: 5px;
     color: #d1d5db;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .select2-container {
@@ -381,15 +387,6 @@ img.avatar {
     overflow-y: auto;
 }
 
-/* Style for the loading spinner */
-.loadingClass {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100px;
-    /* Prevents jumpiness */
-}
-
 /* Prevents layout shifts when content updates */
 .versionListClassSection-item {
     min-height: 50px;
@@ -457,4 +454,178 @@ img.avatar {
         flex: 1 !important;
         /* Make the left column take full width */
     }
+}
+
+.main-container {
+    display: flex;
+}
+
+.left-column {
+    flex: 1;
+}
+
+.graph-column {
+    flex: 1;
+}
+
+.chat-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.currentPageVersions {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.dateRangeLabel {
+    font-weight: bold;
+    color: #007bff;
+}
+
+#graphSection1,
+#graphSection2 {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#llmChatSection {
+    flex: 1;
+    border-left: 1px solid #ddd;
+    padding: 6px;
+    background: #f9f9f9;
+}
+
+#chatWindow {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 4px;
+    font-size: 14px;
+    color: #444;
+}
+
+#chatInput {
+    flex-grow: 1;
+    padding: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    outline: none;
+    font-size: 14px;
+}
+
+#sendChat {
+    margin-left: 4px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Dark Mode Button Styling */
+.btn-dark {
+    background-color: #2d2d30;
+    border: 1px solid #444;
+    color: #d1d5db;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.btn-dark:hover {
+    background-color: #3b3b3d;
+    border-color: #555;
+}
+
+/* Highlight Active Button */
+.btn-active {
+    background-color: #4da6ff !important;
+    border-color: #4da6ff !important;
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+.loadingClass {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background: #333;
+    /* Dark background */
+    overflow: hidden;
+    display: none;
+    /* Initially hidden */
+}
+
+.loadingClass::after {
+    content: "";
+    position: absolute;
+    width: 40%;
+    height: 100%;
+    background: #4da6ff;
+    /* Blue progress bar */
+    animation: loadingMove 1.5s infinite ease-in-out;
+}
+
+@keyframes loadingMove {
+    0% {
+        left: -40%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+.sort-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    /* Allow buttons to wrap to the next row */
+    justify-content: space-evenly;
+    /* Equal spacing */
+    align-items: center;
+    width: 100%;
+    gap: 1vw;
+    /* Responsive spacing */
+    padding: 1vw;
+    row-gap: 1vw;
+    /* Adds spacing between wrapped rows */
+}
+
+.sort-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    gap: 1vw; /* Spacing between buttons */
+    width: 100%;
+    padding: 1vw;
+}
+
+.sort-buttons button {
+    width: 100%; /* Ensure buttons take full column width */
+    padding: 1vw;
+    font-size: 0.8rem; /* Dynamic font size */
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    background-color: #333;
+    color: white;
+}
+
+.sort-buttons button:hover {
+    background-color: #555;
+    transform: scale(1.05);
+}
+
+/* Active button style */
+.sort-buttons .active {
+    background-color: #007bff;
+    /* Highlight active button */
+    color: white;
 }

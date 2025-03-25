@@ -1,6 +1,7 @@
 import plantuml from './plantuml.js';
+
 // Set environment flag
-const IS_PRODUCTION = false;  // Change to `true` for production
+const IS_PRODUCTION = true;  // Change to `false` for development
 
 // Define URLs and paths for both environments
 const config = {
@@ -14,19 +15,16 @@ const config = {
         //API_ENDPOINT: "http://localhost:3000/api",
         SELECT_OS: "https://releasetrain.io/api/c/os",
         HOMEPAGE: "http://localhost:8080/",
-        PLANTUML_PATH: "./src"  // Pat
-        // 
-        // h in development
+        PLANTUML_PATH: "./src"  // Path in development
     }
 };
 
 // Set the URLs and paths based on the environment flag
 const URL_API_ENDPOINT = IS_PRODUCTION ? config.production.API_ENDPOINT : config.development.API_ENDPOINT;
-const urlSelectOS = IS_PRODUCTION ? "" : config.development.SELECT_OS;  // For development only
+const urlSelectOS = IS_PRODUCTION ? "" : config.development.SELECT_OS;
 const URL_HOMEPAGE = IS_PRODUCTION ? config.production.HOMEPAGE : config.development.HOMEPAGE;
 const plantumlPath = IS_PRODUCTION ? config.production.PLANTUML_PATH : config.development.PLANTUML_PATH;
 
-// Example usage
 console.log("Environment:", IS_PRODUCTION ? "PRODUCTION" : "DEVELOPMENT");
 console.log("API Endpoint:", URL_API_ENDPOINT);
 console.log("Select OS URL:", urlSelectOS);
@@ -39,21 +37,27 @@ const allowedOperatingSystems = [
     "mint", "mac", "solaris", "freebsd", "opensuse", "gentoo", "slackware", "manjaro", "android", "ios",
     "fedora", "android-x86", "raspbian", "kali-linux", "opensolaris", "zorin", "popos", "puppylinux", "steamos", "beaglebone"
 ];
-
 let versions = [];
-let osList = [];
-let tree = {};
-let counterId = 0;
 
-let startTime = Date.now();  // Start time to calculate the generation time
-let endTime;
+// Get query parameters
+const urlParams = new URLSearchParams(window.location.search);
+const queryValue = urlParams.get("q");
 
-//script should not run for empty values
-if (window.location.search === "") {
-    console.log("No query string found");
-    // exit
-    throw new Error();
-}   
+// Stop execution if `q` is missing or empty
+if (!queryValue) {
+    console.log("Query parameter 'q' is missing or empty. Stopping script execution.");
+} else {
+    console.log("Query parameter 'q' detected:", queryValue);
+
+    // Process the query string
+    let fullQueryString = `q=${queryValue}`;
+    if (check_stack.includes(queryValue)) {
+        fullQueryString = stack_dict[queryValue];
+    } else {
+        fullQueryString = `component=name:${queryValue}`;
+    }
+
+    console.log("Processed Query String:", fullQueryString);
 
 let fullQueryString = window.location.search.substring(1);
 console.log("fullQueryString",fullQueryString);
@@ -71,7 +75,6 @@ if (stack.length >= 1)
     }
 }
 
-
 console.log("Check Stack:", stack);
 console.log("Component String:", component_string);
 fullQueryString = component_string;
@@ -79,48 +82,147 @@ fullQueryString = component_string;
 // Log the full query string
 // console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
 // // Use the full query string in your AJAX request
-$.ajax({
-    url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`, // Pass the full query string directly
-    type: 'GET',
-    dataType: 'json',
-    success: handleData,
-    error: function (jqXHR, textStatus, errorThrown) {
-        console.error("Error fetching data:", textStatus, errorThrown);
+    // Fetch data using the processed query
+    $.ajax({
+        url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`,
+        type: 'GET',
+        dataType: 'json',
+        success: handleData,
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error("Error fetching data:", textStatus, errorThrown);
+        }
+    });
+}
+
+function sortVersionsByOperatingSystem(versions) {
+    if (!Array.isArray(versions) || versions.length === 0) {
+        console.warn("Invalid or empty versions array.");
+        return versions;
     }
-});
 
+    return versions.sort((a, b) => {
+        const isAOS = allowedOperatingSystems.includes(a.name?.toLowerCase());
+        const isBOS = allowedOperatingSystems.includes(b.name?.toLowerCase());
+        return isBOS - isAOS; // Move OS objects to the top
+    });
+}
 
+// Function to replace special characters (including colon) with '-'
+function sanitize(name) {
+    return name.replace(/[:]/g, '-')   // Replace non-alphanumeric characters (except dot and dash) with '-'
+        .replace(/\./g, '-');          // Replace periods with hyphens
+}
 
+// Function to group components by stack
+function getStack(getComponent) {
+    // console.log("Components received:", getComponent);
+    // Ensure `getComponent` is an array
+    if (!Array.isArray(getComponent) || getComponent.length === 0) {
+        // console.warn("getComponent is empty or not an array.");
+        return { groupedStacks: [], extraComponents: [] };
+    }
+
+    const stacks = [
+        { name: "LAMP", components: ["apache", "mysql", "php", "linux"] },
+        { name: "LEMP", components: ["nginx", "mysql", "php", "linux"] },
+        { name: "UNN", components: ["ubuntu", "nginx", "nodejs"] },
+        { name: "RAILS", components: ["macos", "rails", "postgresql"] },
+        { name: "DWS", components: ["django", "windows", "sqlite"] },
+        { name: "FLASK", components: ["flask", "arch", "postgresql"] },
+        { name: "SPRING", components: ["redhat", "spring", "java"] },
+        { name: "CRP", components: ["centos", "rails", "postgresql"] },
+        { name: "DDS", components: ["debian", "django", "sqlite"] },
+        { name: "USP", components: ["ubuntu", "prisma", "svelte"] }
+    ];
+
+    const groupedStacks = [];
+    const usedComponents = new Set();
+
+    for (const stack of stacks) {
+        // Strict match: All stack components must be in getComponent
+        const isStrictMatch = stack.components.every(component => getComponent.includes(component.toLowerCase()));
+
+        if (isStrictMatch) {
+            groupedStacks.push({ stackName: stack.name, matchedComponents: stack.components });
+            stack.components.forEach(component => usedComponents.add(component.toLowerCase())); // Mark components as used
+        }
+    }
+
+    // Identify extra or unmatched components
+    const extraComponents = getComponent
+        .filter(component => !usedComponents.has(component.toLowerCase()))
+        .map(component => ({ component, belongsToStack: false }));
+    return { groupedStacks, extraComponents };
+}
+
+function extractCveCode(url) {
+    if (!url) {
+        return "Unknown CVE"; // Return a generic placeholder if the URL is undefined or null
+    }
+
+    const regex = /CVE-\d{4}-\d+/; // Match patterns like "CVE-2024-9194"
+    const match = url.match(regex);
+
+    return match ? match[0] : "Generic Security Issue"; // Return matched CVE code or a generic fallback
+}
+
+function formatDateWithRelativeTime(dateStr) {
+    // Parse the input date string (e.g., "20200816") into a Date object
+    const date = new Date(dateStr.slice(0, 4), dateStr.slice(4, 6) - 1, dateStr.slice(6, 8));
+
+    // Get today's date and time for comparison
+    const today = new Date();
+
+    // Calculate the difference in time
+    const timeDiff = today - date;
+    const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+    // Function to format the date as "Jan/30/2024"
+    const formatDate = (date) => {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        return `${month}/${day < 10 ? '0' + day : day}/${year}`;
+    };
+
+    // Determine the relative time to today
+    let relativeTime = '';
+
+    if (dayDiff === 0) {
+        relativeTime = '(Today)';
+    } else if (dayDiff === 1) {
+        relativeTime = '(Yesterday)';
+    } else if (dayDiff < 7) {
+        relativeTime = '(This week)';
+    } else if (dayDiff < 30) {
+        relativeTime = '(This month)';
+    }
+
+    return `${formatDate(date)} ${relativeTime}`;
+}
+
+// Function to handle API response
 function handleData(data) {
-    console.log("Component count", data.length, data);
+    console.log("Component count:", data.length, data);
 
-    // Ensure `data` is an array
     if (!Array.isArray(data)) {
         console.error("Data is not an array");
         return;
     }
 
-    // Iterate over each component object in the array
     data.forEach(component => {
         const { name, latestVersion, currentVersion, latestCveVersion } = component;
-        //console.log(latestVersion);
-        console.log(currentVersion);
-        //console.log(latestCveVersion);
 
+        if (latestVersion) latestVersion.versionNumber = latestVersion.versionNumber.replace(/\./g, ':');
+        if (currentVersion) currentVersion.versionNumber = currentVersion.versionNumber.replace(/\./g, ':');
+        if (latestCveVersion) latestCveVersion.versionNumber = latestCveVersion.versionNumber.replace(/\./g, ':');
 
-        if (latestVersion)
-            latestVersion.versionNumber = latestVersion.versionNumber.replace(/\./g, ':');
-        if (currentVersion)
-            currentVersion.versionNumber = currentVersion.versionNumber.replace(/\./g, ':');
-        if (latestCveVersion)
-            latestCveVersion.versionNumber = latestCveVersion.versionNumber.replace(/\./g, ':');
-        // Log component details (adjust as needed)
         console.log(`Component: ${name}`);
-        console.log(`Latest Version: `, latestVersion);
-        console.log(`Current Version: `, currentVersion);
-        console.log(`Latest CVE Version: `, latestCveVersion);
+        console.log(`Latest Version:`, latestVersion);
+        console.log(`Current Version:`, currentVersion);
+        console.log(`Latest CVE Version:`, latestCveVersion);
 
-        // Here, you can process each version or add it to the global `versions` array
         versions.push({
             name,
             latestVersion,
@@ -132,24 +234,15 @@ function handleData(data) {
     // Initialize PlantUML for diagram generation
     plantuml.initialize(plantumlPath)
         .then(() => {
-            // Generate PlantUML diagrams
             renderDiagrams(getPlantuml());
         })
         .catch((error) => {
             console.error('Error initializing PlantUML:', error);
-            // Hide the loader in case of error
             hideLoader();
         });
 }
 
-function handleOsData(data) {
-    if (!Array.isArray(data)) {
-        console.error("Data is not an array");
-    }
-    // osList = data;
-    osList = allowedOperatingSystems;
-}
-
+// Function to get PlantUML diagram data
 function getPlantuml() {
     // Aggregated metrics variables
     let totalComponents = 0;
@@ -261,8 +354,6 @@ function getPlantuml() {
         addOSPackage("Extra Components", extraComponentVersions);
     }
 
-
-
     plantUMLCode += `}\n@enduml\n`;
     console.log("PlantUML Code:", plantUMLCode);
     // Insert the PlantUML code into the HTML element with the id "plantuml-code"
@@ -275,106 +366,59 @@ function getPlantuml() {
     return [{ name: "unique-os-packages", code: plantUMLCode }];
 }
 
-function formatPlantUML(umlCode) {
-    // Store the original for copying
-    document.getElementById("copy-btn").setAttribute("data-code", umlCode);
-
-    return umlCode
-        .replace(/@startuml/g, '<span style="color: green;">@startuml</span>')
-        .replace(/@enduml/g, '<span style="color: green;">@enduml</span>')
-        .replace(/title\s+"([^"]+)"/g, '<span style="color: blue;">title "$1"</span>')
-        .replace(/package\s+"([^"]+)"/g, '<span style="color: purple;">package "$1"</span>')
-        .replace(/component\s+"([^"]+)"/g, (match, p1) =>
-            `<span style="color: brown;">component</span> "<span>${p1
-                .replace(/\\n/g, '<br>&nbsp;&nbsp;&nbsp;&nbsp;') // Add line breaks and indentation
-                .replace(/(Version:|Release Date:|Latest:|CVE Info:)/g, '<strong>$1</strong>')}</span>"`
-        )
-        .replace(/\n/g, '<br>'); // General line breaks
-}
-
+// Function to render diagrams
 function renderDiagrams(diagrams) {
-    console.log(diagrams);
     let container = document.getElementById('plantuml-diagrams');
     diagrams.forEach((diagramData, index) => {
         setTimeout(() => myRender(container, diagramData), 2000 * (index + 1));
     });
 }
 
-function sortVersionsByOperatingSystem(versions) {
-    if (!Array.isArray(versions) || versions.length === 0) {
-        console.warn("Invalid or empty versions array.");
-        return versions;
-    }
-
-    return versions.sort((a, b) => {
-        const isAOS = allowedOperatingSystems.includes(a.name?.toLowerCase());
-        const isBOS = allowedOperatingSystems.includes(b.name?.toLowerCase());
-        return isBOS - isAOS; // Move OS objects to the top
-    });
-}
-
+// Function to render images from PlantUML
 function myRender(container, diagramData) {
     let { name, code } = diagramData;
 
-    console.log("Rendering diagram:", name, code); // Debugging log
-
-    // Select the canvas element
     let canvas = document.getElementById('plantuml-diagrams');
-    if (!canvas) {
-        console.error("Canvas element not found!");
-        return;
-    }
+    if (!canvas) return;
 
-    let ctx = canvas.getContext('2d'); // Get the 2D rendering context
-    if (!ctx) {
-        console.error("Unable to get canvas context!");
-        return;
-    }
-
-    let loader = document.getElementById('loader'); // Ensure loader exists
-    let startTime = window.startTime || Date.now(); // Ensure startTime exists
+    let ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     plantuml.renderPng(code)
     .then((blob) => {
-        let imageUrl = URL.createObjectURL(blob);
-        let image = new Image();
+            let imageUrl = URL.createObjectURL(blob);
+            let image = new Image();
 
-        image.onload = () => {
-            // Get canvas and image dimensions
-            let canvasWidth = canvas.width;
-            let canvasHeight = canvas.height;
-            let imgWidth = image.width;
-            let imgHeight = image.height;
+            image.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Calculate scale while maintaining aspect ratio
-            let scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
-            let scaledWidth = imgWidth * scale;
-            let scaledHeight = imgHeight * scale;
+                // Calculate scaling to maintain aspect ratio
+                let scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+                let scaledWidth = image.width * scale;
+                let scaledHeight = image.height * scale;
 
-            // Calculate position to center the image
-            let offsetX = (canvasWidth - scaledWidth) / 2;
-            let offsetY = (canvasHeight - scaledHeight) / 2;
+                // If the scaled height is too large, constrain it to the canvas height
+                if (scaledHeight > canvas.height) {
+                    scaledHeight = canvas.height;
+                    scaledWidth = (image.width / image.height) * scaledHeight;
+                }
 
-            // Clear canvas and draw the scaled image centered
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-            ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                // Center the image
+                let offsetX = (canvas.width - scaledWidth) / 2;
+                let offsetY = (canvas.height - scaledHeight) / 2;
 
-            if (loader) loader.style.display = 'none'; // Hide loader safely
+                // Draw image with rounded borders
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, 5); // Adjust radius as needed
+                ctx.clip();
+                ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                ctx.restore();
+            };
 
-            let endTime = Date.now();
-            let generationTime = ((endTime - startTime) / 1000).toFixed(2);
-
-            let timeElement = document.getElementById("generationTime");
-            if (timeElement) timeElement.textContent = generationTime;
-
-            if (typeof hideLoader === 'function') hideLoader(); // Check before calling
-        };
-
-        image.src = imageUrl; // Set the image source to the blob URL
-    })
-    .catch((error) => {
-        console.error('Error rendering PlantUML diagram:', error);
-    });
+            image.src = imageUrl;
+        })
+        .catch((error) => console.error('Error rendering PlantUML:', error));
 
 }
 
