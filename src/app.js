@@ -335,31 +335,47 @@ function myRender(container, diagramData) {
     let startTime = window.startTime || Date.now(); // Ensure startTime exists
 
     plantuml.renderPng(code)
-        .then((blob) => {
-            let imageUrl = URL.createObjectURL(blob);
-            let image = new Image();
+    .then((blob) => {
+        let imageUrl = URL.createObjectURL(blob);
+        let image = new Image();
 
-            image.onload = () => {
-                // Draw the image on the canvas once it's loaded
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
-                ctx.drawImage(image, 0, 0); // Draw the diagram onto the canvas
+        image.onload = () => {
+            // Get canvas and image dimensions
+            let canvasWidth = canvas.width;
+            let canvasHeight = canvas.height;
+            let imgWidth = image.width;
+            let imgHeight = image.height;
 
-                if (loader) loader.style.display = 'none'; // Hide loader safely
+            // Calculate scale while maintaining aspect ratio
+            let scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
+            let scaledWidth = imgWidth * scale;
+            let scaledHeight = imgHeight * scale;
 
-                let endTime = Date.now();
-                let generationTime = ((endTime - startTime) / 1000).toFixed(2);
+            // Calculate position to center the image
+            let offsetX = (canvasWidth - scaledWidth) / 2;
+            let offsetY = (canvasHeight - scaledHeight) / 2;
 
-                let timeElement = document.getElementById("generationTime");
-                if (timeElement) timeElement.textContent = generationTime;
+            // Clear canvas and draw the scaled image centered
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
 
-                if (typeof hideLoader === 'function') hideLoader(); // Check before calling
-            };
+            if (loader) loader.style.display = 'none'; // Hide loader safely
 
-            image.src = imageUrl; // Set the image source to the blob URL
-        })
-        .catch((error) => {
-            console.error('Error rendering PlantUML diagram:', error);
-        });
+            let endTime = Date.now();
+            let generationTime = ((endTime - startTime) / 1000).toFixed(2);
+
+            let timeElement = document.getElementById("generationTime");
+            if (timeElement) timeElement.textContent = generationTime;
+
+            if (typeof hideLoader === 'function') hideLoader(); // Check before calling
+        };
+
+        image.src = imageUrl; // Set the image source to the blob URL
+    })
+    .catch((error) => {
+        console.error('Error rendering PlantUML diagram:', error);
+    });
+
 }
 
 function formatDate(inputDate) {
