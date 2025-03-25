@@ -40,22 +40,6 @@ const allowedOperatingSystems = [
     "fedora", "android-x86", "raspbian", "kali-linux", "opensolaris", "zorin", "popos", "puppylinux", "steamos", "beaglebone"
 ];
 
-// Define all the stacks to verify and create the fullstring query
-const check_stack = ["lamp", "lemp", "unn", "rails", "dws", "flask", "spring", "crp", "dds", "usp"];
-// create dictionary for stack values to create the query string
-const stack_dict = {
-    "lamp": "component=name:apache&component=name:linux&component=name:mysql&component=name:php",
-    "lemp": "component=name:nginx&component=name:mysql&component=name:php&component=name:linux",
-    "unn": "component=name:ubuntu&component=name:nginx&component=name:nodejs",
-    "rails": "component=name:macos&component=name:rails&component=name:postgresql",
-    "dws": "component=name:django&component=name:windows&component=name:sqlite",
-    "flask": "component=name:flask&component=name:arch&component=name:postgresql",
-    "spring": "component=name:redhat&component=name:spring&component=name:java",
-    "crp": "component=name:centos&component=name:rails&component=name:postgresql",
-    "dds": "component=name:debian&component=name:django&component=name:sqlite",
-    "usp": "component=name:ubuntu&component=name:prisma&component=name:svelte"
-};
-
 let versions = [];
 let osList = [];
 let tree = {};
@@ -72,23 +56,26 @@ if (window.location.search === "") {
 }   
 
 let fullQueryString = window.location.search.substring(1);
-console.log(fullQueryString);
+console.log("fullQueryString",fullQueryString);
 
 let stack = fullQueryString.split("=")[1];
+stack = stack.split(',')
+// make a query string for all the components using 
+let component_string = "component=";
+if (stack.length >= 1)
+{
+    component_string = component_string + "name:" + stack[0];
+    for (let i = 1; i < stack.length; i++)
+    {
+        component_string = component_string + "&component=name:" + stack[i];
+    }
+}
+
+
 console.log("Check Stack:", stack);
-
-if (check_stack.includes(stack))
-{
-    fullQueryString = fullQueryString.replace("q=lamp", stack_dict[stack]);
-}
-else
-{
-    // if its single component just add the component name
-    fullQueryString = fullQueryString.replace(`q=${stack}`, `component=name:${stack}`);
-    console.log(fullQueryString);
-    // exit
-}
-
+console.log("Component String:", component_string);
+fullQueryString = component_string;
+ 
 // Log the full query string
 // console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
 // // Use the full query string in your AJAX request
@@ -514,11 +501,11 @@ function formatDateWithRelativeTime(dateStr) {
 
 // Function to group components by stack
 function getStack(getComponent) {
-    // console.log("Components received:", getComponent);
+    console.log("Components received:", getComponent);
 
     // Ensure `getComponent` is an array
     if (!Array.isArray(getComponent) || getComponent.length === 0) {
-        // console.warn("getComponent is empty or not an array.");
+        console.warn("getComponent is empty or not an array.");
         return { groupedStacks: [], extraComponents: [] };
     }
 
