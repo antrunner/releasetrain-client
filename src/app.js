@@ -49,15 +49,9 @@ if (!queryValue) {
 } else {
     console.log("Query parameter 'q' detected:", queryValue);
 
-    // Process the query string
-    let fullQueryString = `q=${queryValue}`;
-    if (check_stack.includes(queryValue)) {
-        fullQueryString = stack_dict[queryValue];
-    } else {
-        fullQueryString = `component=name:${queryValue}`;
-    }
+  
 
-    console.log("Processed Query String:", fullQueryString);
+console.log("Processed Query String:", fullQueryString);
 
 let fullQueryString = window.location.search.substring(1);
 console.log("fullQueryString",fullQueryString);
