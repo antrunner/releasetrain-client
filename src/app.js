@@ -31,21 +31,12 @@ console.log("Select OS URL:", urlSelectOS);
 console.log("Homepage URL:", URL_HOMEPAGE);
 console.log("PlantUML Path:", plantumlPath);
 
-// Define valid stacks for query processing
-const check_stack = ["lamp", "lemp", "unn", "rails", "dws", "flask", "spring", "crp", "dds", "usp"];
-const stack_dict = {
-    "lamp": "component=name:apache&component=name:linux&component=name:mysql&component=name:php",
-    "lemp": "component=name:nginx&component=name:mysql&component=name:php&component=name:linux",
-    "unn": "component=name:ubuntu&component=name:nginx&component=name:nodejs",
-    "rails": "component=name:macos&component=name:rails&component=name:postgresql",
-    "dws": "component=name:django&component=name:windows&component=name:sqlite",
-    "flask": "component=name:flask&component=name:arch&component=name:postgresql",
-    "spring": "component=name:redhat&component=name:spring&component=name:java",
-    "crp": "component=name:centos&component=name:rails&component=name:postgresql",
-    "dds": "component=name:debian&component=name:django&component=name:sqlite",
-    "usp": "component=name:ubuntu&component=name:prisma&component=name:svelte"
-};
-
+// Define the top 30 operating systems
+const allowedOperatingSystems = [
+    "linux", "windows", "macos", "ubuntu", "centos", "debian", "redhat", "fedora", "arch", "suse",
+    "mint", "mac", "solaris", "freebsd", "opensuse", "gentoo", "slackware", "manjaro", "android", "ios",
+    "fedora", "android-x86", "raspbian", "kali-linux", "opensolaris", "zorin", "popos", "puppylinux", "steamos", "beaglebone"
+];
 let versions = [];
 
 // Get query parameters
@@ -68,6 +59,29 @@ if (!queryValue) {
 
     console.log("Processed Query String:", fullQueryString);
 
+let fullQueryString = window.location.search.substring(1);
+console.log("fullQueryString",fullQueryString);
+
+let stack = fullQueryString.split("=")[1];
+stack = stack.split(',')
+// make a query string for all the components using 
+let component_string = "component=";
+if (stack.length >= 1)
+{
+    component_string = component_string + "name:" + stack[0];
+    for (let i = 1; i < stack.length; i++)
+    {
+        component_string = component_string + "&component=name:" + stack[i];
+    }
+}
+
+console.log("Check Stack:", stack);
+console.log("Component String:", component_string);
+fullQueryString = component_string;
+ 
+// Log the full query string
+// console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
+// // Use the full query string in your AJAX request
     // Fetch data using the processed query
     $.ajax({
         url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`,
@@ -99,11 +113,9 @@ function sanitize(name) {
         .replace(/\./g, '-');          // Replace periods with hyphens
 }
 
-
 // Function to group components by stack
 function getStack(getComponent) {
     // console.log("Components received:", getComponent);
-
     // Ensure `getComponent` is an array
     if (!Array.isArray(getComponent) || getComponent.length === 0) {
         // console.warn("getComponent is empty or not an array.");
@@ -373,7 +385,7 @@ function myRender(container, diagramData) {
     if (!ctx) return;
 
     plantuml.renderPng(code)
-        .then((blob) => {
+    .then((blob) => {
             let imageUrl = URL.createObjectURL(blob);
             let image = new Image();
 
@@ -407,4 +419,185 @@ function myRender(container, diagramData) {
             image.src = imageUrl;
         })
         .catch((error) => console.error('Error rendering PlantUML:', error));
+
+}
+
+function formatDate(inputDate) {
+    // Convert inputDate from yyyymmdd to a Date object
+    const year = inputDate.slice(0, 4);
+    const month = inputDate.slice(4, 6) - 1; // Months are zero-based in Date objects
+    const day = inputDate.slice(6, 8);
+    const dateObj = new Date(year, month, day);
+
+    // Get current date
+    const currentDate = new Date();
+
+    // Calculate the difference in milliseconds between currentDate and inputDate
+    const timeDiff = currentDate.getTime() - dateObj.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    // If the difference is less than 7 days, return "Less than 7 days"
+    if (daysDiff < 7) {
+        return "Less than 7 days";
+    }
+
+    // Get year, month name, and day
+    const yearStr = dateObj.getFullYear();
+    const monthStr = new Intl.DateTimeFormat('en', { month: 'long' }).format(dateObj);
+    const dayStr = dateObj.getDate();
+
+    // Return the formatted date string
+    return `${monthStr} ${dayStr}, ${yearStr}`;
+}
+
+function isRecent(inputDate) {
+    // Convert inputDate from yyyymmdd to a Date object
+    const year = inputDate.slice(0, 4);
+    const month = inputDate.slice(4, 6) - 1; // Months are zero-based in Date objects
+    const day = inputDate.slice(6, 8);
+    const dateObj = new Date(year, month, day);
+
+    // Get current date
+    const currentDate = new Date();
+
+    // Calculate the difference in milliseconds between currentDate and inputDate
+    const timeDiff = currentDate.getTime() - dateObj.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    // If the difference is less than 7 days, return "Less than 7 days"
+    if (daysDiff < 7) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+function addMajorTag(version) {
+    const parts = version.split('.');
+    if (parts.length === 1 || (parts.length === 2 && parts[1] === '0')) {
+        return version + ' <b>(major)</b>'; // It's a major version
+    }
+    if (parts.length === 3 && parseInt(parts[0]) > 0 && parseInt(parts[1]) === 0 && parseInt(parts[2]) === 0) {
+        return version + ' <b>(major)</b>'; // It's a major version
+    }
+    return version;
+}
+
+function sortByDate(data) {
+    function compareDates(a, b) {
+        const getDateValue = (dateString) => {
+            if (!dateString) return Number.MAX_SAFE_INTEGER;
+            const [year, month, day] = [
+                dateString.substr(0, 4),
+                dateString.substr(4, 2),
+                dateString.substr(6, 2)
+            ];
+            return new Date(year, month - 1, day).getTime();
+        };
+        const dateA = getDateValue(a.versionReleaseDate);
+        const dateB = getDateValue(b.versionReleaseDate);
+        return dateB - dateA;
+    }
+
+    return data.sort((a, b) => compareDates(a, b));
+}
+
+// Function to replace special characters (including colon) with '-'
+function sanitize(name) {
+    return name.replace(/[:]/g, '-')   // Replace non-alphanumeric characters (except dot and dash) with '-'
+        .replace(/\./g, '-');          // Replace periods with hyphens
+}
+
+// Extract CVE code from the full URL (e.g., CVE-2024-9194 from "https://nvd.nist.gov/vuln/detail/CVE-2024-9194")
+function extractCveCode(url) {
+    if (!url) {
+        return "Unknown CVE"; // Return a generic placeholder if the URL is undefined or null
+    }
+
+    const regex = /CVE-\d{4}-\d+/; // Match patterns like "CVE-2024-9194"
+    const match = url.match(regex);
+
+    return match ? match[0] : "Generic Security Issue"; // Return matched CVE code or a generic fallback
+}
+
+function formatDateWithRelativeTime(dateStr) {
+    // Parse the input date string (e.g., "20200816") into a Date object
+    const date = new Date(dateStr.slice(0, 4), dateStr.slice(4, 6) - 1, dateStr.slice(6, 8));
+
+    // Get today's date and time for comparison
+    const today = new Date();
+
+    // Calculate the difference in time
+    const timeDiff = today - date;
+    const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+    // Function to format the date as "Jan/30/2024"
+    const formatDate = (date) => {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        return `${month}/${day < 10 ? '0' + day : day}/${year}`;
+    };
+
+    // Determine the relative time to today
+    let relativeTime = '';
+
+    if (dayDiff === 0) {
+        relativeTime = '(Today)';
+    } else if (dayDiff === 1) {
+        relativeTime = '(Yesterday)';
+    } else if (dayDiff < 7) {
+        relativeTime = '(This week)';
+    } else if (dayDiff < 30) {
+        relativeTime = '(This month)';
+    }
+
+    return `${formatDate(date)} ${relativeTime}`;
+}
+
+
+
+// Function to group components by stack
+function getStack(getComponent) {
+    console.log("Components received:", getComponent);
+
+    // Ensure `getComponent` is an array
+    if (!Array.isArray(getComponent) || getComponent.length === 0) {
+        console.warn("getComponent is empty or not an array.");
+        return { groupedStacks: [], extraComponents: [] };
+    }
+
+    const stacks = [
+        { name: "LAMP", components: ["apache", "mysql", "php", "linux"] },
+        { name: "LEMP", components: ["nginx", "mysql", "php", "linux"] },
+        { name: "UNN", components: ["ubuntu", "nginx", "nodejs"] },
+        { name: "RAILS", components: ["macos", "rails", "postgresql"] },
+        { name: "DWS", components: ["django", "windows", "sqlite"] },
+        { name: "FLASK", components: ["flask", "arch", "postgresql"] },
+        { name: "SPRING", components: ["redhat", "spring", "java"] },
+        { name: "CRP", components: ["centos", "rails", "postgresql"] },
+        { name: "DDS", components: ["debian", "django", "sqlite"] },
+        { name: "USP", components: ["ubuntu", "prisma", "svelte"] }
+    ];
+
+    const groupedStacks = [];
+    const usedComponents = new Set();
+
+    for (const stack of stacks) {
+        // Strict match: All stack components must be in getComponent
+        const isStrictMatch = stack.components.every(component => getComponent.includes(component.toLowerCase()));
+
+        if (isStrictMatch) {
+            groupedStacks.push({ stackName: stack.name, matchedComponents: stack.components });
+            stack.components.forEach(component => usedComponents.add(component.toLowerCase())); // Mark components as used
+        }
+    }
+
+    // Identify extra or unmatched components
+    const extraComponents = getComponent
+        .filter(component => !usedComponents.has(component.toLowerCase()))
+        .map(component => ({ component, belongsToStack: false }));
+    return { groupedStacks, extraComponents };
 }
