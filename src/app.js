@@ -1,7 +1,7 @@
 import plantuml from './plantuml.js';
 
 // Set environment flag
-const IS_PRODUCTION = true;  // Change to `false` for development
+const IS_PRODUCTION = false;  // Change to `false` for development
 
 // Define URLs and paths for both environments
 const config = {
@@ -48,34 +48,27 @@ if (!queryValue) {
     console.log("Query parameter 'q' is missing or empty. Stopping script execution.");
 } else {
     console.log("Query parameter 'q' detected:", queryValue);
+    let fullQueryString = window.location.search.substring(1);
+    console.log("fullQueryString", fullQueryString);
 
-  
-
-console.log("Processed Query String:", fullQueryString);
-
-let fullQueryString = window.location.search.substring(1);
-console.log("fullQueryString",fullQueryString);
-
-let stack = fullQueryString.split("=")[1];
-stack = stack.split(',')
-// make a query string for all the components using 
-let component_string = "component=";
-if (stack.length >= 1)
-{
-    component_string = component_string + "name:" + stack[0];
-    for (let i = 1; i < stack.length; i++)
-    {
-        component_string = component_string + "&component=name:" + stack[i];
+    let stack = fullQueryString.split("=")[1];
+    stack = stack.split(',')
+    // make a query string for all the components using 
+    let component_string = "component=";
+    if (stack.length >= 1) {
+        component_string = component_string + "name:" + stack[0];
+        for (let i = 1; i < stack.length; i++) {
+            component_string = component_string + "&component=name:" + stack[i];
+        }
     }
-}
 
-console.log("Check Stack:", stack);
-console.log("Component String:", component_string);
-fullQueryString = component_string;
- 
-// Log the full query string
-// console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
-// // Use the full query string in your AJAX request
+    console.log("Check Stack:", stack);
+    console.log("Component String:", component_string);
+    fullQueryString = component_string;
+
+    // Log the full query string
+    // console.log("Full query string:", `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`);
+    // // Use the full query string in your AJAX request
     // Fetch data using the processed query
     $.ajax({
         url: `${URL_API_ENDPOINT}/v/d/versionsByComponent?${fullQueryString}`,
@@ -147,53 +140,6 @@ function getStack(getComponent) {
         .filter(component => !usedComponents.has(component.toLowerCase()))
         .map(component => ({ component, belongsToStack: false }));
     return { groupedStacks, extraComponents };
-}
-
-function extractCveCode(url) {
-    if (!url) {
-        return "Unknown CVE"; // Return a generic placeholder if the URL is undefined or null
-    }
-
-    const regex = /CVE-\d{4}-\d+/; // Match patterns like "CVE-2024-9194"
-    const match = url.match(regex);
-
-    return match ? match[0] : "Generic Security Issue"; // Return matched CVE code or a generic fallback
-}
-
-function formatDateWithRelativeTime(dateStr) {
-    // Parse the input date string (e.g., "20200816") into a Date object
-    const date = new Date(dateStr.slice(0, 4), dateStr.slice(4, 6) - 1, dateStr.slice(6, 8));
-
-    // Get today's date and time for comparison
-    const today = new Date();
-
-    // Calculate the difference in time
-    const timeDiff = today - date;
-    const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-
-    // Function to format the date as "Jan/30/2024"
-    const formatDate = (date) => {
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const month = months[date.getMonth()];
-        const day = date.getDate();
-        const year = date.getFullYear();
-        return `${month}/${day < 10 ? '0' + day : day}/${year}`;
-    };
-
-    // Determine the relative time to today
-    let relativeTime = '';
-
-    if (dayDiff === 0) {
-        relativeTime = '(Today)';
-    } else if (dayDiff === 1) {
-        relativeTime = '(Yesterday)';
-    } else if (dayDiff < 7) {
-        relativeTime = '(This week)';
-    } else if (dayDiff < 30) {
-        relativeTime = '(This month)';
-    }
-
-    return `${formatDate(date)} ${relativeTime}`;
 }
 
 // Function to handle API response
@@ -379,23 +325,31 @@ function myRender(container, diagramData) {
     if (!ctx) return;
 
     plantuml.renderPng(code)
-    .then((blob) => {
+        .then((blob) => {
             let imageUrl = URL.createObjectURL(blob);
             let image = new Image();
 
             image.onload = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const viewportWidth = window.innerWidth * 0.95; // 80% of viewport width
+                const viewportHeight = window.innerHeight * 0.95; // 80% of viewport height
 
                 // Calculate scaling to maintain aspect ratio
-                let scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+                let scale = Math.min(viewportWidth / image.width, viewportHeight / image.height);
                 let scaledWidth = image.width * scale;
                 let scaledHeight = image.height * scale;
 
-                // If the scaled height is too large, constrain it to the canvas height
-                if (scaledHeight > canvas.height) {
-                    scaledHeight = canvas.height;
+                // Ensure image does not exceed canvas limits
+                if (scaledHeight > viewportHeight) {
+                    scaledHeight = viewportHeight;
                     scaledWidth = (image.width / image.height) * scaledHeight;
                 }
+
+                // Set canvas dimensions based on scaled size
+                canvas.width = scaledWidth;
+                canvas.height = scaledHeight;
+
+                // Clear previous drawing
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 // Center the image
                 let offsetX = (canvas.width - scaledWidth) / 2;
@@ -497,12 +451,6 @@ function sortByDate(data) {
     return data.sort((a, b) => compareDates(a, b));
 }
 
-// Function to replace special characters (including colon) with '-'
-function sanitize(name) {
-    return name.replace(/[:]/g, '-')   // Replace non-alphanumeric characters (except dot and dash) with '-'
-        .replace(/\./g, '-');          // Replace periods with hyphens
-}
-
 // Extract CVE code from the full URL (e.g., CVE-2024-9194 from "https://nvd.nist.gov/vuln/detail/CVE-2024-9194")
 function extractCveCode(url) {
     if (!url) {
@@ -552,46 +500,45 @@ function formatDateWithRelativeTime(dateStr) {
 }
 
 
-
 // Function to group components by stack
-function getStack(getComponent) {
-    console.log("Components received:", getComponent);
+// function getStack(getComponent) {
+//     console.log("Components received:", getComponent);
 
-    // Ensure `getComponent` is an array
-    if (!Array.isArray(getComponent) || getComponent.length === 0) {
-        console.warn("getComponent is empty or not an array.");
-        return { groupedStacks: [], extraComponents: [] };
-    }
+//     // Ensure `getComponent` is an array
+//     if (!Array.isArray(getComponent) || getComponent.length === 0) {
+//         console.warn("getComponent is empty or not an array.");
+//         return { groupedStacks: [], extraComponents: [] };
+//     }
 
-    const stacks = [
-        { name: "LAMP", components: ["apache", "mysql", "php", "linux"] },
-        { name: "LEMP", components: ["nginx", "mysql", "php", "linux"] },
-        { name: "UNN", components: ["ubuntu", "nginx", "nodejs"] },
-        { name: "RAILS", components: ["macos", "rails", "postgresql"] },
-        { name: "DWS", components: ["django", "windows", "sqlite"] },
-        { name: "FLASK", components: ["flask", "arch", "postgresql"] },
-        { name: "SPRING", components: ["redhat", "spring", "java"] },
-        { name: "CRP", components: ["centos", "rails", "postgresql"] },
-        { name: "DDS", components: ["debian", "django", "sqlite"] },
-        { name: "USP", components: ["ubuntu", "prisma", "svelte"] }
-    ];
+//     const stacks = [
+//         { name: "LAMP", components: ["apache", "mysql", "php", "linux"] },
+//         { name: "LEMP", components: ["nginx", "mysql", "php", "linux"] },
+//         { name: "UNN", components: ["ubuntu", "nginx", "nodejs"] },
+//         { name: "RAILS", components: ["macos", "rails", "postgresql"] },
+//         { name: "DWS", components: ["django", "windows", "sqlite"] },
+//         { name: "FLASK", components: ["flask", "arch", "postgresql"] },
+//         { name: "SPRING", components: ["redhat", "spring", "java"] },
+//         { name: "CRP", components: ["centos", "rails", "postgresql"] },
+//         { name: "DDS", components: ["debian", "django", "sqlite"] },
+//         { name: "USP", components: ["ubuntu", "prisma", "svelte"] }
+//     ];
 
-    const groupedStacks = [];
-    const usedComponents = new Set();
+//     const groupedStacks = [];
+//     const usedComponents = new Set();
 
-    for (const stack of stacks) {
-        // Strict match: All stack components must be in getComponent
-        const isStrictMatch = stack.components.every(component => getComponent.includes(component.toLowerCase()));
+//     for (const stack of stacks) {
+//         // Strict match: All stack components must be in getComponent
+//         const isStrictMatch = stack.components.every(component => getComponent.includes(component.toLowerCase()));
 
-        if (isStrictMatch) {
-            groupedStacks.push({ stackName: stack.name, matchedComponents: stack.components });
-            stack.components.forEach(component => usedComponents.add(component.toLowerCase())); // Mark components as used
-        }
-    }
+//         if (isStrictMatch) {
+//             groupedStacks.push({ stackName: stack.name, matchedComponents: stack.components });
+//             stack.components.forEach(component => usedComponents.add(component.toLowerCase())); // Mark components as used
+//         }
+//     }
 
-    // Identify extra or unmatched components
-    const extraComponents = getComponent
-        .filter(component => !usedComponents.has(component.toLowerCase()))
-        .map(component => ({ component, belongsToStack: false }));
-    return { groupedStacks, extraComponents };
-}
+//     // Identify extra or unmatched components
+//     const extraComponents = getComponent
+//         .filter(component => !usedComponents.has(component.toLowerCase()))
+//         .map(component => ({ component, belongsToStack: false }));
+//     return { groupedStacks, extraComponents };
+// }
