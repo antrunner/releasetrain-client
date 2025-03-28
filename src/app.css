@@ -598,16 +598,20 @@ img.avatar {
 
 .sort-buttons {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
-    gap: 1vw; /* Spacing between buttons */
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columns */
+    gap: 1vw;
+    /* Spacing between buttons */
     width: 100%;
     padding: 1vw;
 }
 
 .sort-buttons button {
-    width: 100%; /* Ensure buttons take full column width */
+    width: 100%;
+    /* Ensure buttons take full column width */
     padding: 1vw;
-    font-size: 0.8rem; /* Dynamic font size */
+    font-size: 0.8rem;
+    /* Dynamic font size */
     font-weight: bold;
     text-align: center;
     border: none;
@@ -628,4 +632,21 @@ img.avatar {
     background-color: #007bff;
     /* Highlight active button */
     color: white;
+}
+
+.canvas-container {
+    display: flex;
+    justify-content: center;
+    /* Centers horizontally */
+    align-items: center;
+    /* Centers vertically (if height is set) */
+    margin-top: 80px;
+    /* Adds margin between this div and the upper element */
+    height: auto;
+    /* Adjust based on content */
+}
+
+canvas {
+    display: block;
+    /* Removes extra space under canvas */
 }
