@@ -641,6 +641,7 @@ img.avatar {
     align-items: center;
     /* Centers vertically (if height is set) */
     margin-top: 80px;
+    margin-bottom: 80px;
     /* Adds margin between this div and the upper element */
     height: auto;
     /* Adjust based on content */
