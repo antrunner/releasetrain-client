@@ -277,10 +277,10 @@
                  used for Graph/CVE view option groups) rather than a new
                  component, and flex:1 0 100% the same way .ask-toggle-group's
                  sibling .toggle-more block spans the full row when it wraps.
-                 Open by default, listing only the checks the visitor can
-                 change (the mandatory ones live in each answer's Guardrails
-                 tab); askLoadGuardrails runs once on load and again each
-                 time it is reopened (see the "toggle" listener below). -->
+                 Closed by default, same as every other sidebar section;
+                 askLoadGuardrails fetches lazily on each open (see the
+                 "toggle" listener in ask.js), so starting closed also
+                 means no guardrails fetch until a visitor asks for it. -->
             <details class="sb-details" id="askGuardrailsDetails">
               <summary>Guardrails</summary>
               <div class="sidebar-section st-1" id="askGuardrailsBody">
@@ -377,9 +377,22 @@
            Model & pipeline/Advanced checks/Guardrails at runtime
            regardless of source order -- putting this block before
            navLinksDetails instead is the only placement that reliably
-           stays at the top. Open by default (unlike every other
-           .sb-details group here): this is the one thing that actually
-           needs to be visible without an extra click. -->
+           stays at the top. Closed by default now, same as every other
+           .sb-details group here, per explicit request to have every
+           sidebar section start collapsed; its list is still populated
+           at load (loadRedditUpdateQuestions writes into the inner
+           .demo-q-list regardless of open state), so opening it shows
+           the questions with no extra fetch. -->
+      <!-- Group eyebrow labels (.sb-cluster-label; distinct from the filters panel's existing inline .sb-group-label stat headers): purely visual
+           cluster headers so the sidebar reads as a few groups
+           (Questions / Navigate / Settings) instead of many equal
+           stripes. Static additions only, no section was moved; the
+           Settings group's own label is a CSS ::before on
+           #sidebar > .ask-options-panel instead of a static div here,
+           since relocateAskOptionsPanel inserts that panel at runtime
+           (right after navLinksDetails) and a static label would end
+           up on the wrong side of it. -->
+      <div class="sb-cluster-label" id="sbQuestionsClusterLabel" aria-hidden="true">Questions</div>
       <!-- Up to 4 one-click "Prioritize <machine>'s updates by <mode>"
            prompts, built from the visitor's own Installed versions
            inventory (see renderTriageDemoButtons in ask-rail.js) - same
@@ -406,7 +419,7 @@
            showing. -->
       <button type="button" id="askIncludeInventoryBtn" class="demo-q-btn ask-context-fill-btn" hidden>+ Include my installed software</button>
 
-      <details class="sb-details" id="demoQuestionsDetails" open>
+      <details class="sb-details" id="demoQuestionsDetails">
         <summary>Recent Reddit Update Risk Questions</summary>
         <div class="demo-q-list" role="list" aria-label="Real community questions about a recent software update, ranked by update-risk score"></div>
       </details>
@@ -418,6 +431,7 @@
            after this wrapper, not after the bare <nav> anymore, so the
            options panel lands as #sidebar's own direct child rather than
            nesting inside this <details> too. -->
+      <div class="sb-cluster-label" aria-hidden="true">Navigate</div>
       <details class="sb-details" id="navLinksDetails">
         <summary>Menu</summary>
         <nav class="nav-links" id="navLinks" aria-label="Views">
@@ -2113,6 +2127,19 @@ curl "https://releasetrain.io/api/reddit?fields=title,metadata.predicted.isUpdat
         </div>
         <div class="cl-body">
 
+          <div class="cl-release">
+            <div class="cl-date-col">
+              <div class="cl-date">2026-10-10</div>
+              <div class="cl-ver cl-ver-minor">v3.158.0</div>
+            </div>
+            <div class="cl-content">
+              <h3>Calmer sidebar, grouped sections, one consistent color palette</h3>
+              <ul>
+                <li><span class="cl-tag cl-tag-ux">ux</span> Every left-sidebar section now starts collapsed (Recent Reddit Update Risk Questions included), and the sections are clustered under three quiet group labels: Questions, Navigate, and Settings (Model &amp; pipeline, Advanced checks, Guardrails), so the sidebar reads as a few groups instead of many equal stripes; the pipeline diagram stays the page's centerpiece, unchanged</li>
+                <li><span class="cl-tag cl-tag-ux">ux</span> The whole client now draws every color from one token palette at the top of styles.css: one blue accent family for everything interactive (links, primary buttons, focus rings, the pipeline's idle/active steps), one neutral gray ramp, and green/red/amber only where they carry meaning (done/success, danger/error, warning); muted text was darkened slightly to meet WCAG AA contrast, and the pipeline's lavender idle state now wears the accent instead</li>
+              </ul>
+            </div>
+          </div>
           <div class="cl-release">
             <div class="cl-date-col">
               <div class="cl-date">2026-09-26</div>

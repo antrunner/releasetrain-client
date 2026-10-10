@@ -238,15 +238,11 @@
         const q = `Prioritize ${m}'s updates by ${mode}`;
         return `<button type="button" class="demo-q-btn" data-q="${uaEsc(q)}" data-context="${uaEsc(formatInventoryForAskContext(m))}">${uaEsc(q)}</button>`;
       }).join("")).join("");
-      // Requested directly, with a screenshot: once there's real
-      // per-machine software to prioritize, give those prompts visual
-      // priority over the generic Reddit sample questions instead of
-      // making the visitor scroll past an already-open group to find
-      // them. Only ever auto-COLLAPSES it (never force-opens it back)
-      // so a visitor who already expanded it by hand isn't fighting
-      // this on every refresh.
-      const demoDetails = document.getElementById("demoQuestionsDetails");
-      if (demoDetails && machines.length) demoDetails.open = false;
+      // #demoQuestionsDetails used to be force-collapsed here once real
+      // per-machine prompts existed (it started open in the markup back
+      // then). Every sidebar section now starts closed in the markup
+      // itself, per explicit request, so there's nothing left to
+      // collapse and a visitor who opened it by hand is never fought.
     }
     // Called from account.js's uaRender()/uaUpdateAskIntroSignin() and
     // inventory.js's bootstrap: keeps every inventory-dependent piece of
