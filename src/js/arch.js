@@ -738,8 +738,11 @@
       set("currentCount", sum.current);
       set("unknownCount", sum.unknown);
       const detC = aEl("detComponents"), detS = aEl("detStacks");
-      if (detC) detC.innerHTML = vers.map(v => `• ${v.name}`).join("<br>");
-      if (detS) detS.innerHTML = groupedStacks.length ? groupedStacks.map(s => `• ${s.stackName}: ${s.matchedComponents.join(", ")}`).join("<br>") : "None";
+      // Component/stack names come from catalog data and a user's own
+      // saved inventory - data, not markup; escape them before they
+      // reach innerHTML.
+      if (detC) detC.innerHTML = vers.map(v => `• ${aEsc(v.name)}`).join("<br>");
+      if (detS) detS.innerHTML = groupedStacks.length ? groupedStacks.map(s => `• ${aEsc(s.stackName)}: ${aEsc(s.matchedComponents.join(", "))}`).join("<br>") : "None";
     }
     function aMapVers(data) {
       return (Array.isArray(data) ? data : []).map(c => ({

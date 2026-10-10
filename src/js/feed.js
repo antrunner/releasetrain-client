@@ -1131,7 +1131,7 @@
       // that used to sit unused to the right of this text block.
       const textWrap = document.createElement("div");
       textWrap.className = "groupSummaryText";
-      textWrap.innerHTML = `<span class="groupHead">${safe(group.name, "")}<span class="group-latest-ver"></span></span>` +
+      textWrap.innerHTML = `<span class="groupHead">${uaEsc(safe(group.name, ""))}<span class="group-latest-ver"></span></span>` +
         (summaryChips ? `<div class="groupChips">${summaryChips}</div>` : "") + sourceLine;
       sum.appendChild(textWrap);
       const chartEl = renderComponentSentimentChart(group);
@@ -1222,7 +1222,7 @@
           // row (and the group header already totals each source), so a
           // repeated "reddit"/"stackoverflow" text chip on every single row
           // is pure noise, not new information.
-          if (it.raw?.subreddit) chipsEl.insertAdjacentHTML("beforeend", chip(`r/${it.raw.subreddit}`, "soft"));
+          if (it.raw?.subreddit) chipsEl.insertAdjacentHTML("beforeend", chip(`r/${uaEsc(it.raw.subreddit)}`, "soft"));
           const scorePred = it.raw?.metadata?.predicted?.positiveScore;
           const scoreField = typeof it.raw?.score === "number" ? it.raw.score : null;
           const scoreVal = typeof scorePred === "number" ? scorePred : scoreField;
@@ -1259,7 +1259,7 @@
           // Its own red icon + red-tinted row (.kind-cve) already say "CVE" -
           // no need to say it a third time after the group header's own count.
           const cveHref = (it.url && it.url.startsWith("http")) ? it.url : (it.raw?._id ? `https://releasetrain.io/api/v/${it.raw._id}` : null);
-          if (cveHref) chipsEl.insertAdjacentHTML("beforeend", `<span class="chip link"><a href="${cveHref}" target="_blank" rel="noopener">open ↗</a></span>`);
+          if (cveHref) chipsEl.insertAdjacentHTML("beforeend", `<span class="chip link"><a href="${uaEsc(cveHref)}" target="_blank" rel="noopener">open ↗</a></span>`);
           // versionPatchUrl (mitre.py's own extract_patch_url, see its
           // comment there): the CVE link above is always just NVD's
           // description page, never the actual fix - "CVE patch
@@ -1333,13 +1333,19 @@
               inner += `<div class="chips potentialCveChips">`;
               for (const p of potPosts) {
                 const id = getPostId(p) || "post";
-                inner += `<a class="chip potentialCveChip" href="${p.url || `https://reddit.com/comments/${id}`}" target="_blank" rel="noopener">${id}</a>`;
+                inner += `<a class="chip potentialCveChip" href="${uaEsc(p.url || `https://reddit.com/comments/${id}`)}" target="_blank" rel="noopener">${uaEsc(id)}</a>`;
               }
               inner += `</div>`;
             }
           }
 
-          d.innerHTML = inner + descTxt;
+          // descTxt is scraped release-notes/comments text (bot-collected
+          // from vendor pages and GitHub), never trusted markup - a
+          // crafted release note could otherwise inject real elements
+          // here. `inner` stays raw on purpose: it is built just above
+          // from our own markup with its data fields individually
+          // escaped.
+          d.innerHTML = inner + uaEsc(descTxt);
           body.appendChild(d);
         }
 
