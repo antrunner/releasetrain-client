@@ -343,6 +343,8 @@
         retrieverRetry: "Retriever retry",
         evaluatorSelfCheck: "Evaluator retry",
         orchestratorRevise: "Hedge retry",
+        nistTierRetry: "NIST: retry loop",
+        nistTierFallbackSort: "NIST: fallback sort",
       };
       const shortLabel = g => ASK_GUARDRAIL_SHORT[g.id] || String(g.label || g.id).split(/\s+/).slice(0, 3).join(" ");
       const optionalHtml = optional.length
