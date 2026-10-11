@@ -418,6 +418,17 @@
       <div class="demo-q-list" id="cveImpactDemoQList" role="list" aria-label="Ask which software a CVE impacts">
         <button type="button" class="demo-q-btn" data-q="Which software is impacted by CVE-2021-41773?">Which software is impacted by CVE-2021-41773?</button>
       </div>
+      <!-- The five newest tracked CVEs as one-click cveimpact prompts,
+           collapsed by default like every other .sb-details group here.
+           Populated lazily on first open (loadRecentCveQuestions in
+           ask-rail.js, GET /api/cve/recent) - same lazy-on-toggle
+           pattern as the guardrails section, so a visitor who never
+           opens it costs no request. Buttons reuse the shared
+           .demo-q-list/.demo-q-btn click handling (wireDemoQList). -->
+      <details class="sb-details" id="recentCvesDetails">
+        <summary>Recent CVEs</summary>
+        <div class="demo-q-list" id="recentCvesQList" role="list" aria-label="The newest tracked CVEs; click one to ask which software it impacts"></div>
+      </details>
       <!-- "Ecosystem software" shortcut (see the 'triage' question intent,
            runTriageIntentAsk in releasetrain-server's ask.js): fills
            #askContext with the signed-in (or anonymous local) visitor's

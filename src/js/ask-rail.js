@@ -172,11 +172,48 @@
       });
     }
     document.querySelectorAll(".demo-q-list").forEach(wireDemoQList);
-    // The Reddit-sourced list is the one with no id of its own: both
-    // #triageDemoQList (per-machine prompts) and #cveImpactDemoQList
-    // (the static CVE-impact sample) must be excluded here, or
+    // The five newest tracked CVEs as one-click cveimpact prompts,
+    // loaded lazily the first time the collapsed "Recent CVEs" group is
+    // opened (same lazy-on-toggle pattern as the guardrails section).
+    // Clicking a button goes through wireDemoQList above - the handler
+    // is delegated on the container, so buttons added here after wiring
+    // still work.
+    const recentCvesDetails = document.getElementById("recentCvesDetails");
+    async function loadRecentCveQuestions() {
+      const list = document.getElementById("recentCvesQList");
+      if (!list || list.dataset.loaded) return;
+      list.dataset.loaded = "1";
+      list.innerHTML = `<span class="ua-muted">Loading…</span>`;
+      try {
+        const res = await fetch(`${API_BASE}cve/recent?limit=5`);
+        const rows = res.ok ? await res.json() : [];
+        list.innerHTML = "";
+        let added = 0;
+        for (const r of Array.isArray(rows) ? rows : []) {
+          const m = String(r.versionUrl || "").match(/CVE-\d{4}-\d+/i);
+          if (!m) continue;
+          const id = m[0].toUpperCase();
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "demo-q-btn";
+          btn.dataset.q = `Which software is impacted by ${id}?`;
+          btn.textContent = `[${id}] ${r.versionProductName || ""}`.trim();
+          list.appendChild(btn);
+          added++;
+        }
+        if (!added) list.innerHTML = `<span class="ua-muted">No tracked CVEs yet.</span>`;
+      } catch {
+        list.dataset.loaded = "";
+        list.innerHTML = `<span class="ua-muted">Could not load recent CVEs.</span>`;
+      }
+    }
+    recentCvesDetails?.addEventListener("toggle", () => { if (recentCvesDetails.open) loadRecentCveQuestions(); });
+    // The Reddit-sourced list is the one with no id of its own:
+    // #triageDemoQList (per-machine prompts), #cveImpactDemoQList
+    // (the static CVE-impact sample), and #recentCvesQList (the lazy
+    // Recent CVEs list above) must all be excluded here, or
     // loadRedditUpdateQuestions below would overwrite their buttons.
-    const demoQList = document.querySelector(".demo-q-list:not(#triageDemoQList):not(#cveImpactDemoQList)");
+    const demoQList = document.querySelector(".demo-q-list:not(#triageDemoQList):not(#cveImpactDemoQList):not(#recentCvesQList)");
     // Formats the signed-in (or anonymous local) visitor's own Installed
     // versions inventory as "Name: Version" lines, matching exactly what
     // releasetrain-server's parseTriageComponentsFromContext (ask.js)

@@ -1259,7 +1259,30 @@
           // Its own red icon + red-tinted row (.kind-cve) already say "CVE" -
           // no need to say it a third time after the group header's own count.
           const cveHref = (it.url && it.url.startsWith("http")) ? it.url : (it.raw?._id ? `https://releasetrain.io/api/v/${it.raw._id}` : null);
-          if (cveHref) chipsEl.insertAdjacentHTML("beforeend", `<span class="chip link"><a href="${uaEsc(cveHref)}" target="_blank" rel="noopener">open ↗</a></span>`);
+          // The CVE id itself, bracketed and clickable (reported live:
+          // "add the CVE id in brackets and clickable") - same bracketed-id
+          // convention the risky-report links already use. No dedicated id
+          // field exists on a CVE doc; the id lives inside versionUrl
+          // (mitre.py/cisa_kev.py always write the NVD detail link), so
+          // extract it from the href. Rows whose URL carries no CVE id
+          // keep the generic "open" label as before.
+          const cveIdMatch = cveHref ? cveHref.match(/CVE-\d{4}-\d+/i) : null;
+          const cveLabel = cveIdMatch ? `[${cveIdMatch[0].toUpperCase()}] ↗` : "open ↗";
+          if (cveHref) chipsEl.insertAdjacentHTML("beforeend", `<span class="chip link"><a href="${uaEsc(cveHref)}" target="_blank" rel="noopener">${uaEsc(cveLabel)}</a></span>`);
+          // KEV badge: cisa_kev.py tags its docs versionReleaseTags:["kev"],
+          // so a known-exploited CVE reads as such at a glance in the feed.
+          const tags = Array.isArray(it.raw?.versionReleaseTags) ? it.raw.versionReleaseTags : [];
+          if (tags.includes("kev")) chipsEl.insertAdjacentHTML("beforeend", chip("🔥 KEV", "bad"));
+          // One-click bridge to the cveimpact question intent (reported
+          // live: "append a plus with a label ... add the question which
+          // software is affected by this cve to the question input").
+          // Works for ANY tracked CVE, KEV-listed or not: the server's
+          // CVE-impact answer consults both the CISA KEV catalog and the
+          // tracked CVE data, and says plainly when a CVE is in neither.
+          if (cveIdMatch) {
+            chipsEl.insertAdjacentHTML("beforeend",
+              `<button type="button" class="chip ask-cve-btn" data-cve-id="${uaEsc(cveIdMatch[0].toUpperCase())}" title="Fill the Ask box: which software is impacted by this CVE?">➕ ask impact</button>`);
+          }
           // versionPatchUrl (mitre.py's own extract_patch_url, see its
           // comment there): the CVE link above is always just NVD's
           // description page, never the actual fix - "CVE patch
@@ -2089,5 +2112,21 @@
         updateActivityChart(days.map(d => d.label), vDaily, cveDaily, rDaily, computeLlmDailyFromRaw(_activityDayStrs), computeHvDailyFromRaw(_activityDayStrs));
       } catch (_) { /* stats are non-critical */ }
     })();
+
+    // "➕ ask impact" on a feed CVE row: fills the Ask box with the
+    // cveimpact question for that row's own CVE id and brings the input
+    // into view. Delegated at the document level since feed rows are
+    // re-rendered constantly; never submits - the viewer clicks Ask
+    // themselves, same contract as wireDemoQList's prompts (ask-rail.js).
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest(".ask-cve-btn");
+      if (!btn) return;
+      const input = document.getElementById("askQuestion");
+      if (!input) return;
+      input.value = `Which software is impacted by ${btn.dataset.cveId}?`;
+      if (typeof updateAskPreview === "function") updateAskPreview();
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      input.focus({ preventScroll: true });
+    });
 
     setupObserver();
