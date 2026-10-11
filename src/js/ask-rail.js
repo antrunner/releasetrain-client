@@ -172,7 +172,11 @@
       });
     }
     document.querySelectorAll(".demo-q-list").forEach(wireDemoQList);
-    const demoQList = document.querySelector(".demo-q-list:not(#triageDemoQList)");
+    // The Reddit-sourced list is the one with no id of its own: both
+    // #triageDemoQList (per-machine prompts) and #cveImpactDemoQList
+    // (the static CVE-impact sample) must be excluded here, or
+    // loadRedditUpdateQuestions below would overwrite their buttons.
+    const demoQList = document.querySelector(".demo-q-list:not(#triageDemoQList):not(#cveImpactDemoQList)");
     // Formats the signed-in (or anonymous local) visitor's own Installed
     // versions inventory as "Name: Version" lines, matching exactly what
     // releasetrain-server's parseTriageComponentsFromContext (ask.js)

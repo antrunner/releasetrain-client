@@ -109,9 +109,22 @@
     const ASK_INTENT_BADGE_LABELS = {
       cve: "CVE question", patch: "Patch question", version: "Version question",
       opinion: "Opinion (will decline)", comparison: "Comparison question",
-      triage: "Triage question",
+      triage: "Triage question", cveimpact: "CVE Impact question",
     };
+    // Kept in sync by hand with the server's own detectCveImpactCveId
+    // (releasetrain-server src/ask.js): "which software is impacted by
+    // CVE-X?" - shape-based (a literal CVE id plus impact phrasing), not
+    // a keyword list, same as the comparison detector above. The server
+    // answers it deterministically (CISA KEV catalog + its own tracked
+    // CVE data, grouped by EO 14028 category), no model call.
+    const ASK_CVE_ID_RX = /\bCVE-\d{4}-\d{1,7}\b/i;
+    const ASK_CVE_IMPACT_PHRASE_RX = /\b(?:impact(?:s|ed|ing)?|affect(?:s|ed|ing)?|expos(?:es|ed|ing)?|vulnerable to)\b|\b(?:which|what)\s+(?:software|components?|products?|systems?|packages?)\b/i;
+    function detectCveImpactClient(question) {
+      const text = String(question || "");
+      return ASK_CVE_ID_RX.test(text) && ASK_CVE_IMPACT_PHRASE_RX.test(text);
+    }
     function classifyIntentClient(question) {
+      if (detectCveImpactClient(question)) return "cveimpact";
       if (detectComparisonEntitiesClient(question)) return "comparison";
       const text = String(question || "").toLowerCase();
       for (const intent of ["cve", "patch", "triage", "version", "opinion"]) {
@@ -251,7 +264,7 @@
     // ""), caught live once the comparison intent's own sample question
     // was added below. The badge (ASK_INTENT_BADGE_LABELS) got updated
     // at the time, this sibling map did not.
-    const ASK_INTENT_TAGS = { cve: "cve-question", patch: "patch-question", version: "version-question", general: "general-question", opinion: "opinion", comparison: "comparison-question" };
+    const ASK_INTENT_TAGS = { cve: "cve-question", patch: "patch-question", version: "version-question", general: "general-question", opinion: "opinion", comparison: "comparison-question", triage: "triage-update-order", cveimpact: "cveimpact-question" };
 
     const askQuestionEl = document.getElementById("askQuestion");
     // #askIntroPanel's sample buttons fill the input and focus it; they

@@ -403,6 +403,21 @@
            <details> wrapper needed, unlike the section below - there's
            nothing to collapse when it's just a few buttons or none. -->
       <div class="demo-q-list" id="triageDemoQList" role="list" aria-label="Prioritize your own installed software's updates"></div>
+      <!-- One static suggested question for the 'cveimpact' intent (see
+           runCveImpactAsk in releasetrain-server's ask.js): "which
+           software is impacted by this CVE?" is answered
+           deterministically from the CISA KEV catalog plus the server's
+           own tracked CVE data, so unlike the per-machine prompts above
+           it depends on no inventory and no sign-in, and can be a plain
+           static button. Same .demo-q-list/.demo-q-btn markup and shared
+           click handling (wireDemoQList in ask-rail.js); its own id
+           keeps loadRedditUpdateQuestions' demoQList selector (which
+           excludes the id-carrying lists) from writing over it. The
+           sample CVE is the Apache HTTP Server 2.4.49 path traversal,
+           a real KEV entry. -->
+      <div class="demo-q-list" id="cveImpactDemoQList" role="list" aria-label="Ask which software a CVE impacts">
+        <button type="button" class="demo-q-btn" data-q="Which software is impacted by CVE-2021-41773?">Which software is impacted by CVE-2021-41773?</button>
+      </div>
       <!-- "Ecosystem software" shortcut (see the 'triage' question intent,
            runTriageIntentAsk in releasetrain-server's ask.js): fills
            #askContext with the signed-in (or anonymous local) visitor's
