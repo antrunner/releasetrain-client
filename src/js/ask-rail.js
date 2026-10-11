@@ -209,11 +209,10 @@
     }
     recentCvesDetails?.addEventListener("toggle", () => { if (recentCvesDetails.open) loadRecentCveQuestions(); });
     // The Reddit-sourced list is the one with no id of its own:
-    // #triageDemoQList (per-machine prompts), #cveImpactDemoQList
-    // (the static CVE-impact sample), and #recentCvesQList (the lazy
-    // Recent CVEs list above) must all be excluded here, or
+    // #triageDemoQList (per-machine prompts) and #recentCvesQList (the
+    // lazy KEV list above) must both be excluded here, or
     // loadRedditUpdateQuestions below would overwrite their buttons.
-    const demoQList = document.querySelector(".demo-q-list:not(#triageDemoQList):not(#cveImpactDemoQList):not(#recentCvesQList)");
+    const demoQList = document.querySelector(".demo-q-list:not(#triageDemoQList):not(#recentCvesQList)");
     // Formats the signed-in (or anonymous local) visitor's own Installed
     // versions inventory as "Name: Version" lines, matching exactly what
     // releasetrain-server's parseTriageComponentsFromContext (ask.js)

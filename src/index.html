@@ -403,31 +403,22 @@
            <details> wrapper needed, unlike the section below - there's
            nothing to collapse when it's just a few buttons or none. -->
       <div class="demo-q-list" id="triageDemoQList" role="list" aria-label="Prioritize your own installed software's updates"></div>
-      <!-- One static suggested question for the 'cveimpact' intent (see
-           runCveImpactAsk in releasetrain-server's ask.js): "which
-           software is impacted by this CVE?" is answered
-           deterministically from the CISA KEV catalog plus the server's
-           own tracked CVE data, so unlike the per-machine prompts above
-           it depends on no inventory and no sign-in, and can be a plain
-           static button. Same .demo-q-list/.demo-q-btn markup and shared
-           click handling (wireDemoQList in ask-rail.js); its own id
-           keeps loadRedditUpdateQuestions' demoQList selector (which
-           excludes the id-carrying lists) from writing over it. The
-           sample CVE is the Apache HTTP Server 2.4.49 path traversal,
-           a real KEV entry. -->
-      <div class="demo-q-list" id="cveImpactDemoQList" role="list" aria-label="Ask which software a CVE impacts">
-        <button type="button" class="demo-q-btn" data-q="Which software is impacted by CVE-2021-41773?">Which software is impacted by CVE-2021-41773?</button>
-      </div>
-      <!-- The five newest tracked CVEs as one-click cveimpact prompts,
-           collapsed by default like every other .sb-details group here.
-           Populated lazily on first open (loadRecentCveQuestions in
-           ask-rail.js, GET /api/cve/recent) - same lazy-on-toggle
-           pattern as the guardrails section, so a visitor who never
-           opens it costs no request. Buttons reuse the shared
-           .demo-q-list/.demo-q-btn click handling (wireDemoQList). -->
+      <!-- The five newest CISA-KEV CVEs as one-click cveimpact prompts
+           (the earlier static CVE-2021-41773 sample pill was removed in
+           favor of this live list, per explicit request). KEV-only, also
+           per explicit request ("only if known CISA"): the backing
+           GET /api/cve/recent filters on the 'kev' release tag that only
+           cisa_kev.py writes, so everything listed here IS in CISA's
+           Known Exploited Vulnerabilities catalog - that is how a viewer
+           knows these are CISA-confirmed, without asking first.
+           Collapsed by default like every other .sb-details group here;
+           populated lazily on first open (loadRecentCveQuestions in
+           ask-rail.js), same lazy-on-toggle pattern as the guardrails
+           section. Buttons reuse the shared .demo-q-list/.demo-q-btn
+           click handling (wireDemoQList). -->
       <details class="sb-details" id="recentCvesDetails">
-        <summary>Recent CVEs</summary>
-        <div class="demo-q-list" id="recentCvesQList" role="list" aria-label="The newest tracked CVEs; click one to ask which software it impacts"></div>
+        <summary>Recent CVEs (CISA KEV)</summary>
+        <div class="demo-q-list" id="recentCvesQList" role="list" aria-label="The newest CISA known-exploited CVEs; click one to ask which software it impacts"></div>
       </details>
       <!-- "Ecosystem software" shortcut (see the 'triage' question intent,
            runTriageIntentAsk in releasetrain-server's ask.js): fills

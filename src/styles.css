@@ -1908,13 +1908,16 @@ details[open] > summary { background: var(--view-card); color: var(--text); bord
 
 .li {
   display: grid; grid-template-columns: 92px 22px 1fr;
-  column-gap: 10px; padding: 10px 0 10px 8px;
+  column-gap: 12px; padding: 12px 10px 12px 10px;
   border-bottom: 1px solid var(--border);
   /* Rounded on the left-border side only, so a colored indicator
      reads as a soft accent instead of a hard rectangular bar. */
-  border-left: 2px solid transparent; border-radius: 0 4px 4px 0;
+  border-left: 2px solid transparent; border-radius: 0 6px 6px 0;
   align-items: start;
-  transition: background .1s;
+  /* A touch slower with real easing ("make the recent updates list
+     smoother", reported live with a screenshot): the hover tint fades
+     in instead of snapping. */
+  transition: background .18s ease, border-left-color .18s ease;
 }
 .li:hover { background: var(--bg); }
 .li:last-child { border-bottom: none; }
@@ -1960,7 +1963,9 @@ details[open] > summary { background: var(--view-card); color: var(--text); bord
 .datecol .time { opacity: .7; }
 
 .avatar {
-  width: 22px; height: 22px; border-radius: var(--radius-sm);
+  /* 6px matches the smoothed row corner radius, softer than the 2px
+     radius-sm the rest of the flat chrome uses. */
+  width: 22px; height: 22px; border-radius: 6px;
   border: 1px solid var(--border); object-fit: cover;
   background: var(--chip-bg); margin-top: 1px;
 }
@@ -1970,17 +1975,31 @@ details[open] > summary { background: var(--view-card); color: var(--text); bord
 .soIcon.risky { border-color: var(--risk); background: var(--risk-bg); }
 
 /* ── Chips ──────────────────────────────────────────────── */
-.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; align-items: center; }
 /* Rounder + bolder than this UI's other flat chrome (radius-sm is
    2px elsewhere), closer to a GitHub/shields.io badge's silhouette -
    but kept to this same muted, pastel palette rather than picking
-   up their loud solid-fill colors, per "like GitHub, but subtle". */
+   up their loud solid-fill colors, per "like GitHub, but subtle".
+   Radius and spacing softened further in the feed-smoothing pass
+   ("make this look nicer more smooth"), with an eased hover so
+   interactive chips respond gently rather than snapping. */
 .chip {
-  display: inline-flex; align-items: center; padding: 2px 8px;
-  font: 700 10px/1.4 inherit; letter-spacing: .1px; border-radius: 4px;
+  display: inline-flex; align-items: center; padding: 2px 9px;
+  font: 700 10px/1.6 inherit; letter-spacing: .1px; border-radius: 999px;
   border: 1px solid var(--border); background: var(--chip-bg);
   color: var(--chip-text); white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
 }
+/* The feed's clickable chips: the bracketed CVE link and the
+   "+ ask impact" button. Same silhouette as a plain chip at rest, a
+   quiet brand-tinted lift on hover/focus so clickability is obvious
+   without shouting. The button variant also needs its UA styles
+   neutralized (a <button class="chip"> otherwise keeps the native
+   button font and cursor). */
+button.chip { cursor: pointer; font-family: inherit; }
+button.chip:hover, button.chip:focus-visible,
+.chip.link:hover { border-color: var(--brand); color: var(--brand-strong); background: var(--bg-subtle); }
+.chip.link a { transition: color .15s ease; }
 .chip.bad { background: var(--cve-bg); border-color: var(--cve); color: var(--cve); }
 .chip.warn { background: var(--risk-bg); border-color: var(--risk); color: var(--risk); }
 .chip.ok { background: var(--chip-bg); border-color: var(--border); color: var(--chip-text); }
