@@ -240,7 +240,7 @@
     // releasetrain.io links are dropped (primary sources only), CVE ids in
     // the prose link to NVD, the release's own page is appended when not
     // cited, and a CISA known-exploited CVE is always stated.
-    function renderStory(text, primaryUrl, kevCveId) {
+    function renderStory(text, primaryUrl, kevCveId, scoreCveId) {
       const src = String(text || "").replace(/\s+/g, " ").trim().replace(/\*\*([^*]+)\*\*/g, "$1");
       const linkRx = /\s*\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
       let out = "", last = 0, cited = false, m;
@@ -258,6 +258,11 @@
       if (kevCveId && !/CISA/i.test(src)) {
         const cisaUrl = `https://www.cisa.gov/known-exploited-vulnerabilities-catalog?search_api_fulltext=${encodeURIComponent(kevCveId)}`;
         out += ` CISA lists ${linkCves(uaEsc(kevCveId))} as known exploited ${citeLink(cisaUrl)}.`;
+      } else if (scoreCveId && !src.toUpperCase().includes(String(scoreCveId).toUpperCase())) {
+        // Why the score is low, when the paragraph does not already say it
+        // ("no instability indicator in the text"): the score's own CVE.
+        const nvdUrl = `https://nvd.nist.gov/vuln/detail/${encodeURIComponent(scoreCveId)}`;
+        out += ` NVD lists ${linkCves(uaEsc(scoreCveId))} for this version, which lowers its stability ${citeLink(nvdUrl)}.`;
       }
       return `<p class="tr-story">${out}</p>`;
     }
@@ -307,7 +312,7 @@
       // Pipeline-written paragraphs only ("just use the pipeline ones");
       // until one exists the item says so instead of a stand-in story.
       const story = c.summary && c.summary.kind === "pipeline" && c.summary.answer
-        ? renderStory(c.summary.answer, c.primaryUrl, c.kevCveId)
+        ? renderStory(c.summary.answer, c.primaryUrl, c.kevCveId, c.scoreCveId)
         : `<p class="tr-story tr-pending">${c.status === "failed"
           ? "The pipeline found no evidence to summarize yet; it tries again within the hour."
           : "The pipeline is preparing this summary…"}</p>`;

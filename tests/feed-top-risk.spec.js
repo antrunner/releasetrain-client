@@ -44,6 +44,7 @@ const DATA = {
       repo: 'strapi/strapi',
       primaryUrl: 'https://github.com/strapi/strapi',
       kevCveId: null,
+      scoreCveId: null,
       status: 'pending',
       summary: {
         kind: 'facts',
@@ -53,12 +54,12 @@ const DATA = {
   ],
 };
 
-async function open(page, path, { pipeline } = {}) {
+async function open(page, path, { pipeline, data = DATA } = {}) {
   let pipelineCalls = 0;
   await page.route(/\/api\//, (route) => {
     const url = route.request().url();
     if (url.includes('/api/insights/top-risk')) {
-      const body = pipeline ? { ...DATA, pipeline: pipeline(0) } : DATA;
+      const body = pipeline ? { ...data, pipeline: pipeline(0) } : data;
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -173,4 +174,36 @@ test('the main pipeline diagram mirrors the server run, then finishes', async ({
   const after = calls();
   await page.waitForTimeout(4500);
   expect(calls()).toBe(after);
+});
+
+test('the score’s own CVE is stated when the paragraph does not mention it (ghidra 0.35 with no reason in the text)', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const ghidra = {
+    rank: 1,
+    name: 'ghidra',
+    version: '12.1.4',
+    stability: 0.35,
+    repo: 'NationalSecurityAgency/ghidra',
+    primaryUrl: 'https://github.com/NationalSecurityAgency/ghidra',
+    kevCveId: null,
+    scoreCveId: 'CVE-2026-100504',
+    status: 'ready',
+    summary: {
+      kind: 'pipeline',
+      answer:
+        'Ghidra is a software reverse engineering framework [GitHub](https://github.com/NationalSecurityAgency/ghidra).',
+    },
+  };
+  await open(page, '/', { data: { ...DATA, components: [ghidra] } });
+  const story = page.locator('#topRiskHome .tr-item .tr-story');
+  await expect(story).toContainText(
+    'NVD lists CVE-2026-100504 for this version, which lowers its stability',
+    { timeout: 20_000 },
+  );
+  await expect(story.locator('a.tr-cve')).toHaveAttribute(
+    'href',
+    'https://nvd.nist.gov/vuln/detail/CVE-2026-100504',
+  );
 });
