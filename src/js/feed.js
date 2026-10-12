@@ -393,6 +393,24 @@
           if (bv == null) return -1;
           return av - bv;
         });
+      } else if (mode === "stability-asc" || mode === "stability-desc") {
+        // "add option sort by stability asc and desc": a component's key
+        // is its NEWEST scored release's server-computed stability (items
+        // are already newest-first), i.e. the version you'd update to.
+        // Components with no score yet sort last in both directions, same
+        // as the community-risk sorts above: an absent score is not
+        // evidence of either stability or instability. Ties: recency.
+        arr.forEach(g => {
+          const scored = g.items.find(v => !v.isCve && typeof v.stability === "number");
+          g._stability = scored ? scored.stability : null;
+        });
+        const dir = mode === "stability-asc" ? 1 : -1;
+        arr.sort((a, b) => {
+          const av = a._stability, bv = b._stability;
+          if (av == null) return bv == null ? (versionTime(b.items[0]) - versionTime(a.items[0])) : 1;
+          if (bv == null) return -1;
+          return (dir * (av - bv)) || (versionTime(b.items[0]) - versionTime(a.items[0]));
+        });
       } else if (mode === "activity") {
         arr.sort((a, b) => (b.items.length - a.items.length) || (versionTime(b.items[0]) - versionTime(a.items[0])));
       } else if (mode === "sources") {
