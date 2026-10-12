@@ -1935,6 +1935,7 @@ body.has-ask-console.has-ask-console-min .view-close-btn { bottom: 48px; }
 .tr-head { display: flex; align-items: center; gap: 8px; }
 .tr-rank { font: 700 12px/1 var(--mono); color: var(--muted); min-width: 18px; }
 .tr-name { flex: 1 1 auto; min-width: 0; font-weight: 600; font-size: 13px; overflow-wrap: anywhere; }
+.tr-latest { font-weight: 400; color: var(--muted); }
 .tr-score { font: 700 13px/1 var(--mono); color: var(--muted); }
 .tr-score.stab-ok { color: var(--ok-strong); }
 .tr-score.stab-warn { color: var(--risk); }

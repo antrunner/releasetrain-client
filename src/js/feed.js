@@ -283,6 +283,25 @@
       return d >= today ? `<span class="tr-new" title="released today">today</span>` : "";
     }
 
+    // "(latest: 12.1.4, 55 days ago)" after the name: the component's latest
+    // version (server: GitHub's latest release, else our highest version)
+    // with its release day relative to the viewer's own calendar day.
+    function relativeDay(ymd) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ""));
+      if (!m) return "";
+      const now = new Date();
+      const days = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(+m[1], +m[2] - 1, +m[3])) / 86400000);
+      if (days <= 0) return "today";
+      if (days === 1) return "yesterday";
+      return `${days} days ago`;
+    }
+    function topRiskLatest(c) {
+      const l = c.latest;
+      if (!l || !l.version) return "";
+      const when = relativeDay(l.date);
+      return `<span class="tr-latest">(latest: ${uaEsc(l.version)}${when ? `, ${when}` : ""})</span>`;
+    }
+
     function renderTopRiskItem(c) {
       const name = `${c.name}${c.version ? " " + c.version : ""}`;
       // Pipeline-written paragraphs only ("just use the pipeline ones");
@@ -294,7 +313,7 @@
           : "The pipeline is preparing this summary…"}</p>`;
       return `<li class="tr-item">${topRiskFresh(c)}` +
         `<div class="tr-head"><span class="tr-rank">${c.rank}</span>${topRiskIcon(c)}` +
-        `<span class="tr-name">${uaEsc(name)}</span>` +
+        `<span class="tr-name">${uaEsc(name)} ${topRiskLatest(c)}</span>` +
         `<span class="tr-score ${stabBand(c.stability)}" title="stability score">${Number(c.stability).toFixed(2)}</span></div>` +
         story + `</li>`;
     }

@@ -24,6 +24,7 @@ const DATA = {
       version: '8.2.2',
       stability: 0.35,
       releaseDate: TODAY,
+      latest: { version: '8.4.0', date: '2026-08-18', source: 'github' },
       repo: 'redis/redis',
       primaryUrl: 'https://github.com/redis/redis/releases/tag/8.2.2',
       kevCveId: 'CVE-2025-49844',
@@ -122,6 +123,10 @@ test('pipeline paragraphs only, project icons, emoji citations, clickable CVEs, 
     'src',
     'https://github.com/redis.png?size=40',
   );
+  // latest version in brackets after the name, with a relative day
+  await expect(items.first().locator('.tr-latest')).toContainText('(latest: 8.4.0, ');
+  await expect(items.first().locator('.tr-latest')).toContainText('days ago)');
+  await expect(items.nth(1).locator('.tr-latest')).toHaveCount(0);
   // corner badge only on the item released today
   await expect(items.first().locator('.tr-new')).toHaveText('today');
   await expect(items.nth(1).locator('.tr-new')).toHaveCount(0);
