@@ -1302,6 +1302,20 @@
           // gone.
           if (isLLMVersion(it.raw)) chipsEl.insertAdjacentHTML("beforeend", chip("🤖 LLM", "llm"));
           if (isHypervisorVersion(it.raw)) chipsEl.insertAdjacentHTML("beforeend", chip("🖥️ Hypervisor", "hv"));
+          // Deterministic stability score (server-computed at write time
+          // / nightly recompute, see the server's src/stability.js):
+          // tinted by band, with the server's own stabilityReasoning
+          // sentence as the hover title so the number is never a bare,
+          // unexplained value. Only rendered when the doc actually
+          // carries a score - older docs the backfill hasn't reached get
+          // no chip rather than a fabricated one.
+          const stab = it.raw?.stability;
+          if (typeof stab === "number") {
+            const band = stab >= 0.7 ? "ok" : (stab >= 0.4 ? "warn" : "bad");
+            const why = it.raw?.stabilityReasoning || "";
+            chipsEl.insertAdjacentHTML("beforeend",
+              `<span class="chip ${band}" title="${uaEsc(why)}">⚖️ stability ${uaEsc(stab.toFixed(2))}</span>`);
+          }
         }
 
         if (it.kind !== "reddit" && it.kind !== "stackoverflow" && it.raw) {

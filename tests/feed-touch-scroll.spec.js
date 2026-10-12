@@ -54,8 +54,7 @@ test('a touch swipe over the middle of the feed list scrolls the page', async ({
   await page.route(/\/api\//, (route) => {
     const url = route.request().url();
     let body = '[]';
-    if (/\/v\/search/.test(url))
-      body = JSON.stringify({ data: mockVersions(), nextCursor: null });
+    if (/\/v\/search/.test(url)) body = JSON.stringify({ data: mockVersions(), nextCursor: null });
     else if (/\/count/.test(url)) body = '{}';
     return route.fulfill({ status: 200, contentType: 'application/json', body });
   });
