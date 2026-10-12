@@ -280,7 +280,7 @@
       if (!/^\d{8}$/.test(d)) return "";
       const now = new Date();
       const today = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-      return d >= today ? `<span class="tr-new" title="released today">🆕 today</span>` : "";
+      return d >= today ? `<span class="tr-new" title="released today">today</span>` : "";
     }
 
     function renderTopRiskItem(c) {

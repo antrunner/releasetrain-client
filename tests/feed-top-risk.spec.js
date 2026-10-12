@@ -123,7 +123,7 @@ test('pipeline paragraphs only, project icons, emoji citations, clickable CVEs, 
     'https://github.com/redis.png?size=40',
   );
   // corner badge only on the item released today
-  await expect(items.first().locator('.tr-new')).toHaveText('🆕 today');
+  await expect(items.first().locator('.tr-new')).toHaveText('today');
   await expect(items.nth(1).locator('.tr-new')).toHaveCount(0);
   const story = items.first().locator('.tr-story');
   await expect(story.locator('a.tr-src')).toHaveText([
