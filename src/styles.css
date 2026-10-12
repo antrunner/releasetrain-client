@@ -2040,6 +2040,13 @@ details[open] > summary { background: var(--view-card); color: var(--text); bord
   border: 1px solid var(--border); object-fit: cover;
   background: var(--chip-bg); margin-top: 1px;
 }
+/* CVE rows: a plain ⚠️ emoji in the avatar slot, same 22px footprint so
+   rows stay aligned, but no box, border or background. */
+.avatar.avatar-emoji {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; border-radius: 0;
+  font-size: 18px; line-height: 1;
+}
 .redditIcon { border-color: var(--border); background: var(--chip-bg); }
 .redditIcon.risky { border-color: var(--risk); background: var(--risk-bg); }
 .soIcon { border-color: var(--border); background: var(--chip-bg); }

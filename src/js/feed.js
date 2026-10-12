@@ -1209,6 +1209,14 @@
           av.className = "avatar soIcon" + (isRisk(it.raw) ? " risky" : "");
           av.src = "./img/stackoverflow.png"; av.alt = "StackOverflow";
           li.appendChild(av);
+        } else if (it.kind === "cve") {
+          // A plain ⚠️ emoji, no boxed image or background ("make the
+          // warning triangle using html emoji, no background color").
+          const av = document.createElement("span");
+          av.className = "avatar avatar-emoji";
+          av.setAttribute("role", "img"); av.setAttribute("aria-label", "CVE"); av.title = "CVE";
+          av.textContent = "⚠️";
+          li.appendChild(av);
         } else {
           const av = document.createElement("img"); av.className = "avatar"; av.alt = group.name; av.src = avatarFor(it.raw);
           li.appendChild(av);
@@ -1267,7 +1275,7 @@
           // extract it from the href. Rows whose URL carries no CVE id
           // keep the generic "open" label as before.
           const cveIdMatch = cveHref ? cveHref.match(/CVE-\d{4}-\d+/i) : null;
-          const cveLabel = cveIdMatch ? `[${cveIdMatch[0].toUpperCase()}] ↗` : "open ↗";
+          const cveLabel = cveIdMatch ? `${cveIdMatch[0].toUpperCase()} ↗` : "open ↗";
           if (cveHref) chipsEl.insertAdjacentHTML("beforeend", `<span class="chip link"><a href="${uaEsc(cveHref)}" target="_blank" rel="noopener">${uaEsc(cveLabel)}</a></span>`);
           // KEV badge: cisa_kev.py tags its docs versionReleaseTags:["kev"],
           // so a known-exploited CVE reads as such at a glance in the feed.
