@@ -6483,7 +6483,7 @@ curl "https://releasetrain.io/api/reddit?fields=title,metadata.predicted.isUpdat
              own header (no separate headline): an "as of" line, then one
              story paragraph per component. Hidden until data loads. -->
         <section id="topRiskPanel" class="top-risk" aria-label="Least stable components" hidden>
-          <p class="top-risk-dateline">Least stable first, as of <time id="topRiskDateline"></time></p>
+          <p class="top-risk-dateline">Least stable releases of the last 7 days, as of <time id="topRiskDateline"></time></p>
           <ol id="topRiskList" class="top-risk-list"></ol>
         </section>
 
@@ -6558,7 +6558,7 @@ curl "https://releasetrain.io/api/reddit?fields=title,metadata.predicted.isUpdat
            ?view=feed"). Same list as #topRiskPanel (which serves the phone
            home), rendered by feed.js loadTopRisk. -->
       <section id="topRiskHome" class="top-risk top-risk-home" aria-label="Least stable components" hidden>
-        <p class="top-risk-dateline">Least stable first, as of <time id="topRiskHomeDateline"></time></p>
+        <p class="top-risk-dateline">Least stable releases of the last 7 days, as of <time id="topRiskHomeDateline"></time></p>
         <ol id="topRiskHomeList" class="top-risk-list"></ol>
       </section>
     </aside>
