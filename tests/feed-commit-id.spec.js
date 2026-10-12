@@ -43,8 +43,8 @@ test('old github.py docs show the versionId sha suffix, linked to the commit', a
     { ...base, _id: 'b', versionId: '20261011v2rayN7.25.6fbf822d74c80' },
   ]);
   const texts = rows.map((r) => r?.text).sort();
-  expect(texts).toEqual(['4869a6c', 'fbf822d']);
-  const first = rows.find((r) => r.text === '4869a6c');
+  expect(texts).toEqual(['(4869a6c)', '(fbf822d)']);
+  const first = rows.find((r) => r.text === '(4869a6c)');
   expect(first.href).toBe('https://github.com/2dust/v2rayN/commit/4869a6cbba40');
 });
 
@@ -57,7 +57,7 @@ test('an explicit versionCommit wins over the versionId suffix', async ({ page }
       versionCommit: '1cde521d75de0123456789abcdef0123456789ab',
     },
   ]);
-  expect(rows[0].text).toBe('1cde521');
+  expect(rows[0].text).toBe('(1cde521)');
   expect(rows[0].href).toBe(
     'https://github.com/2dust/v2rayN/commit/1cde521d75de0123456789abcdef0123456789ab',
   );
@@ -68,4 +68,13 @@ test('non-github docs never get a commit label', async ({ page }) => {
     { ...base, _id: 'd', sourceBot: 'chrome.py', versionId: '20261011chrome130deadbeefcafe' },
   ]);
   expect(rows[0]).toBeNull();
+});
+
+test('a build number, when a doc has one, is shown in brackets instead of the commit', async ({
+  page,
+}) => {
+  const rows = await page.evaluate(render, [
+    { ...base, _id: 'e', versionId: '20261011v2rayN7.25.62407d44f4f8d', versionBuild: '1842' },
+  ]);
+  expect(rows[0].text).toBe('(build 1842)');
 });

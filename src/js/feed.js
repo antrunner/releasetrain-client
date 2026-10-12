@@ -195,124 +195,6 @@
       return m ? m[1].toLowerCase() : null;
     }
 
-    /* ── Highest risk now ─────────────────────────────────────────
-       The 10 components whose newest release has the lowest stability
-       score (server: GET /api/insights/top-risk, src/insights.js), each
-       one brief story paragraph: the pipeline's when ready, else the
-       server's fact-based story. Citations read "(source: Reddit)",
-       primary sources only. Mobile first: nothing scrolls sideways. The
-       panel re-fetches a few times while pipeline paragraphs are pending. */
-    const stabBand = s => (typeof s !== "number" ? "" : s >= 0.7 ? "stab-ok" : s >= 0.4 ? "stab-warn" : "stab-bad");
-    function relativeAge(date, now = new Date()) {
-      const mins = Math.round((now - date) / 60000);
-      if (mins < 1) return "just now";
-      if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
-      const hours = Math.round(mins / 60);
-      if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-      const days = Math.round(hours / 24);
-      return `${days} day${days === 1 ? "" : "s"} ago`;
-    }
-    const fmtTime = d => d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
-
-    // "(source: Reddit)": a readable name for a primary source's domain.
-    function sourceName(url) {
-      let host = "";
-      try { host = new URL(url).hostname.replace(/^www\./, "").toLowerCase(); } catch { return "link"; }
-      if (/(^|\.)reddit\.com$|(^|\.)redd\.it$/.test(host)) return "Reddit";
-      if (host === "nvd.nist.gov") return "NVD";
-      if (/(^|\.)cisa\.gov$/.test(host)) return "CISA";
-      if (host === "github.com") return "GitHub";
-      if (host === "stackoverflow.com") return "Stack Overflow";
-      return host;
-    }
-    const citeLink = url => `<a class="tr-src" href="${uaEsc(url)}" target="_blank" rel="noopener">(source: ${uaEsc(sourceName(url))})</a>`;
-
-    // One integrated story paragraph per component, with every markdown
-    // link rendered as a round-bracket citation, "(source: Reddit)". Only
-    // primary sources: a releasetrain.io link is dropped, and the release's
-    // own page is appended when the paragraph doesn't already cite it.
-    function renderStory(text, primaryUrl) {
-      let cited = false;
-      const html = uaEsc(String(text || "").replace(/\s+/g, " ").trim())
-        .replace(/\*\*([^*]+)\*\*/g, "$1")
-        .replace(/\s*\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, (m, label, rawUrl) => {
-          const url = rawUrl.replace(/&amp;/g, "&");
-          if (/(^|\.)releasetrain\.io\//i.test(url.replace(/^https?:\/\//, ""))) return "";
-          if (primaryUrl && url === primaryUrl) cited = true;
-          return ` ${citeLink(url)}`;
-        });
-      const tail = primaryUrl && !cited ? ` ${citeLink(primaryUrl)}` : "";
-      return `<p class="tr-story">${html}${tail}</p>`;
-    }
-
-    // Live pipeline phase in the same words the Ask box uses (askPhaseLabel).
-    const pipelinePhaseText = r => (r.phase === "starting" ? "starting" : askPhaseLabel(r.phase, r.detail, "orchestrator_delegated", r.meta));
-
-    function renderTopRiskItem(c, pipeline) {
-      const name = `${c.name}${c.version ? " " + c.version : ""}`;
-      const story = c.summary && c.summary.answer
-        ? renderStory(c.summary.answer, c.primaryUrl)
-        : `<p class="tr-story tr-pending">Summary being prepared…</p>`;
-      // Pipeline state for a component still showing the fact-based story
-      // ("update pipeline state while running it through the pipeline").
-      let state = "";
-      if (!c.summary || c.summary.kind !== "pipeline") {
-        const running = pipeline && pipeline.running && pipeline.running.name === c.name ? pipeline.running : null;
-        if (running) state = `<p class="tr-state">⚙️ The pipeline is writing a fuller summary: ${uaEsc(pipelinePhaseText(running))}…</p>`;
-        else if (pipeline && (pipeline.queued || []).includes(c.name)) state = `<p class="tr-state">Queued for the pipeline.</p>`;
-      }
-      return `<li class="tr-item">` +
-        `<div class="tr-head"><span class="tr-rank">${c.rank}</span>` +
-        `<span class="tr-name">${uaEsc(name)}</span>` +
-        `<span class="tr-score ${stabBand(c.stability)}" title="stability score">${Number(c.stability).toFixed(2)}</span></div>` +
-        story + state + `</li>`;
-    }
-
-    let topRiskRetries = 0;
-    async function loadTopRisk() {
-      const panel = document.getElementById("topRiskPanel");
-      const list = document.getElementById("topRiskList");
-      if (!panel || !list) return;
-      try {
-        const res = await fetch(`${API_BASE}insights/top-risk`);
-        if (!res.ok) return;
-        const data = await res.json();
-        const comps = Array.isArray(data.components) ? data.components : [];
-        if (!comps.length) { panel.hidden = true; return; }
-        // Press-summary dateline: when the server pulled this data ("at the
-        // top add date and time so it looks like press summary, from when
-        // it was pulled", "and human readable"), in the viewer's time zone.
-        const dateline = document.getElementById("topRiskDateline");
-        const pulled = data.pulledAt ? new Date(data.pulledAt) : null;
-        if (dateline && pulled && !Number.isNaN(pulled.getTime())) {
-          dateline.dateTime = data.pulledAt;
-          dateline.textContent =
-            `${pulled.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })} at ${fmtTime(pulled)} (${relativeAge(pulled)})`;
-        }
-        const pipeline = data.pipeline || null;
-        list.innerHTML = comps.map(c => renderTopRiskItem(c, pipeline)).join("");
-        // One live line for the whole panel: which component is in the
-        // pipeline right now, its phase, and how many wait behind it.
-        const line = document.getElementById("topRiskPipeline");
-        const busy = !!(pipeline && (pipeline.running || (pipeline.queued || []).length));
-        if (line) {
-          line.hidden = !busy;
-          if (busy) {
-            const r = pipeline.running;
-            const q = (pipeline.queued || []).length;
-            line.textContent = (r ? `⚙️ Pipeline running for ${r.name}: ${pipelinePhaseText(r)}` : "⚙️ Pipeline starting")
-              + (q ? ` · ${q} queued` : "");
-          }
-        }
-        panel.hidden = false;
-        // Poll fast while the pipeline is working, stop once it is idle.
-        if (busy && topRiskRetries < 300) {
-          topRiskRetries += 1;
-          setTimeout(loadTopRisk, 4000);
-        }
-      } catch { /* best-effort: the feed works without this panel */ }
-    }
-
     /* ── Reddit indexing ──────────────────────────────────────── */
     function getSourceCounts() {
       let reddit = 0, stackoverflow = 0;
@@ -687,7 +569,9 @@
     function updateFeedWindowLabel() {
       if (!EL.feedWindowLabel) return;
       const n = STATE.groupsFiltered.length;
-      EL.feedWindowLabel.textContent = `(last ${LOOKBACK_WEEKS} week${LOOKBACK_WEEKS !== 1 ? "s" : ""}, ${n.toLocaleString()} component${n !== 1 ? "s" : ""})`;
+      // Longer wording ("expand this"): says what the feed holds, not just
+      // the window and count. No emoji added.
+      EL.feedWindowLabel.textContent = `releases, CVEs and community posts from the last ${LOOKBACK_WEEKS} week${LOOKBACK_WEEKS !== 1 ? "s" : ""}, across ${n.toLocaleString()} component${n !== 1 ? "s" : ""}`;
     }
 
     function updateRangeKpi(items) {
@@ -1487,12 +1371,20 @@
         // 12 hex chars of versionId (date+name+version+sha[:12], see
         // github.py). Linked to the commit when the repo's full name is
         // known (versionReleaseComments is "<owner>/<repo> on <branch>").
+        // In round brackets ("add the commit version in brackets or build
+        // version if available"); a build number wins when a doc has one.
         const commit = commitIdFor(it.raw);
-        if (commit && it.kind !== "cve" && it.kind !== "reddit" && it.kind !== "stackoverflow") {
+        const build = String(it.raw?.versionBuild || "").trim();
+        if (build && it.kind !== "cve" && it.kind !== "reddit" && it.kind !== "stackoverflow") {
+          const b = document.createElement("span");
+          b.className = "ver-commit";
+          b.textContent = `(build ${build})`;
+          titleRow.appendChild(b);
+        } else if (commit && it.kind !== "cve" && it.kind !== "reddit" && it.kind !== "stackoverflow") {
           const repoFull = String(it.raw?.versionReleaseComments || "").match(/^([\w.-]+\/[\w.-]+) on /);
           const c = document.createElement(repoFull ? "a" : "span");
           c.className = "ver-commit";
-          c.textContent = commit.slice(0, 7);
+          c.textContent = `(${commit.slice(0, 7)})`;
           c.title = `commit ${commit}`;
           if (repoFull) {
             c.href = `https://github.com/${repoFull[1]}/commit/${commit}`;
@@ -1683,7 +1575,6 @@
     });
 
     /* ── Feed sort ────────────────────────────────────────────── */
-    loadTopRisk();
     EL.feedSortSelect.value = getFeedSort();
     EL.feedSortSelect.addEventListener("change", () => {
       setFeedSort(EL.feedSortSelect.value);
