@@ -1302,20 +1302,6 @@
           // gone.
           if (isLLMVersion(it.raw)) chipsEl.insertAdjacentHTML("beforeend", chip("🤖 LLM", "llm"));
           if (isHypervisorVersion(it.raw)) chipsEl.insertAdjacentHTML("beforeend", chip("🖥️ Hypervisor", "hv"));
-          // Deterministic stability score (server-computed at write time
-          // / nightly recompute, see the server's src/stability.js):
-          // tinted by band, with the server's own stabilityReasoning
-          // sentence as the hover title so the number is never a bare,
-          // unexplained value. Only rendered when the doc actually
-          // carries a score - older docs the backfill hasn't reached get
-          // no chip rather than a fabricated one.
-          const stab = it.raw?.stability;
-          if (typeof stab === "number") {
-            const band = stab >= 0.7 ? "ok" : (stab >= 0.4 ? "warn" : "bad");
-            const why = it.raw?.stabilityReasoning || "";
-            chipsEl.insertAdjacentHTML("beforeend",
-              `<span class="chip ${band}" title="${uaEsc(why)}">⚖️ stability ${uaEsc(stab.toFixed(2))}</span>`);
-          }
         }
 
         if (it.kind !== "reddit" && it.kind !== "stackoverflow" && it.raw) {
@@ -1336,6 +1322,21 @@
         const titleRow = document.createElement("div"); titleRow.className = "titleRow";
         const a = document.createElement("a"); a.href = it.url || "#"; a.target = "_blank"; a.rel = "noopener"; a.textContent = it.label;
         titleRow.appendChild(a);
+        // Stability score appended right after the version title ("pls
+        // append the stability score to each version"), server-computed
+        // and deterministic (see the server's src/stability.js). Band-
+        // tinted text, never a pill; the server's own stabilityReasoning
+        // sentence is the hover title so the number is never unexplained.
+        // Only release rows that actually carry a score - a doc the
+        // backfill hasn't reached gets nothing, never a fabricated value.
+        const stab = it.raw?.stability;
+        if (it.kind !== "reddit" && it.kind !== "stackoverflow" && it.kind !== "cve" && typeof stab === "number") {
+          const s = document.createElement("span");
+          s.className = `stab-inline stab-${stab >= 0.7 ? "ok" : (stab >= 0.4 ? "warn" : "bad")}`;
+          s.textContent = `stability ${stab.toFixed(2)}`;
+          s.title = it.raw?.stabilityReasoning || "";
+          titleRow.appendChild(s);
+        }
         body.appendChild(titleRow);
 
         // Author-vs-community sentiment, below the post - reported live,

@@ -185,7 +185,7 @@
       list.dataset.loaded = "1";
       list.innerHTML = `<span class="ua-muted">Loading…</span>`;
       try {
-        const res = await fetch(`${API_BASE}cve/recent?limit=5`);
+        const res = await fetch(`${API_BASE}cve/recent?limit=10`);
         const rows = res.ok ? await res.json() : [];
         list.innerHTML = "";
         let added = 0;

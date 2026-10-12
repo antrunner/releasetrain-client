@@ -2191,6 +2191,67 @@ button.chip.poll-btn.chip-err { border-color: var(--cve); color: var(--cve); bac
 .chip.potentialCveChip { background: var(--surface); border-color: var(--risk); color: var(--risk); }
 .chip.potentialCveChip:hover { background: var(--risk-bg); }
 
+/* Feed-row metadata as plain inline text, not pill boxes. Reported live
+   with screenshots of "open ↗" / "r/unsloth" / "score 0.00" / "Poll":
+   "the round buttons do not look integrated, make it look more
+   integrated, more subtle." Same treatment .groupChips already uses for
+   the group summary line: no box, muted text, a thin dot between items.
+   Meaning survives as text color only (CVE red, risk amber); clickable
+   items read as links (brand color, underline on hover/focus). Every
+   variant selector is listed so this beats .chip.bad/.warn/... and
+   button.chip.poll-btn regardless of source order. Scoped to .chips so
+   chips elsewhere keep their pills. */
+.chips { gap: 4px 0; }
+.chips .chip,
+.chips .chip.bad,
+.chips .chip.warn,
+.chips .chip.ok,
+.chips .chip.reddit,
+.chips .chip.soft,
+.chips .chip.llm,
+.chips .chip.hv,
+.chips .chip.link,
+.chips button.chip,
+.chips button.chip.poll-btn,
+.chips button.chip.poll-btn.chip-done,
+.chips button.chip.poll-btn.chip-err {
+  background: transparent; border: none; border-radius: 0; padding: 0;
+  font-size: 11px; font-weight: 500; letter-spacing: 0; color: var(--muted);
+  opacity: 1;
+}
+.chips .chip:not(:first-child)::before {
+  content: "·"; margin: 0 7px; color: var(--faint); font-weight: 700;
+  text-decoration: none; display: inline-block;
+}
+.chips .chip.bad,
+.chips button.chip.poll-btn.chip-err { color: var(--cve); }
+.chips .chip.warn { color: var(--risk); }
+.chips .chip.link a,
+.chips button.chip,
+.chips button.chip.poll-btn { color: var(--brand-strong); text-decoration: none; }
+.chips button.chip.poll-btn.chip-done { color: var(--muted); }
+.chips .chip.link a:hover,
+.chips .chip.link a:focus-visible,
+.chips button.chip:hover,
+.chips button.chip:focus-visible,
+.chips button.chip.poll-btn:hover {
+  background: transparent; color: var(--brand-strong);
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.chips .chip.link:hover { background: transparent; }
+
+/* Stability score appended after a release's version title (feed.js),
+   not as a chip: "pls append the stability score to each version".
+   Quiet text, tinted by band; the server's reasoning sentence is the
+   hover title. */
+.stab-inline {
+  align-self: center; font-size: 11px; font-weight: 500;
+  color: var(--muted); white-space: nowrap; cursor: help;
+}
+.stab-inline.stab-ok { color: var(--ok-strong); }
+.stab-inline.stab-warn { color: var(--risk); }
+.stab-inline.stab-bad { color: var(--cve); }
+
 .titleRow { display: flex; gap: 5px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1px; }
 .titleRow a {
   color: var(--text); font-weight: 600; text-decoration: none;
