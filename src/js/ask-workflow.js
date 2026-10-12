@@ -1754,10 +1754,6 @@
           ${shortPanel ? `<button type="button" class="ask-rail-tab${activeTab === "short" ? " active" : ""}" data-tab="short" role="tab" aria-selected="${activeTab === "short"}">Short answer</button>` : ""}
           <button type="button" class="ask-rail-tab${activeTab === "answer" ? " active" : ""}" data-tab="answer" role="tab" aria-selected="${activeTab === "answer"}">Answer</button>
           <button type="button" class="ask-rail-tab" data-tab="sources" role="tab" aria-selected="false">Sources</button>
-          <button type="button" class="ask-rail-tab" data-tab="benchmark" role="tab" aria-selected="false">Benchmark</button>
-          <button type="button" class="ask-rail-tab" data-tab="modelrules" role="tab" aria-selected="false">Model vs Rules</button>
-          <button type="button" class="ask-rail-tab" data-tab="guardrails" role="tab" aria-selected="false">Guardrails</button>
-          <button type="button" class="ask-rail-tab" data-tab="feedbackloop" role="tab" aria-selected="false">Feedback Loop</button>
         </div>
         ${shortPanel ? shortPanel.replace('data-panel="short"', 'data-panel="short"' + (activeTab === "short" ? "" : " hidden")) : ""}
         <div class="ask-rail-panel" data-panel="answer"${activeTab === "answer" ? "" : " hidden"}>
@@ -1768,25 +1764,6 @@
           ${askRenderMetaChips(res)}
           ${askRenderSources(res.sources, res.vendorWebEvidence, res.webSearchFallback)}
           ${askRenderDetails(res)}
-        </div>
-        <div class="ask-rail-panel" data-panel="benchmark" hidden>
-          <p class="ask-muted">See how every pipeline (Single-agent, Multi-agent buggy/fixed/delegated/feedback loop) answers this exact question, side by side.</p>
-          <button type="button" class="st-198 btn btn-primary ask-run-compare-btn" >Compare all 5 now</button>
-        </div>
-        <div class="ask-rail-panel" data-panel="modelrules" hidden>
-          <p class="st-191 ask-muted" >Which part of each role actually ran on this exact answer, the model or a deterministic check.</p>
-          ${askRenderModelVsRules(res)}
-        </div>
-        <div class="ask-rail-panel" data-panel="guardrails" hidden
-          data-guardrail-activity='${uaEsc(JSON.stringify(res.guardrailActivity || {}))}'
-          data-guardrail-sources='${uaEsc(JSON.stringify((res.sources || []).filter(s => s.guardrail).map(s => ({ title: s.title, guardrail: s.guardrail }))))}'>
-          <p class="st-189 ask-muted" >Loading…</p>
-        </div>
-        <div class="ask-rail-panel" data-panel="feedbackloop" hidden
-          data-feedback-loop-count="${Number.isFinite(res.feedbackLoopCount) ? res.feedbackLoopCount : ""}"
-          data-orchestration='${uaEsc(JSON.stringify(res.orchestration || null))}'
-          data-guardrail-activity='${uaEsc(JSON.stringify(res.guardrailActivity || {}))}'>
-          <p class="st-189 ask-muted" >Loading…</p>
         </div>
       </div>`;
     }
@@ -1873,29 +1850,6 @@
             t.setAttribute("aria-selected", on ? "true" : "false");
           });
           root.querySelectorAll(".ask-rail-panel").forEach(p => { p.hidden = p.dataset.panel !== tab.dataset.tab; });
-          // Guardrails tab content is fetched once, the first time it's
-          // actually opened (see askRenderGuardrailsTab's own comment) -
-          // most answers are never checked, so this avoids a GET
-          // /api/guardrails call on every single answer by default.
-          if (tab.dataset.tab === "guardrails") {
-            const panel = root.querySelector('.ask-rail-panel[data-panel="guardrails"]');
-            if (panel && !panel.dataset.loaded) {
-              panel.dataset.loaded = "1";
-              askRenderGuardrailsTab(panel);
-            }
-          }
-          // Same lazy-load-on-first-open reasoning as Guardrails above,
-          // plus this one needs the card's own runId (GET
-          // /api/ask/:runId/feedback-loop), unlike Guardrails' single
-          // shared GET /api/guardrails list.
-          if (tab.dataset.tab === "feedbackloop") {
-            const panel = root.querySelector('.ask-rail-panel[data-panel="feedbackloop"]');
-            const card = root.querySelector(".ask-answer-card");
-            if (panel && !panel.dataset.loaded) {
-              panel.dataset.loaded = "1";
-              askRenderFeedbackLoopTab(panel, card && card.dataset.runId);
-            }
-          }
         });
       });
     }

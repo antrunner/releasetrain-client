@@ -445,15 +445,13 @@
         <div class="ask-rail-tabs" role="tablist">
           <button type="button" class="ask-rail-tab active" data-tab="answer" role="tab" aria-selected="true">Answer</button>
           <button type="button" class="ask-rail-tab" data-tab="sources" role="tab" aria-selected="false">Sources</button>
-          <button type="button" class="ask-rail-tab" data-tab="benchmark" role="tab" aria-selected="false">Benchmark</button>
+          ${isCompare ? `<button type="button" class="ask-rail-tab" data-tab="benchmark" role="tab" aria-selected="false">Benchmark</button>` : ""}
         </div>
         <div class="ask-rail-panel" data-panel="answer">${answerPanel}</div>
         <div class="ask-rail-panel" data-panel="sources" hidden>
           <p class="ask-muted">Waiting for the answer…</p>
         </div>
-        <div class="ask-rail-panel" data-panel="benchmark" hidden>
-          <p class="ask-muted">${isCompare ? `Waiting for all ${runCount} to finish…` : "Waiting for the answer…"}</p>
-        </div>
+        ${isCompare ? `<div class="ask-rail-panel" data-panel="benchmark" hidden><p class="ask-muted">Waiting for all ${runCount} to finish…</p></div>` : ""}
       </div>`;
       askWireRailTabs(body);
       $(".layout").classList.add("has-ask-rail");

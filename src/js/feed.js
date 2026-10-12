@@ -195,6 +195,154 @@
       return m ? m[1].toLowerCase() : null;
     }
 
+    /* ── Least stable components (inside Recent Updates) ─────────
+       The 10 components whose newest release has the lowest stability
+       score (server: GET /api/insights/top-risk, src/insights.js), shown
+       at the top of Recent Updates with no headline of its own, one story
+       paragraph each: the pipeline's when ready, else the server's
+       fact-based story. While the server runs a summary through the
+       pipeline, the main pipeline diagram mirrors it live ("when loading
+       them using the pipeline update the pipeline state"). */
+    let topRiskShown = 0;
+    const stabBand = s => (typeof s !== "number" ? "" : s >= 0.7 ? "stab-ok" : s >= 0.4 ? "stab-warn" : "stab-bad");
+    function relativeAge(date, now = new Date()) {
+      const mins = Math.round((now - date) / 60000);
+      if (mins < 1) return "just now";
+      if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+      const hours = Math.round(mins / 60);
+      if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+      const days = Math.round(hours / 24);
+      return `${days} day${days === 1 ? "" : "s"} ago`;
+    }
+    const fmtTime = d => d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+
+    // "(🐙 source: GitHub)": a readable name plus an icon for a primary
+    // source, so citations are easy to spot in the text. CISA uses ⚠️, not
+    // the fire emoji ("do not add the fire emoji").
+    function sourceInfo(url) {
+      let host = "";
+      try { host = new URL(url).hostname.replace(/^www\./, "").toLowerCase(); } catch { return { name: "link", icon: "🌐" }; }
+      if (/(^|\.)reddit\.com$|(^|\.)redd\.it$/.test(host)) return { name: "Reddit", icon: "💬" };
+      if (host === "nvd.nist.gov") return { name: "NVD", icon: "🔴" };
+      if (/(^|\.)cisa\.gov$/.test(host)) return { name: "CISA", icon: "⚠️" };
+      if (host === "github.com") return { name: "GitHub", icon: "🐙" };
+      if (host === "stackoverflow.com") return { name: "Stack Overflow", icon: "🟧" };
+      return { name: host, icon: "🌐" };
+    }
+    const citeLink = url => {
+      const s = sourceInfo(url);
+      return `<a class="tr-src" href="${uaEsc(url)}" target="_blank" rel="noopener">(${s.icon} source: ${uaEsc(s.name)})</a>`;
+    };
+    // CVE ids in the prose link to their NVD page ("make the cve clickable").
+    const linkCves = html => html.replace(/\bCVE[-‑](\d{4})[-‑](\d{4,})\b/g, (m, y, n) =>
+      `<a class="tr-cve" href="https://nvd.nist.gov/vuln/detail/CVE-${y}-${n}" target="_blank" rel="noopener">CVE-${y}-${n}</a>`);
+
+    // One story paragraph: markdown links become round-bracket citations,
+    // releasetrain.io links are dropped (primary sources only), CVE ids in
+    // the prose link to NVD, the release's own page is appended when not
+    // cited, and a CISA known-exploited CVE is always stated.
+    function renderStory(text, primaryUrl, kevCveId) {
+      const src = String(text || "").replace(/\s+/g, " ").trim().replace(/\*\*([^*]+)\*\*/g, "$1");
+      const linkRx = /\s*\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
+      let out = "", last = 0, cited = false, m;
+      while ((m = linkRx.exec(src))) {
+        out += linkCves(uaEsc(src.slice(last, m.index)));
+        const url = m[2];
+        if (!/(^|\.)releasetrain\.io\//i.test(url.replace(/^https?:\/\//, ""))) {
+          if (primaryUrl && url === primaryUrl) cited = true;
+          out += ` ${citeLink(url)}`;
+        }
+        last = linkRx.lastIndex;
+      }
+      out += linkCves(uaEsc(src.slice(last)));
+      if (primaryUrl && !cited) out += ` ${citeLink(primaryUrl)}`;
+      if (kevCveId && !/CISA/i.test(src)) {
+        const cisaUrl = `https://www.cisa.gov/known-exploited-vulnerabilities-catalog?search_api_fulltext=${encodeURIComponent(kevCveId)}`;
+        out += ` CISA lists ${linkCves(uaEsc(kevCveId))} as known exploited ${citeLink(cisaUrl)}.`;
+      }
+      return `<p class="tr-story">${out}</p>`;
+    }
+
+    function renderTopRiskItem(c) {
+      const name = `${c.name}${c.version ? " " + c.version : ""}`;
+      const story = c.summary && c.summary.answer
+        ? renderStory(c.summary.answer, c.primaryUrl, c.kevCveId)
+        : `<p class="tr-story tr-pending">Summary being prepared…</p>`;
+      return `<li class="tr-item">` +
+        `<div class="tr-head"><span class="tr-rank">${c.rank}</span>` +
+        `<span class="tr-name">${uaEsc(name)}</span>` +
+        `<span class="tr-score ${stabBand(c.stability)}" title="stability score">${Number(c.stability).toFixed(2)}</span></div>` +
+        story + `</li>`;
+    }
+
+    async function loadTopRisk() {
+      const panel = document.getElementById("topRiskPanel");
+      const list = document.getElementById("topRiskList");
+      if (!panel || !list) return;
+      try {
+        const res = await fetch(`${API_BASE}insights/top-risk`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const comps = Array.isArray(data.components) ? data.components : [];
+        topRiskShown = comps.length;
+        if (!comps.length) { panel.hidden = true; updateFeedWindowLabel(); return; }
+        const dateline = document.getElementById("topRiskDateline");
+        const pulled = data.pulledAt ? new Date(data.pulledAt) : null;
+        if (dateline && pulled && !Number.isNaN(pulled.getTime())) {
+          dateline.dateTime = data.pulledAt;
+          dateline.textContent =
+            `${pulled.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })} at ${fmtTime(pulled)} (${relativeAge(pulled)})`;
+        }
+        list.innerHTML = comps.map(renderTopRiskItem).join("");
+        panel.hidden = false;
+        updateFeedWindowLabel();
+        const p = data.pipeline;
+        if (p && (p.running || (p.queued || []).length)) watchRiskPipeline();
+      } catch { /* best-effort: the feed works without this list */ }
+    }
+
+    // Mirrors the server's summary runs onto the main pipeline diagram.
+    // Never takes over the diagram while the viewer's own question runs:
+    // a run is "ours" only if we started it and the diagram still shows it.
+    const riskMirror = { label: null, phase: null, timer: null, polls: 0 };
+    const viewerRunActive = () => typeof askWorkflowState !== "undefined" && askWorkflowState && !askWorkflowFinished
+      && askWorkflowQuestion !== riskMirror.label;
+    function watchRiskPipeline() {
+      if (riskMirror.timer) return;
+      riskMirror.polls = 0;
+      riskMirror.timer = setInterval(pollRiskPipeline, 2000);
+      pollRiskPipeline();
+    }
+    async function pollRiskPipeline() {
+      riskMirror.polls += 1;
+      let state = null;
+      try {
+        const res = await fetch(`${API_BASE}insights/pipeline`);
+        if (res.ok) state = await res.json();
+      } catch { /* try again next tick */ }
+      const r = state && state.running;
+      const label = r ? `Summarizing ${r.name} for Recent Updates` : null;
+      if (riskMirror.label && riskMirror.label !== label) {
+        // the previous summary finished: close it on the diagram and refresh the list
+        if (!viewerRunActive() && askWorkflowQuestion === riskMirror.label) finishAskWorkflow();
+        riskMirror.label = null; riskMirror.phase = null;
+        loadTopRisk();
+      }
+      if (r && !viewerRunActive()) {
+        if (riskMirror.label !== label) { startAskWorkflow(label); riskMirror.label = label; riskMirror.phase = null; }
+        if (r.phase && r.phase !== "starting" && r.phase !== riskMirror.phase) {
+          pushAskWorkflowPhase(r.phase, r.detail, "orchestrator_delegated", r.meta);
+          riskMirror.phase = r.phase;
+        }
+      }
+      const idle = !state || (!r && !(state.queued || []).length);
+      if (idle || riskMirror.polls > 900) {
+        clearInterval(riskMirror.timer); riskMirror.timer = null;
+        if (riskMirror.label && askWorkflowQuestion === riskMirror.label && !viewerRunActive()) finishAskWorkflow();
+        riskMirror.label = null;
+      }
+    }
+
     /* ── Reddit indexing ──────────────────────────────────────── */
     function getSourceCounts() {
       let reddit = 0, stackoverflow = 0;
@@ -571,7 +719,7 @@
       const n = STATE.groupsFiltered.length;
       // Longer wording ("expand this"): says what the feed holds, not just
       // the window and count. No emoji added.
-      EL.feedWindowLabel.textContent = `releases, CVEs and community posts from the last ${LOOKBACK_WEEKS} week${LOOKBACK_WEEKS !== 1 ? "s" : ""}, across ${n.toLocaleString()} component${n !== 1 ? "s" : ""}`;
+      EL.feedWindowLabel.textContent = `${topRiskShown ? `the ${topRiskShown} least stable components first, then ` : ""}releases, CVEs and community posts from the last ${LOOKBACK_WEEKS} week${LOOKBACK_WEEKS !== 1 ? "s" : ""}, across ${n.toLocaleString()} component${n !== 1 ? "s" : ""}`;
     }
 
     function updateRangeKpi(items) {
@@ -1575,6 +1723,7 @@
     });
 
     /* ── Feed sort ────────────────────────────────────────────── */
+    loadTopRisk();
     EL.feedSortSelect.value = getFeedSort();
     EL.feedSortSelect.addEventListener("change", () => {
       setFeedSort(EL.feedSortSelect.value);

@@ -49,6 +49,11 @@
      6.57:1 (all AA). */
   --section-bg: #f0fdf4;
   --section-border: #c9dacd;
+  /* Hover for feed cards and other <summary> rows: one light step darker
+     than --section-bg, replacing the mid-gray (--border) hover ("replace
+     the gray color with a lighter one on hover"). */
+  --hover-bg: #e3f5e8;
+  --section-border-hover: #a9c9b1;
   /* Genuinely transparent, no tint at all, per explicit repeated
      request ("no extra background color", "keep it transparent") --
      an earlier semi-opaque rgba(255,255,255,.5) still read as its
@@ -1903,11 +1908,36 @@ body.has-ask-console.has-ask-console-min .view-close-btn { bottom: 48px; }
 #feed { padding: 6px 10px 4px; }
 
 .feedGroup {
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  border: 1px solid var(--section-border); border-radius: var(--radius-sm);
   overflow: hidden; margin-bottom: 4px; background: var(--view-card);
   transition: border-color .15s;
 }
-.feedGroup:hover { border-color: var(--muted); }
+.feedGroup:hover { border-color: var(--section-border-hover); }
+
+/* The 10 least stable components at the top of Recent Updates (feed.js
+   loadTopRisk): no headline of its own, items reuse the feed card look so
+   the list reads as part of the feed. Mobile first: nothing scrolls
+   sideways. */
+.top-risk { padding: 6px 10px 2px; }
+.top-risk-dateline { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+.top-risk-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.tr-item {
+  padding: 8px 12px; border: 1px solid var(--section-border); border-radius: var(--radius-sm);
+  background: var(--view-card); transition: border-color .15s;
+}
+.tr-item:hover { border-color: var(--section-border-hover); }
+.tr-head { display: flex; align-items: center; gap: 8px; }
+.tr-rank { font: 700 12px/1 var(--mono); color: var(--muted); min-width: 18px; }
+.tr-name { flex: 1 1 auto; min-width: 0; font-weight: 600; font-size: 13px; overflow-wrap: anywhere; }
+.tr-score { font: 700 13px/1 var(--mono); color: var(--muted); }
+.tr-score.stab-ok { color: var(--ok-strong); }
+.tr-score.stab-warn { color: var(--risk); }
+.tr-score.stab-bad { color: var(--cve); }
+.tr-story { margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: var(--text); overflow-wrap: anywhere; }
+.tr-pending { color: var(--muted); font-size: 12px; }
+a.tr-src, a.tr-cve { color: var(--brand-strong); text-decoration: none; }
+a.tr-src { font-size: 12px; white-space: nowrap; }
+a.tr-src:hover, a.tr-src:focus-visible, a.tr-cve:hover, a.tr-cve:focus-visible { text-decoration: underline; text-underline-offset: 2px; }
 
 summary {
   cursor: pointer; list-style: none; user-select: none;
@@ -1915,7 +1945,7 @@ summary {
   padding: 7px 12px; font-weight: 600; font-size: 12px;
   background: var(--view-card); transition: background .15s;
 }
-summary:hover { background: var(--border); }
+summary:hover { background: var(--hover-bg); }
 summary:focus-visible { outline: 3px solid var(--focus); outline-offset: -2px; }
 summary::-webkit-details-marker { display: none; }
 /* Name + latest-version share one row; the arrow lives on THIS row

@@ -6478,6 +6478,15 @@ curl "https://releasetrain.io/api/reddit?fields=title,metadata.predicted.isUpdat
           <div id="status" class="status" aria-live="polite">Idle</div>
         </header>
 
+        <!-- The 10 least stable components (feed.js loadTopRisk, server
+             GET /api/insights/top-risk), part of Recent Updates under its
+             own header (no separate headline): an "as of" line, then one
+             story paragraph per component. Hidden until data loads. -->
+        <section id="topRiskPanel" class="top-risk" aria-label="Least stable components" hidden>
+          <p class="top-risk-dateline">Least stable first, as of <time id="topRiskDateline"></time></p>
+          <ol id="topRiskList" class="top-risk-list"></ol>
+        </section>
+
         <!-- The one "nothing in the feed" surface, reused for a genuine
              empty result AND a real fetch failure (see showEmptyState) so
              a viewer only ever sees one clear message, in one place,
