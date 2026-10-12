@@ -35,8 +35,16 @@ const html = fs
   .replace(/data-app-version="[^"]*"/, `data-app-version="${version}"`)
   .replace(/styles\.css\?v=[^"]*/, `styles.css?v=${version}`)
   .replace(/(js[/][A-Za-z-]+[.]js[?]v=)[^"]*/g, `$1${version}`)
+  // The brand markup grew a <span class="brand-name"> wrapper around
+  // "Releasetrain " at some point; the old pattern here still expected
+  // the bare `>Releasetrain <em>` text and silently stopped matching,
+  // which is exactly how the footer badge shipped a stale v3.144.1
+  // while data-app-version (its own, still-matching replace above)
+  // kept tracking package.json. Match "the first <em> inside the brand
+  // anchor" instead of the exact text between them, so a markup tweak
+  // inside the anchor can't silently break the stamp again.
   .replace(
-    /(<a class="brand"[^>]*>Releasetrain <em>)v[^<]*(<\/em>)/,
+    /(<a class="brand"[^>]*>[\s\S]*?<em>)v[^<]*(<\/em>)/,
     `$1v${version}$2`,
   );
 fs.writeFileSync(indexPath, html);

@@ -20,8 +20,35 @@
      and every view-scoped status color) are untouched on purpose,
      per this block's own comment: those carry meaning and stay
      recognizable regardless of which brand accent is in effect. */
-  --bg: #cfd5dc;
+  /* Lightened from the previous #cfd5dc mid-gray ("make the ui a bit
+     lighter"), and tinted a step toward the pipeline panel's own pale
+     green (--section-bg below) so the page and the Ask/pipeline area
+     read as one family instead of gray-vs-green. Still the cold ramp's
+     page layer: --surface stays white above it, --section-bg sits
+     between the two. Contrast re-checked after the lightening: --text
+     14.29:1, --muted 5.99:1, --brand-strong 5.75:1 on this value (all
+     AA; every one of those pairs got BETTER than on the old #cfd5dc,
+     where --muted sat at 4.85:1 - lightening the ground raises every
+     dark-ink ratio, so no foreground token needed darkening). */
+  --bg: #e7ece8;
   --surface: #ffffff;
+  /* The Ask/pipeline header's light green (#stickyAskHeader used to
+     reach it via --ok-bg), promoted to a real shared "section
+     surface" token per explicit request ("reuse the green background
+     color of the pipeline for all sections and make borders where
+     useful to show sections"): the sidebar's grouped sections, the
+     Recent Updates container and the pipeline header all share this
+     one tone now. Deliberately the same value as --ok-bg rather than
+     a new hue - but its own token, because "section chrome" and
+     "success semantics" are different jobs that must stay re-tunable
+     independently. --section-border is the matching delineation
+     border: a green-gray a step stronger than --border, which sits
+     too close to the new lighter --bg to mark a section edge on its
+     own. Text tokens on --section-bg were contrast-checked: --text
+     16.33:1, --muted 6.84:1, --chip-text 10.0:1, --brand-strong
+     6.57:1 (all AA). */
+  --section-bg: #f0fdf4;
+  --section-border: #c9dacd;
   /* Genuinely transparent, no tint at all, per explicit repeated
      request ("no extra background color", "keep it transparent") --
      an earlier semi-opaque rgba(255,255,255,.5) still read as its
@@ -594,8 +621,22 @@ body.view-feed .layout > .feed-main { flex: 1 1 0; }
   .sidebar-footer .top-signin-btn:hover { background: var(--chip-bg); color: var(--brand); }
 }
 
-/* Collapsible sidebar blocks */
-.sb-details { border-top: 1px solid var(--border); }
+/* Collapsible sidebar blocks. Each group is a soft green card now
+   (the promoted pipeline green, --section-bg, with the matching
+   --section-border and the feed's own 6px radius) instead of the
+   earlier bare border-top stripes - per explicit request to "reuse
+   the green background color of the pipeline for all sections and
+   make borders where useful to show sections." The old divider-only
+   look (border-top, no fill) is superseded by that request: a full
+   border + fill is what actually delineates a group against the
+   white sidebar; a 1px top line alone no longer reads as a section
+   edge next to the rest of the page's green sections. */
+.sb-details {
+  background: var(--section-bg);
+  border: 1px solid var(--section-border);
+  border-radius: 6px;
+  margin: 4px 8px;
+}
 /* No filled background: per explicit request, just the label and the
    border-top divider ("edges") between entries, not a boxed chip. The
    global `summary { background: var(--chip-bg) }` rule below would
@@ -628,7 +669,9 @@ body.view-feed .layout > .feed-main { flex: 1 1 0; }
   display: inline-block; transition: transform .15s;
 }
 .sb-details[open] > summary::before { transform: rotate(90deg); }
-.sb-details > summary:hover { color: var(--text); background: rgba(255,255,255,.04); }
+/* A white 4% wash was invisible on the new light green card fill;
+   a neutral dark wash at the same quiet level reads on it. */
+.sb-details > summary:hover { color: var(--text); background: rgba(15,23,42,.05); }
 
 /* Sidebar group eyebrows: the sidebar's many .sb-details read as one
    long run of equal stripes, so the sections are clustered under a few
@@ -660,11 +703,11 @@ body.view-feed .layout > .feed-main { flex: 1 1 0; }
 /* First group at the very top of the drawer needs no divider/gap of
    its own; the drawer's own top edge already bounds it. */
 #sidebar > .sb-cluster-label:first-child { margin-top: 0; border-top: none; }
-/* A section sitting directly under its group label drops its own 1px
-   border-top: the label's heavier divider already separates the
-   groups, and two rules so close together read as a doubled line. */
-.sb-cluster-label + .sb-details,
-#sidebar > .ask-options-panel > .sb-details:first-child { border-top: none; }
+/* (A border-top-dropping rule used to live here, from when .sb-details
+   had only a 1px top divider instead of its current full card border -
+   with real cards under each cluster label there's no doubled line to
+   suppress any more, so the rule is gone rather than left half-applying
+   to one card per cluster.) */
 
 /* .demo-q-btn: sized to the sidebar's own column (min(300px, 86vw),
    see .sidebar), never a fixed width of its own -- width:100% plus
@@ -844,11 +887,18 @@ body.view-feed .layout > .feed-main { flex: 1 1 0; }
      hidden by it, not visible through it. */
   #stickyAskHeader {
     position: fixed; top: 0; left: var(--sidebar-w, 300px); right: 0; z-index: 400;
-    /* Light green, per explicit request - reused from #askWorkflowDiagram's
-       own "done" node fill (g.askwfg-done rect) right below it, rather than
-       inventing an unrelated new green: this way the panel's background
-       and the diagram's own completed-step color read as the same family. */
-    background: var(--ok-bg);
+    /* Light green, per explicit request - originally reused from
+       #askWorkflowDiagram's own "done" node fill (g.askwfg-done rect)
+       right below it rather than inventing an unrelated new green;
+       that exact green has since been promoted to --section-bg (see
+       the token block) and is now the shared surface for every major
+       section, so this panel reads as one family with the sidebar
+       groups and the Recent Updates container, not a one-off. The
+       bottom border marks where the fixed header ends and the page
+       begins - same "borders where useful to show sections" request
+       that introduced --section-border. */
+    background: var(--section-bg);
+    border-bottom: 1px solid var(--section-border);
   }
 }
 /* The vertical scrollbar hidden, per explicit request, while
@@ -1765,10 +1815,17 @@ body.has-ask-console.has-ask-console-min .view-close-btn { bottom: 48px; }
   max-height: calc(100vh - var(--topbar-h) - 32px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* No card boundary here on purpose: the feed reads as part of the
-     page itself, not a separate panel floating on top of it. */
-  background: transparent;
-  border: none;
+  /* Superseded its earlier "no card boundary on purpose" look
+     (transparent, borderless, reading as part of the page): the
+     Recent Updates container is one of the major sections the
+     "reuse the pipeline green for all sections and make borders
+     where useful" request names, so it now wears the same
+     --section-bg/--section-border card the sidebar groups and the
+     pipeline header share, with the feed-smoothing pass's 6px
+     radius. */
+  background: var(--section-bg);
+  border: 1px solid var(--section-border);
+  border-radius: 6px;
   box-shadow: none;
 }
 /* Un-stuck AND un-capped on mobile, not just un-stuck: the sticky
@@ -1785,7 +1842,21 @@ body.has-ask-console.has-ask-console-min .view-close-btn { bottom: 48px; }
    infinite-scroll pagination (setupObserver) doesn't depend on
    #feedPanel being the scrolling element; its IntersectionObserver
    has no `root` set, so it already watches the real viewport. */
-@media (max-width: 640px) { #feedPanel { position: static; max-height: none; overflow: visible; } }
+/* overscroll-behavior must be reset here too, not just overflow
+   (reported live: "the scrolling only works if you scroll the
+   header"). `overflow: visible` alone does NOT stop this panel being
+   the touch-scroll target on a phone: the later no-sideways-scroll
+   rule (#feedPanel { overflow-x: hidden }, further down) wins the
+   cascade over this media block, and per the CSS spec an element
+   with overflow-x:hidden can't keep overflow-y:visible - it computes
+   to auto. So the panel stays a scroll container; it has no
+   scrollable excess (max-height: none), and the base rule's
+   overscroll-behavior: contain then swallowed every vertical swipe
+   over the list instead of chaining it up to the page scroll - only
+   a swipe on the chrome above the panel moved anything. `auto`
+   restores scroll chaining, so a swipe anywhere over the feed
+   scrolls the page. */
+@media (max-width: 640px) { #feedPanel { position: static; max-height: none; overflow: visible; overscroll-behavior: auto; } }
 .panel-header {
   display: flex; align-items: center; gap: 6px;
   padding: 8px 12px; border-bottom: 1px solid var(--border);
