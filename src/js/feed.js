@@ -261,7 +261,9 @@
           ? `<p class="tr-written">Written ${relativeAge(written)} (${fmtTime(written)})</p>` : "";
         paragraph = `<div class="tr-paragraph">${mdLite(answer)} ${extra}</div>${writtenText}`;
       } else {
-        paragraph = `<p class="tr-pending">${c.status === "failed" ? "Summary unavailable right now." : "Summary being prepared…"}</p>`;
+        paragraph = `<p class="tr-pending">${c.status === "failed"
+          ? `Summary unavailable right now${c.error ? ` (${uaEsc(c.error)})` : ""}; it is retried within the hour.`
+          : "Summary being prepared…"}</p>`;
       }
       const versions = (c.versions || []).map(v => {
         const links = [bracketLink("ReleaseTrain", v.url)];
