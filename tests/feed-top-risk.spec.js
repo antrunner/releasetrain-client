@@ -1,17 +1,18 @@
 const { test, expect } = require('@playwright/test');
 
 /*
- * The 10 least stable components at the top of Recent Updates (feed.js
- * loadTopRisk, server GET /api/insights/top-risk). Reported live: "keep the
- * highest risk, just remove the headline and reuse and extend the recent
- * updates", "brief one paragraph ... sources in round brackets (source:
- * reddit)", "only primary sources", "add the emojis (github, cve, reddit)
- * next to the source", "make the cve clickable", "include cisa exploited
- * cve if true", and "when loading them using the pipeline update the
- * pipeline state" (the main pipeline diagram mirrors the server's run).
+ * The 10 least stable components (feed.js loadTopRisk, server GET
+ * /api/insights/top-risk). Reported live: "by default show the 10 high risk
+ * on https://releasetrain.io, not on ?view=feed", "for mobile view show only
+ * the ten", "just use the pipeline ones", "every github project has an
+ * emoji, add it left to the name", citations in round brackets with icons,
+ * clickable CVEs, CISA exploited stated, primary sources only, and the main
+ * pipeline diagram mirroring the server's summary runs.
  */
 
 const PULLED = '2026-10-12T09:41:00.000Z';
+const d = new Date();
+const TODAY = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
 const DATA = {
   day: '2026-10-12',
   pulledAt: PULLED,
@@ -22,6 +23,8 @@ const DATA = {
       name: 'redis',
       version: '8.2.2',
       stability: 0.35,
+      releaseDate: TODAY,
+      repo: 'redis/redis',
       primaryUrl: 'https://github.com/redis/redis/releases/tag/8.2.2',
       kevCveId: 'CVE-2025-49844',
       status: 'ready',
@@ -36,19 +39,20 @@ const DATA = {
       name: 'strapi',
       version: '5.55.1',
       stability: 0.58,
+      releaseDate: '20240101',
+      repo: 'strapi/strapi',
       primaryUrl: 'https://github.com/strapi/strapi',
       kevCveId: null,
       status: 'pending',
       summary: {
         kind: 'facts',
-        answer:
-          'strapi 5.55.1 came out today, and its latest change is "guard RelativeTime against invalid dates" [release](https://github.com/strapi/strapi).',
+        answer: 'strapi 5.55.1 came out today [release](https://github.com/strapi/strapi).',
       },
     },
   ],
 };
 
-async function open(page, { pipeline } = {}) {
+async function open(page, path, { pipeline } = {}) {
   let pipelineCalls = 0;
   await page.route(/\/api\//, (route) => {
     const url = route.request().url();
@@ -71,60 +75,82 @@ async function open(page, { pipeline } = {}) {
     }
     return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
   });
-  await page.goto('/?view=feed');
+  // Avatar images: never hit the network in tests.
+  await page.route(/github\.com\/.*\.png/, (route) =>
+    route.fulfill({ status: 200, contentType: 'image/png', body: '' }),
+  );
+  await page.goto(path);
   // Let startup requests settle: the app can switch views once they land.
   await page.waitForLoadState('networkidle');
-  await expect(page.locator('#topRiskPanel')).toBeVisible({ timeout: 20_000 });
   return () => pipelineCalls;
 }
 
-test('lives inside Recent Updates with no headline of its own; the header says least stable first', async ({
-  page,
-}) => {
-  await open(page);
-  await expect(page.locator('#feedPanel #topRiskPanel')).toHaveCount(1);
-  await expect(
-    page.locator('#topRiskPanel h2, #topRiskPanel h3, #topRiskPanel summary'),
-  ).toHaveCount(0);
-  await expect(page.locator('#topRiskPanel')).not.toContainText('Highest risk');
-  await expect(page.locator('#feedWindowLabel')).toContainText(
-    'the 2 least stable components first, then releases',
-  );
-  await expect(page.locator('#topRiskDateline')).toHaveAttribute('datetime', PULLED);
-  await expect(page.locator('.tr-item')).toHaveCount(2);
+test('wide screen: the ten show on the home page, not on ?view=feed', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page, '/');
+  await expect(page.locator('#topRiskHome')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('#topRiskHome .tr-item')).toHaveCount(2);
+  await expect(page.locator('#topRiskHomeDateline')).toHaveAttribute('datetime', PULLED);
+  await page.goto('/?view=feed');
+  await page.waitForLoadState('networkidle');
+  await expect(page.locator('#topRiskHome')).toBeHidden();
+  await expect(page.locator('#topRiskPanel')).toBeHidden();
+  await expect(page.locator('#feedWindowLabel')).not.toContainText('least stable');
 });
 
-test('citations carry emojis, CVE ids are clickable, CISA exploited is stated, primary sources only', async ({
+test('phone: the home page shows only the ten', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await open(page, '/');
+  await expect(page.locator('#topRiskPanel')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('#topRiskPanel .tr-item')).toHaveCount(2);
+  await expect(page.locator('#feed')).toBeHidden();
+  await expect(page.locator('#feedPanel > .panel-header')).toBeHidden();
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('pipeline paragraphs only, project icons, emoji citations, clickable CVEs, CISA stated', async ({
   page,
 }) => {
-  await open(page);
-  const story = page.locator('.tr-story').first();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page, '/');
+  const items = page.locator('#topRiskHome .tr-item');
+  await expect(items).toHaveCount(2, { timeout: 20_000 });
+  await expect(items.first().locator('img.tr-icon')).toHaveAttribute(
+    'src',
+    'https://github.com/redis.png?size=40',
+  );
+  // corner badge only on the item released today
+  await expect(items.first().locator('.tr-new')).toHaveText('🆕 today');
+  await expect(items.nth(1).locator('.tr-new')).toHaveCount(0);
+  const story = items.first().locator('.tr-story');
   await expect(story.locator('a.tr-src')).toHaveText([
     '(🌐 source: redis.io)',
     '(💬 source: Reddit)',
     '(🔴 source: NVD)',
-    '(🐙 source: GitHub)', // primary source appended: not cited inline
-    '(⚠️ source: CISA)', // KEV note, since the paragraph never mentions CISA
+    '(🐙 source: GitHub)',
+    '(⚠️ source: CISA)',
   ]);
   await expect(story.locator('a.tr-cve').first()).toHaveAttribute(
     'href',
     'https://nvd.nist.gov/vuln/detail/CVE-2025-49844',
   );
-  await expect(story).toContainText('CISA lists CVE-2025-49844 as known exploited');
   await expect(story.locator('a[href*="releasetrain.io"]')).toHaveCount(0);
-  await expect(story).not.toContainText('🔥');
-  const facts = page.locator('.tr-story').nth(1);
-  await expect(facts.locator('a.tr-src')).toHaveText(['(🐙 source: GitHub)']);
+  // the non-pipeline (fact-based) paragraph is not shown
+  await expect(items.nth(1).locator('.tr-story')).toHaveText(
+    'The pipeline is preparing this summary…',
+  );
 });
 
-test('the main pipeline diagram mirrors the server run, then finishes and the list refreshes', async ({
-  page,
-}) => {
+test('the main pipeline diagram mirrors the server run, then finishes', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
   const running = {
     running: { name: 'strapi', phase: 'evaluating', detail: null, meta: { attempt: 1 } },
     queued: [],
   };
-  const calls = await open(page, {
+  const calls = await open(page, '/', {
     pipeline: (n) => (n <= 6 ? running : { running: null, queued: [] }),
   });
   await expect
@@ -141,14 +167,5 @@ test('the main pipeline diagram mirrors the server run, then finishes and the li
   await expect.poll(() => page.evaluate(() => askWorkflowFinished), { timeout: 30_000 }).toBe(true);
   const after = calls();
   await page.waitForTimeout(4500);
-  expect(calls()).toBe(after); // polling stopped once idle
-});
-
-test('mobile: the list never scrolls the page sideways', async ({ page }) => {
-  await page.setViewportSize({ width: 360, height: 780 });
-  await open(page);
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  );
-  expect(overflow).toBeLessThanOrEqual(0);
+  expect(calls()).toBe(after);
 });

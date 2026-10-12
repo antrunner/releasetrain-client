@@ -1924,6 +1924,12 @@ body.has-ask-console.has-ask-console-min .view-close-btn { bottom: 48px; }
 .tr-item {
   padding: 8px 12px; border: 1px solid var(--section-border); border-radius: var(--radius-sm);
   background: var(--view-card); transition: border-color .15s;
+  position: relative;
+}
+.tr-new {
+  position: absolute; top: -8px; right: 10px; padding: 1px 7px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; line-height: 1.5; color: var(--ok-strong);
+  background: var(--view-card); border: 1px solid var(--section-border);
 }
 .tr-item:hover { border-color: var(--section-border-hover); }
 .tr-head { display: flex; align-items: center; gap: 8px; }
@@ -1938,6 +1944,28 @@ body.has-ask-console.has-ask-console-min .view-close-btn { bottom: 48px; }
 a.tr-src, a.tr-cve { color: var(--brand-strong); text-decoration: none; }
 a.tr-src { font-size: 12px; white-space: nowrap; }
 a.tr-src:hover, a.tr-src:focus-visible, a.tr-cve:hover, a.tr-cve:focus-visible { text-decoration: underline; text-underline-offset: 2px; }
+.tr-icon { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; flex: 0 0 auto; }
+/* Where the list shows ("by default show the 10 high risk on the home page,
+   not on ?view=feed"; "for mobile view show only the ten"): only on the
+   home page. Wide screens use the copy in the home column (#topRiskHome);
+   phones, whose home page is the feed area, use #topRiskPanel there and
+   hide the rest of the feed so only the ten show. */
+body:not(.view-home):not(.phone-home) #topRiskPanel, body:not(.view-home) #topRiskHome { display: none !important; }
+.top-risk-home { margin-top: 8px; padding: 0; }
+@media (min-width: 900px) {
+  #topRiskPanel { display: none !important; }
+}
+@media (max-width: 899px) {
+  #topRiskHome { display: none !important; }
+  body.view-home.has-top-risk #feedPanel > .panel-header,
+  body.view-home.has-top-risk #feed,
+  body.view-home.has-top-risk #sentinel,
+  body.view-home.has-top-risk #emptyState,
+  body.phone-home.has-top-risk #feedPanel > .panel-header,
+  body.phone-home.has-top-risk #feed,
+  body.phone-home.has-top-risk #sentinel,
+  body.phone-home.has-top-risk #emptyState { display: none !important; }
+}
 
 summary {
   cursor: pointer; list-style: none; user-select: none;

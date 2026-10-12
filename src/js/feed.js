@@ -203,7 +203,6 @@
        fact-based story. While the server runs a summary through the
        pipeline, the main pipeline diagram mirrors it live ("when loading
        them using the pipeline update the pipeline state"). */
-    let topRiskShown = 0;
     const stabBand = s => (typeof s !== "number" ? "" : s >= 0.7 ? "stab-ok" : s >= 0.4 ? "stab-warn" : "stab-bad");
     function relativeAge(date, now = new Date()) {
       const mins = Math.round((now - date) / 60000);
@@ -263,39 +262,68 @@
       return `<p class="tr-story">${out}</p>`;
     }
 
+    // The project's own icon left of its name ("every github project has
+    // an emoji, add it left to the github name"): the GitHub owner's avatar
+    // when the repo is known, else the feed's usual component avatar.
+    function topRiskIcon(c) {
+      const owner = c.repo ? String(c.repo).split("/")[0] : "";
+      const src = owner ? `https://github.com/${encodeURIComponent(owner)}.png?size=40` : avatarFor({ versionProductName: c.name });
+      return src ? `<img class="tr-icon" src="${uaEsc(src)}" alt="" loading="lazy" width="20" height="20">` : "";
+    }
+
+    // Corner badge when the latest release came out today ("if the latest
+    // update was today add some label at the corner"). releaseDate is
+    // YYYYMMDD; compared against the viewer's local calendar day.
+    function topRiskFresh(c) {
+      const d = String(c.releaseDate || "");
+      if (!/^\d{8}$/.test(d)) return "";
+      const now = new Date();
+      const today = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+      return d === today ? `<span class="tr-new" title="released today">🆕 today</span>` : "";
+    }
+
     function renderTopRiskItem(c) {
       const name = `${c.name}${c.version ? " " + c.version : ""}`;
-      const story = c.summary && c.summary.answer
+      // Pipeline-written paragraphs only ("just use the pipeline ones");
+      // until one exists the item says so instead of a stand-in story.
+      const story = c.summary && c.summary.kind === "pipeline" && c.summary.answer
         ? renderStory(c.summary.answer, c.primaryUrl, c.kevCveId)
-        : `<p class="tr-story tr-pending">Summary being prepared…</p>`;
-      return `<li class="tr-item">` +
-        `<div class="tr-head"><span class="tr-rank">${c.rank}</span>` +
+        : `<p class="tr-story tr-pending">${c.status === "failed"
+          ? "The pipeline found no evidence to summarize yet; it tries again within the hour."
+          : "The pipeline is preparing this summary…"}</p>`;
+      return `<li class="tr-item">${topRiskFresh(c)}` +
+        `<div class="tr-head"><span class="tr-rank">${c.rank}</span>${topRiskIcon(c)}` +
         `<span class="tr-name">${uaEsc(name)}</span>` +
         `<span class="tr-score ${stabBand(c.stability)}" title="stability score">${Number(c.stability).toFixed(2)}</span></div>` +
         story + `</li>`;
     }
 
+    // Rendered into two places: #topRiskHome (the wide-screen home column)
+    // and #topRiskPanel (the phone home, where the feed area is the home
+    // page). CSS shows each only on the home page, never on ?view=feed.
+    const TOP_RISK_TARGETS = [["topRiskHome", "topRiskHomeList", "topRiskHomeDateline"], ["topRiskPanel", "topRiskList", "topRiskDateline"]];
     async function loadTopRisk() {
-      const panel = document.getElementById("topRiskPanel");
-      const list = document.getElementById("topRiskList");
-      if (!panel || !list) return;
       try {
         const res = await fetch(`${API_BASE}insights/top-risk`);
         if (!res.ok) return;
         const data = await res.json();
         const comps = Array.isArray(data.components) ? data.components : [];
-        topRiskShown = comps.length;
-        if (!comps.length) { panel.hidden = true; updateFeedWindowLabel(); return; }
-        const dateline = document.getElementById("topRiskDateline");
         const pulled = data.pulledAt ? new Date(data.pulledAt) : null;
-        if (dateline && pulled && !Number.isNaN(pulled.getTime())) {
-          dateline.dateTime = data.pulledAt;
-          dateline.textContent =
-            `${pulled.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })} at ${fmtTime(pulled)} (${relativeAge(pulled)})`;
+        const when = pulled && !Number.isNaN(pulled.getTime())
+          ? `${pulled.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })} at ${fmtTime(pulled)} (${relativeAge(pulled)})`
+          : "";
+        const html = comps.map(renderTopRiskItem).join("");
+        for (const [panelId, listId, dateId] of TOP_RISK_TARGETS) {
+          const panel = document.getElementById(panelId);
+          const list = document.getElementById(listId);
+          const dateline = document.getElementById(dateId);
+          if (!panel || !list) continue;
+          if (!comps.length) { panel.hidden = true; continue; }
+          if (dateline && when) { dateline.dateTime = data.pulledAt; dateline.textContent = when; }
+          list.innerHTML = html;
+          panel.hidden = false;
         }
-        list.innerHTML = comps.map(renderTopRiskItem).join("");
-        panel.hidden = false;
-        updateFeedWindowLabel();
+        document.body.classList.toggle("has-top-risk", comps.length > 0);
         const p = data.pipeline;
         if (p && (p.running || (p.queued || []).length)) watchRiskPipeline();
       } catch { /* best-effort: the feed works without this list */ }
@@ -719,7 +747,7 @@
       const n = STATE.groupsFiltered.length;
       // Longer wording ("expand this"): says what the feed holds, not just
       // the window and count. No emoji added.
-      EL.feedWindowLabel.textContent = `${topRiskShown ? `the ${topRiskShown} least stable components first, then ` : ""}releases, CVEs and community posts from the last ${LOOKBACK_WEEKS} week${LOOKBACK_WEEKS !== 1 ? "s" : ""}, across ${n.toLocaleString()} component${n !== 1 ? "s" : ""}`;
+      EL.feedWindowLabel.textContent = `releases, CVEs and community posts from the last ${LOOKBACK_WEEKS} week${LOOKBACK_WEEKS !== 1 ? "s" : ""}, across ${n.toLocaleString()} component${n !== 1 ? "s" : ""}`;
     }
 
     function updateRangeKpi(items) {

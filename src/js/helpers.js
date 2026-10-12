@@ -121,6 +121,7 @@
       if (view !== "arch") url.searchParams.delete("q");
       // URLSearchParams encodes commas as %2C; restore them for readability
       history.replaceState({}, "", url.toString().replace(/%2C/gi, ","));
+      PHONE_HOME = false;
       syncHomeClass();
     }
     // The Ask home is "no ?view= and no ?q=". body.view-home only changes the layout
@@ -129,6 +130,11 @@
       const u = new URL(location.href);
       const view = u.searchParams.get("view");
       document.body.classList.toggle("view-home", !view && !u.searchParams.get("q"));
+      // A phone that arrived on the home page (redirected to the feed, see
+      // phoneFeedOnly) still counts as "home" for the 10 least stable
+      // components, until it navigates somewhere ("for mobile view show
+      // only the ten"; the ten never show on an explicit ?view=feed).
+      document.body.classList.toggle("phone-home", PHONE_HOME);
       const feedLink = document.getElementById("feedLink");
       if (feedLink) feedLink.classList.toggle("nav-active", view === "feed");
       // ?view=feed, or a bare ?q= link, is the plain feed with nothing from Ask beside it.
@@ -152,11 +158,13 @@
     }
     // Phones get the Recent updates feed only (see the "Phone view" CSS).
     // A phone landing on the Ask home, or on an AI-only view, is sent to the feed.
+    let PHONE_HOME = false;
     (function phoneFeedOnly() {
       if (!window.matchMedia("(max-width: 640px)").matches) return;
       const u = new URL(location.href);
       const view = u.searchParams.get("view");
       const aiViews = ["credits", "changelog", "eval-rewriter", "eval-evaluator", "eval-orchestrator"];
+      if (!view && !u.searchParams.get("q")) PHONE_HOME = true;
       if ((!view && !u.searchParams.get("q")) || aiViews.includes(view)) {
         u.searchParams.set("view", "feed");
         history.replaceState({}, "", u.toString());
