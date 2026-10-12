@@ -18,6 +18,10 @@ const src = path.join(root, 'src');
 const dist = path.join(root, 'dist');
 const { version } = require(path.join(root, 'package.json'));
 
+// Stamp each script/stylesheet link in src/index.html with a hash of its
+// content BEFORE copying, so the served src/ and dist/ both carry it.
+require('./asset-stamps').stamp(src);
+
 if (process.platform === 'win32') {
   // rmdir may fail if a sync client (OneDrive) holds a lock; xcopy /Y overwrites regardless.
   execSync(`rmdir /s /q "${dist}" 2>nul & xcopy "${src}" "${dist}" /E /I /Y /Q >nul`, {
@@ -33,8 +37,6 @@ const indexPath = path.join(dist, 'index.html');
 const html = fs
   .readFileSync(indexPath, 'utf8')
   .replace(/data-app-version="[^"]*"/, `data-app-version="${version}"`)
-  .replace(/styles\.css\?v=[^"]*/, `styles.css?v=${version}`)
-  .replace(/(js[/][A-Za-z-]+[.]js[?]v=)[^"]*/g, `$1${version}`)
   // The brand markup grew a <span class="brand-name"> wrapper around
   // "Releasetrain " at some point; the old pattern here still expected
   // the bare `>Releasetrain <em>` text and silently stopped matching,

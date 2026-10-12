@@ -11,7 +11,7 @@
     "build": "node scripts/build.js",
     "start": "http-server dist -c-1 --log-ip",
     "prod": "npm run build && npm start",
-    "lint": "biome check tests && node scripts/lint-css.js",
+    "lint": "biome check tests && node scripts/lint-css.js && node scripts/asset-stamps.js --check",
     "format": "biome check --write tests",
     "test": "npm run build && playwright test",
     "check": "npm run build && npm run lint && playwright test"
