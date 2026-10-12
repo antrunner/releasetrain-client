@@ -2259,6 +2259,17 @@ button.chip.poll-btn.chip-err { border-color: var(--cve); color: var(--cve); bac
 .stab-inline.stab-warn { color: var(--risk); }
 .stab-inline.stab-bad { color: var(--cve); }
 
+/* Short commit id after a version title (feed.js commitIdFor), so
+   commit-level rows sharing one version number are distinguishable.
+   Scoped under .titleRow so it beats the bolder `.titleRow a` rule. */
+.titleRow .ver-commit {
+  align-self: center; font: 500 11px/1.4 var(--mono);
+  color: var(--muted); text-decoration: none; white-space: nowrap;
+}
+.titleRow a.ver-commit:hover, .titleRow a.ver-commit:focus-visible {
+  color: var(--brand-strong); text-decoration: underline; text-underline-offset: 2px;
+}
+
 .titleRow { display: flex; gap: 5px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1px; }
 .titleRow a {
   color: var(--text); font-weight: 600; text-decoration: none;

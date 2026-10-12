@@ -182,6 +182,19 @@
       return out;
     }
 
+    // A commit-level doc's sha: the explicit versionCommit field when the
+    // bot wrote one, else github.py's versionId suffix (sha[:12]). Only
+    // trusted for github.py docs, so a version number that happens to end
+    // in hex digits elsewhere is never misread as a commit.
+    function commitIdFor(raw) {
+      if (!raw) return null;
+      const explicit = String(raw.versionCommit || "").trim();
+      if (/^[0-9a-f]{7,40}$/i.test(explicit)) return explicit.toLowerCase();
+      if (raw.sourceBot !== "github.py") return null;
+      const m = String(raw.versionId || "").match(/([0-9a-f]{12})$/i);
+      return m ? m[1].toLowerCase() : null;
+    }
+
     /* ── Reddit indexing ──────────────────────────────────────── */
     function getSourceCounts() {
       let reddit = 0, stackoverflow = 0;
@@ -1330,6 +1343,27 @@
         const titleRow = document.createElement("div"); titleRow.className = "titleRow";
         const a = document.createElement("a"); a.href = it.url || "#"; a.target = "_blank"; a.rel = "noopener"; a.textContent = it.label;
         titleRow.appendChild(a);
+        // Commit id after the version ("since the versions are the same
+        // add the build version or commit"): github.py stores one doc per
+        // commit, all under the repo's latest tag number, so several rows
+        // read identically ("v2rayN 7.25.6" x3). New docs carry an
+        // explicit versionCommit; older ones only have the sha as the last
+        // 12 hex chars of versionId (date+name+version+sha[:12], see
+        // github.py). Linked to the commit when the repo's full name is
+        // known (versionReleaseComments is "<owner>/<repo> on <branch>").
+        const commit = commitIdFor(it.raw);
+        if (commit && it.kind !== "cve" && it.kind !== "reddit" && it.kind !== "stackoverflow") {
+          const repoFull = String(it.raw?.versionReleaseComments || "").match(/^([\w.-]+\/[\w.-]+) on /);
+          const c = document.createElement(repoFull ? "a" : "span");
+          c.className = "ver-commit";
+          c.textContent = commit.slice(0, 7);
+          c.title = `commit ${commit}`;
+          if (repoFull) {
+            c.href = `https://github.com/${repoFull[1]}/commit/${commit}`;
+            c.target = "_blank"; c.rel = "noopener";
+          }
+          titleRow.appendChild(c);
+        }
         // Stability score appended right after the version title ("pls
         // append the stability score to each version"), server-computed
         // and deterministic (see the server's src/stability.js). Band-
