@@ -1927,7 +1927,7 @@ body.has-ask-console.has-ask-console-min .view-close-btn { bottom: 48px; }
   position: relative;
 }
 .tr-new {
-  position: absolute; top: -8px; right: 10px; padding: 1px 7px; border-radius: 999px;
+  position: absolute; top: -11px; right: 10px; padding: 1px 7px; border-radius: 999px;
   font-size: 11px; font-weight: 600; line-height: 1.5; color: var(--ok-strong);
   background: var(--surface); border: 1px solid var(--section-border);
 }
