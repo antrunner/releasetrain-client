@@ -195,6 +195,128 @@
       return m ? m[1].toLowerCase() : null;
     }
 
+    /* ── Highest risk now ─────────────────────────────────────────
+       The 10 components whose newest release has the lowest stability
+       score (server: GET /api/insights/top-risk, src/insights.js), each a
+       compact row that opens into: the score's own reasoning, a brief
+       paragraph from the existing Ask pipeline (generated server-side,
+       once per component per day, shared) with its sources in brackets,
+       one list item per recent version with its ReleaseTrain/commit
+       links in brackets, and a stability line chart. Mobile first: rows
+       wrap, nothing scrolls sideways. Paragraphs still being generated
+       show "being prepared" and the panel re-fetches a few times. */
+    function stabilityChartSvg(series, currentVersion) {
+      if (series.length < 2) return "";
+      const W = 280, H = 84, P = 10;
+      const x = i => P + (i * (W - 2 * P)) / (series.length - 1);
+      const y = s => H - P - s * (H - 2 * P);
+      const pts = series.map((p, i) => `${x(i).toFixed(1)},${y(p.stability).toFixed(1)}`).join(" ");
+      const dots = series.map((p, i) =>
+        `<circle class="vi-dot${p.version === currentVersion ? " vi-dot-current" : ""}" cx="${x(i).toFixed(1)}" cy="${y(p.stability).toFixed(1)}" r="${p.version === currentVersion ? 4 : 2.5}"><title>${uaEsc(p.version)}: ${p.stability.toFixed(2)}</title></circle>`).join("");
+      return `<svg class="vi-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Stability across recent versions">` +
+        `<line class="vi-band" x1="${P}" x2="${W - P}" y1="${y(0.7)}" y2="${y(0.7)}"/>` +
+        `<line class="vi-band" x1="${P}" x2="${W - P}" y1="${y(0.4)}" y2="${y(0.4)}"/>` +
+        `<polyline class="vi-line" points="${pts}"/>${dots}</svg>` +
+        `<div class="vi-chart-caption">Stability, last ${series.length} versions (oldest to newest)</div>`;
+    }
+
+    const stabBand = s => (typeof s !== "number" ? "" : s >= 0.7 ? "stab-ok" : s >= 0.4 ? "stab-warn" : "stab-bad");
+    // Human-readable dates ("and human readable"): "Oct 11, 2026", and a
+    // plain-words age ("5 minutes ago") next to exact times.
+    const fmtYmd = d => {
+      const m = String(d || "").match(/^(\d{4})(\d{2})(\d{2})$/);
+      return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "";
+    };
+    function relativeAge(date, now = new Date()) {
+      const mins = Math.round((now - date) / 60000);
+      if (mins < 1) return "just now";
+      if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+      const hours = Math.round(mins / 60);
+      if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+      const days = Math.round(hours / 24);
+      return `${days} day${days === 1 ? "" : "s"} ago`;
+    }
+    const fmtTime = d => d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+    const bracketLink = (label, url) => `<a class="tr-src" href="${uaEsc(url)}" target="_blank" rel="noopener">[${uaEsc(label)}]</a>`;
+
+    function sourceLabel(s) {
+      if (s.kind === "cve") return (String(s.title || s.url || "").match(/CVE-\d{4}-\d+/i) || ["CVE"])[0].toUpperCase();
+      if (s.kind === "release") return "ReleaseTrain";
+      if (s.kind === "reddit") return "Reddit";
+      if (s.kind === "stackoverflow") return "Stack Overflow";
+      try { return new URL(s.url).hostname.replace(/^www\./, ""); } catch { return "web"; }
+    }
+
+    function renderTopRiskItem(c) {
+      const name = `${c.name}${c.version ? " " + c.version : ""}`;
+      let paragraph;
+      if (c.summary) {
+        const answer = c.summary.answer || "";
+        const extra = (c.summary.sources || [])
+          .filter(s => s && s.url && !answer.includes(s.url))
+          .slice(0, 4)
+          .map(s => bracketLink(sourceLabel(s), s.url)).join(" ");
+        const written = c.summary.generatedAt ? new Date(c.summary.generatedAt) : null;
+        const writtenText = written && !Number.isNaN(written.getTime())
+          ? `<p class="tr-written">Written ${relativeAge(written)} (${fmtTime(written)})</p>` : "";
+        paragraph = `<div class="tr-paragraph">${mdLite(answer)} ${extra}</div>${writtenText}`;
+      } else {
+        paragraph = `<p class="tr-pending">${c.status === "failed" ? "Summary unavailable right now." : "Summary being prepared…"}</p>`;
+      }
+      const versions = (c.versions || []).map(v => {
+        const links = [bracketLink("ReleaseTrain", v.url)];
+        if (v.commitUrl) links.push(bracketLink(v.commit, v.commitUrl));
+        return `<li><span class="tr-v">${uaEsc(v.version)}</span>` +
+          (typeof v.stability === "number" ? ` <span class="tr-vs ${stabBand(v.stability)}">${v.stability.toFixed(2)}</span>` : "") +
+          (v.date ? ` <span class="tr-vd">${fmtYmd(v.date)}</span>` : "") +
+          (v.notes ? ` <span class="tr-vn">${uaEsc(v.notes)}</span>` : "") +
+          ` ${links.join(" ")}</li>`;
+      }).join("");
+      const series = (c.versions || []).filter(v => typeof v.stability === "number").slice().reverse()
+        .map(v => ({ version: v.version, stability: v.stability }));
+      return `<li class="tr-item"><details class="tr-card">` +
+        `<summary class="tr-head"><span class="tr-rank">${c.rank}</span>` +
+        `<span class="tr-name">${uaEsc(name)}</span>` +
+        `<span class="tr-score ${stabBand(c.stability)}">${Number(c.stability).toFixed(2)}</span></summary>` +
+        `<div class="tr-body"><p class="tr-why">${uaEsc(c.stabilityReasoning || "")}</p>${paragraph}` +
+        (versions ? `<ul class="tr-versions">${versions}</ul>` : "") +
+        stabilityChartSvg(series, c.version) + `</div></details></li>`;
+    }
+
+    let topRiskRetries = 0;
+    async function loadTopRisk() {
+      const panel = document.getElementById("topRiskPanel");
+      const list = document.getElementById("topRiskList");
+      if (!panel || !list) return;
+      try {
+        const res = await fetch(`${API_BASE}insights/top-risk`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const comps = Array.isArray(data.components) ? data.components : [];
+        if (!comps.length) { panel.hidden = true; return; }
+        const open = new Set(Array.from(list.querySelectorAll(".tr-card[open] .tr-name")).map(el => el.textContent));
+        // Press-summary dateline: when the server pulled this data ("at the
+        // top add date and time so it looks like press summary, from when
+        // it was pulled", "and human readable"), in the viewer's time zone.
+        const dateline = document.getElementById("topRiskDateline");
+        const pulled = data.pulledAt ? new Date(data.pulledAt) : null;
+        if (dateline && pulled && !Number.isNaN(pulled.getTime())) {
+          dateline.dateTime = data.pulledAt;
+          dateline.textContent =
+            `${pulled.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })} at ${fmtTime(pulled)} (${relativeAge(pulled)})`;
+        }
+        list.innerHTML = comps.map(renderTopRiskItem).join("");
+        list.querySelectorAll(".tr-card").forEach(card => {
+          if (open.has(card.querySelector(".tr-name").textContent)) card.open = true;
+        });
+        panel.hidden = false;
+        if (comps.some(c => c.status === "pending") && topRiskRetries < 10) {
+          topRiskRetries += 1;
+          setTimeout(loadTopRisk, 60000);
+        }
+      } catch { /* best-effort: the feed works without this panel */ }
+    }
+
     /* ── Reddit indexing ──────────────────────────────────────── */
     function getSourceCounts() {
       let reddit = 0, stackoverflow = 0;
@@ -1565,6 +1687,7 @@
     });
 
     /* ── Feed sort ────────────────────────────────────────────── */
+    loadTopRisk();
     EL.feedSortSelect.value = getFeedSort();
     EL.feedSortSelect.addEventListener("change", () => {
       setFeedSort(EL.feedSortSelect.value);

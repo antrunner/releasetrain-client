@@ -6483,6 +6483,16 @@ curl "https://releasetrain.io/api/reddit?fields=title,metadata.predicted.isUpdat
              a viewer only ever sees one clear message, in one place,
              instead of a status-text line, a separate error paragraph,
              and this block all saying overlapping things at once. -->
+        <!-- "Highest risk now" (feed.js loadTopRisk, server
+             GET /api/insights/top-risk): the 10 components whose newest
+             release has the lowest stability score, each with a brief
+             explanation and its recent versions. Hidden until data loads. -->
+        <details id="topRiskPanel" class="top-risk" open hidden>
+          <summary class="top-risk-summary">🔥 Highest risk now <small>lowest stability score, released in the last 90 days</small></summary>
+          <p class="top-risk-dateline"><time id="topRiskDateline"></time></p>
+          <ol id="topRiskList" class="top-risk-list"></ol>
+        </details>
+
         <div id="emptyState">
           <div id="emptyStateIcon" class="st-162">🔍</div>
           <p id="emptyStateMsg">No updates match the current filters.</p>
