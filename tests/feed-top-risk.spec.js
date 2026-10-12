@@ -2,95 +2,79 @@ const { test, expect } = require('@playwright/test');
 
 /*
  * "Highest risk now" (feed.js loadTopRisk, server GET
- * /api/insights/top-risk). Reported live: "a brief summary per component
- * then each version a list item, the source in brackets", "the ten with
- * the highest risk (lowest score) but explain in a brief paragraph", "at
- * the top add date and time so it looks like press summary, from when it
- * was pulled", "and human readable", "keep mobile friendly in mind".
+ * /api/insights/top-risk). Reported live: "brief one paragraph for each
+ * of the 10 components with sources in round brackets citation (source:
+ * reddit or so)", "remove releasetrain from the sources, only primary
+ * sources and make it a paragraph", "one integrated story paragraph",
+ * "use round brackets for primary source", "update pipeline state while
+ * running it through the pipeline when the page loads", plus the
+ * press-summary dateline and "keep mobile friendly in mind".
  */
 
 const PULLED = '2026-10-12T09:41:00.000Z';
-const DATA = {
+const BASE = {
   day: '2026-10-12',
   pulledAt: PULLED,
+  pipeline: { running: null, queued: [] },
   components: [
     {
       rank: 1,
       name: 'redis',
       version: '8.2.2',
-      releaseDate: '20261011',
       stability: 0.35,
-      stabilityReasoning: '0.35: patch version bump, known CVE CVE-2025-49844.',
       primaryUrl: 'https://github.com/redis/redis/releases/tag/8.2.2',
       status: 'ready',
       summary: {
+        kind: 'pipeline',
         answer:
-          'Redis 8.2.2 carries risk from a Lua use-after-free ([CVE-2025-49844](https://nvd.nist.gov/vuln/detail/CVE-2025-49844)).',
-        generatedAt: '2026-10-12T09:30:00.000Z',
-        sources: [
-          {
-            kind: 'cve',
-            title: 'CVE-2025-49844',
-            url: 'https://nvd.nist.gov/vuln/detail/CVE-2025-49844',
-          },
-          {
-            kind: 'web',
-            title: 'Redis security advisory',
-            url: 'https://redis.io/blog/security-advisory',
-          },
-        ],
+          'Redis is an in-memory key-value store [Redis docs](https://redis.io/docs/). Its latest release fixes crashes when a module thread pauses IO threads [ReleaseTrain](https://releasetrain.io/api/v/a1). In parallel, Reddit users report memory spikes after upgrading [thread](https://www.reddit.com/r/redis/comments/abc/). Also note CVE-2025-49844 may require an update to the latest version [NVD](https://nvd.nist.gov/vuln/detail/CVE-2025-49844).',
       },
-      versions: [
-        {
-          version: '8.2.2',
-          date: '20261011',
-          stability: 0.35,
-          notes:
-            'Fix crashes when a module thread pauses IO threads, a very long note that must wrap on a phone rather than push the page sideways',
-          url: 'https://releasetrain.io/api/v/a1',
-          commit: '7939a8b',
-          commitUrl: 'https://github.com/redis/redis/commit/7939a8b0aaaa',
-        },
-        {
-          version: '8.2.1',
-          date: '20261001',
-          stability: 0.9,
-          notes: '',
-          url: 'https://releasetrain.io/api/v/b1',
-          commit: null,
-          commitUrl: null,
-          primaryUrl: 'https://github.com/redis/redis/releases/tag/8.2.1',
-        },
-      ],
     },
     {
       rank: 2,
+      name: 'strapi',
+      version: '5.55.1',
+      stability: 0.58,
+      primaryUrl: 'https://github.com/strapi/strapi',
+      status: 'pending',
+      summary: {
+        kind: 'facts',
+        answer:
+          'strapi 5.55.1 came out on Sep 29, 2026, and its latest change is "guard RelativeTime against invalid dates" [release](https://github.com/strapi/strapi). Reddit discussion since the release has not flagged problems.',
+      },
+    },
+    {
+      rank: 3,
       name: 'php',
       version: '8.3.35',
-      releaseDate: '20261008',
-      stability: 0.53,
-      stabilityReasoning:
-        '0.53: patch version bump, no known CVE, 9 of 20 community posts since its 2026-10-08 release flagged risky.',
+      stability: 0.75,
+      primaryUrl: null,
       status: 'pending',
-      summary: null,
-      versions: [],
+      summary: { kind: 'facts', answer: 'php 8.3.35 came out on Oct 8, 2026.' },
     },
   ],
 };
 
-async function open(page) {
+async function open(page, data = BASE) {
+  let calls = 0;
   await page.route(/\/api\//, (route) => {
     if (route.request().url().includes('/api/insights/top-risk')) {
+      calls += 1;
+      const body = typeof data === 'function' ? data(calls) : data;
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(DATA),
+        body: JSON.stringify(body),
       });
     }
     return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
   });
   await page.goto('/?view=feed');
+  // Let the app finish its startup requests first: it can switch views
+  // once they land, which made a visibility check right after load flaky.
+  await page.waitForLoadState('networkidle');
   await expect(page.locator('#topRiskPanel')).toBeVisible({ timeout: 20_000 });
+  return () => calls;
 }
 
 test('dateline reads like a press summary, from the pull time, human readable', async ({
@@ -105,46 +89,63 @@ test('dateline reads like a press summary, from the pull time, human readable', 
   expect(text).toMatch(/ago|just now/);
 });
 
-test('rows rank by risk; a card shows the paragraph with bracketed sources and one list item per version', async ({
+test('one visible story paragraph per component, citations in round brackets, primary sources only', async ({
   page,
 }) => {
   await open(page);
-  await expect(page.locator('.tr-item')).toHaveCount(2);
+  await expect(page.locator('.tr-item')).toHaveCount(3);
   await expect(page.locator('.tr-name').first()).toHaveText('redis 8.2.2');
-  await expect(page.locator('.tr-score').first()).toHaveText('0.35');
-  await page.locator('.tr-head').first().click();
-  const card = page.locator('.tr-card').first();
-  await expect(card.locator('.tr-paragraph')).toContainText('Lua use-after-free');
-  // the CVE link is cited inline; the release's primary source is always
-  // appended in brackets; the uncited web source (redis.io) is not shown
-  await expect(card.locator('.tr-paragraph a.tr-src')).toHaveText(['[primary: github.com]']);
-  await expect(card.locator('.tr-paragraph')).not.toContainText('redis.io');
-  await expect(card.locator('.tr-written')).toContainText('Written');
-  await expect(card.locator('.tr-versions li')).toHaveCount(2);
-  await expect(card.locator('.tr-versions li').first().locator('a.tr-src')).toHaveText([
-    '[7939a8b]',
-    '[ReleaseTrain]',
+  const story = page.locator('.tr-story').first();
+  await expect(story).toBeVisible(); // no click needed
+  await expect(story).toContainText('Redis is an in-memory key-value store');
+  await expect(story.locator('a.tr-src')).toHaveText([
+    '(source: redis.io)',
+    '(source: Reddit)',
+    '(source: NVD)',
+    '(source: GitHub)', // primary source, round brackets, appended since not cited
   ]);
-  await expect(card.locator('.tr-versions li').nth(1).locator('a.tr-src')).toHaveText([
-    '[release]',
-    '[ReleaseTrain]',
-  ]);
-  await expect(card.locator('.tr-versions li').first()).toContainText('Oct 11, 2026');
-  await expect(card.locator('.vi-chart circle')).toHaveCount(2);
+  await expect(story).not.toContainText('ReleaseTrain');
+  await expect(story.locator('a[href*="releasetrain.io"]')).toHaveCount(0);
+  await expect(page.locator('#topRiskPanel ul, #topRiskPanel svg')).toHaveCount(0);
 });
 
-test('a component whose paragraph is not ready yet says so', async ({ page }) => {
+test('the fact-based story renders the same way, without a duplicate primary citation', async ({
+  page,
+}) => {
   await open(page);
-  await page.locator('.tr-head').nth(1).click();
-  await expect(page.locator('.tr-card').nth(1).locator('.tr-pending')).toHaveText(
-    'Summary being prepared…',
-  );
+  const story = page.locator('.tr-story').nth(1);
+  await expect(story).toContainText('came out on Sep 29, 2026');
+  await expect(story.locator('a.tr-src')).toHaveText(['(source: GitHub)']);
 });
 
-test('mobile: an opened card never scrolls the page sideways', async ({ page }) => {
+test('live pipeline state: running component and phase, queued ones, then polling stops when idle', async ({
+  page,
+}) => {
+  const busy = {
+    ...BASE,
+    pipeline: { running: { name: 'strapi', phase: 'evaluating', detail: null }, queued: ['php'] },
+  };
+  const calls = await open(page, (n) => (n === 1 ? busy : BASE));
+  await expect(page.locator('#topRiskPipeline')).toHaveText(
+    '⚙️ Pipeline running for strapi: Evaluator: judging evidence · 1 queued',
+  );
+  await expect(page.locator('.tr-item').nth(1).locator('.tr-state')).toContainText(
+    'The pipeline is writing a fuller summary: Evaluator: judging evidence',
+  );
+  await expect(page.locator('.tr-item').nth(2).locator('.tr-state')).toHaveText(
+    'Queued for the pipeline.',
+  );
+  await expect(page.locator('.tr-item').first().locator('.tr-state')).toHaveCount(0); // already pipeline-written
+  // the next poll reports idle: the line hides and polling stops
+  await expect(page.locator('#topRiskPipeline')).toBeHidden({ timeout: 10_000 });
+  const after = calls();
+  await page.waitForTimeout(5000);
+  expect(calls()).toBe(after);
+});
+
+test('mobile: the summaries never scroll the page sideways', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 });
   await open(page);
-  await page.locator('.tr-head').first().click();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );

@@ -2280,38 +2280,24 @@ button.chip.poll-btn.chip-err { border-color: var(--cve); color: var(--cve); bac
   margin: 6px 0 8px; font-size: 12px; color: var(--muted);
   border-bottom: 1px solid var(--section-border); padding-bottom: 6px;
 }
-.top-risk-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.tr-card { border-radius: 6px; background: var(--surface); border: 1px solid var(--section-border); }
-.tr-head {
-  display: flex; flex-direction: row; justify-content: flex-start; text-align: left;
-  align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; background: none;
-  list-style: none; min-height: 40px;
+.top-risk-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tr-item {
+  padding: 8px 10px; border-radius: 6px; background: var(--surface);
+  border: 1px solid var(--section-border);
 }
-.tr-head::-webkit-details-marker { display: none; }
+.tr-head { display: flex; align-items: center; gap: 8px; }
 .tr-rank { font: 700 12px/1 var(--mono); color: var(--muted); min-width: 18px; }
 .tr-name { flex: 1 1 auto; min-width: 0; font-weight: 600; font-size: 13px; overflow-wrap: anywhere; }
 .tr-score { font: 700 13px/1 var(--mono); color: var(--muted); }
-.tr-score.stab-ok, .tr-vs.stab-ok { color: var(--ok-strong); }
-.tr-score.stab-warn, .tr-vs.stab-warn { color: var(--risk); }
-.tr-score.stab-bad, .tr-vs.stab-bad { color: var(--cve); }
-.tr-body { padding: 0 10px 10px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
-.tr-why { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
-.tr-paragraph { margin: 0; }
-.tr-paragraph p { margin: 0 0 6px; }
-.tr-written, .tr-pending { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+.tr-score.stab-ok { color: var(--ok-strong); }
+.tr-score.stab-warn { color: var(--risk); }
+.tr-score.stab-bad { color: var(--cve); }
+.tr-story { margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: var(--text); overflow-wrap: anywhere; }
+.tr-pending { color: var(--muted); font-size: 12px; }
+.tr-state { margin: 4px 0 0; font-size: 11px; color: var(--muted); }
+.top-risk-pipeline { margin: 0 0 8px; font-size: 12px; color: var(--brand-strong); overflow-wrap: anywhere; }
 a.tr-src { color: var(--brand-strong); text-decoration: none; font-size: 12px; white-space: nowrap; }
 a.tr-src:hover, a.tr-src:focus-visible { text-decoration: underline; text-underline-offset: 2px; }
-.tr-versions { margin: 8px 0 0; padding-left: 16px; font-size: 12px; }
-.tr-versions li { margin: 2px 0; }
-.tr-v { font-weight: 600; }
-.tr-vs { font-family: var(--mono); }
-.tr-vd, .tr-vn { color: var(--muted); }
-.vi-chart { display: block; width: 100%; max-width: 320px; height: auto; margin-top: 8px; }
-.vi-band { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 3; }
-.vi-line { fill: none; stroke: var(--brand); stroke-width: 1.6; }
-.vi-dot { fill: var(--surface); stroke: var(--brand); stroke-width: 1.4; }
-.vi-dot-current { fill: var(--brand); }
-.vi-chart-caption { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
 /* Short commit id after a version title (feed.js commitIdFor), so
    commit-level rows sharing one version number are distinguishable.

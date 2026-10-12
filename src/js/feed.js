@@ -197,36 +197,12 @@
 
     /* ── Highest risk now ─────────────────────────────────────────
        The 10 components whose newest release has the lowest stability
-       score (server: GET /api/insights/top-risk, src/insights.js), each a
-       compact row that opens into: the score's own reasoning, a brief
-       paragraph from the existing Ask pipeline (generated server-side,
-       once per component per day, shared) with its sources in brackets,
-       one list item per recent version with its ReleaseTrain/commit
-       links in brackets, and a stability line chart. Mobile first: rows
-       wrap, nothing scrolls sideways. Paragraphs still being generated
-       show "being prepared" and the panel re-fetches a few times. */
-    function stabilityChartSvg(series, currentVersion) {
-      if (series.length < 2) return "";
-      const W = 280, H = 84, P = 10;
-      const x = i => P + (i * (W - 2 * P)) / (series.length - 1);
-      const y = s => H - P - s * (H - 2 * P);
-      const pts = series.map((p, i) => `${x(i).toFixed(1)},${y(p.stability).toFixed(1)}`).join(" ");
-      const dots = series.map((p, i) =>
-        `<circle class="vi-dot${p.version === currentVersion ? " vi-dot-current" : ""}" cx="${x(i).toFixed(1)}" cy="${y(p.stability).toFixed(1)}" r="${p.version === currentVersion ? 4 : 2.5}"><title>${uaEsc(p.version)}: ${p.stability.toFixed(2)}</title></circle>`).join("");
-      return `<svg class="vi-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Stability across recent versions">` +
-        `<line class="vi-band" x1="${P}" x2="${W - P}" y1="${y(0.7)}" y2="${y(0.7)}"/>` +
-        `<line class="vi-band" x1="${P}" x2="${W - P}" y1="${y(0.4)}" y2="${y(0.4)}"/>` +
-        `<polyline class="vi-line" points="${pts}"/>${dots}</svg>` +
-        `<div class="vi-chart-caption">Stability, last ${series.length} versions (oldest to newest)</div>`;
-    }
-
+       score (server: GET /api/insights/top-risk, src/insights.js), each
+       one brief story paragraph: the pipeline's when ready, else the
+       server's fact-based story. Citations read "(source: Reddit)",
+       primary sources only. Mobile first: nothing scrolls sideways. The
+       panel re-fetches a few times while pipeline paragraphs are pending. */
     const stabBand = s => (typeof s !== "number" ? "" : s >= 0.7 ? "stab-ok" : s >= 0.4 ? "stab-warn" : "stab-bad");
-    // Human-readable dates ("and human readable"): "Oct 11, 2026", and a
-    // plain-words age ("5 minutes ago") next to exact times.
-    const fmtYmd = d => {
-      const m = String(d || "").match(/^(\d{4})(\d{2})(\d{2})$/);
-      return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "";
-    };
     function relativeAge(date, now = new Date()) {
       const mins = Math.round((now - date) / 60000);
       if (mins < 1) return "just now";
@@ -237,66 +213,59 @@
       return `${days} day${days === 1 ? "" : "s"} ago`;
     }
     const fmtTime = d => d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
-    const bracketLink = (label, url) => `<a class="tr-src" href="${uaEsc(url)}" target="_blank" rel="noopener">[${uaEsc(label)}]</a>`;
 
-    function sourceLabel(s) {
-      if (s.kind === "cve") return (String(s.title || s.url || "").match(/CVE-\d{4}-\d+/i) || ["CVE"])[0].toUpperCase();
-      if (s.kind === "release") return "ReleaseTrain";
-      if (s.kind === "reddit") return "Reddit";
-      if (s.kind === "stackoverflow") return "Stack Overflow";
-      try { return new URL(s.url).hostname.replace(/^www\./, ""); } catch { return "web"; }
+    // "(source: Reddit)": a readable name for a primary source's domain.
+    function sourceName(url) {
+      let host = "";
+      try { host = new URL(url).hostname.replace(/^www\./, "").toLowerCase(); } catch { return "link"; }
+      if (/(^|\.)reddit\.com$|(^|\.)redd\.it$/.test(host)) return "Reddit";
+      if (host === "nvd.nist.gov") return "NVD";
+      if (/(^|\.)cisa\.gov$/.test(host)) return "CISA";
+      if (host === "github.com") return "GitHub";
+      if (host === "stackoverflow.com") return "Stack Overflow";
+      return host;
+    }
+    const citeLink = url => `<a class="tr-src" href="${uaEsc(url)}" target="_blank" rel="noopener">(source: ${uaEsc(sourceName(url))})</a>`;
+
+    // One integrated story paragraph per component, with every markdown
+    // link rendered as a round-bracket citation, "(source: Reddit)". Only
+    // primary sources: a releasetrain.io link is dropped, and the release's
+    // own page is appended when the paragraph doesn't already cite it.
+    function renderStory(text, primaryUrl) {
+      let cited = false;
+      const html = uaEsc(String(text || "").replace(/\s+/g, " ").trim())
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/\s*\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, (m, label, rawUrl) => {
+          const url = rawUrl.replace(/&amp;/g, "&");
+          if (/(^|\.)releasetrain\.io\//i.test(url.replace(/^https?:\/\//, ""))) return "";
+          if (primaryUrl && url === primaryUrl) cited = true;
+          return ` ${citeLink(url)}`;
+        });
+      const tail = primaryUrl && !cited ? ` ${citeLink(primaryUrl)}` : "";
+      return `<p class="tr-story">${html}${tail}</p>`;
     }
 
-    function renderTopRiskItem(c) {
+    // Live pipeline phase in the same words the Ask box uses (askPhaseLabel).
+    const pipelinePhaseText = r => (r.phase === "starting" ? "starting" : askPhaseLabel(r.phase, r.detail, "orchestrator_delegated", r.meta));
+
+    function renderTopRiskItem(c, pipeline) {
       const name = `${c.name}${c.version ? " " + c.version : ""}`;
-      let paragraph;
-      if (c.summary) {
-        const answer = c.summary.answer || "";
-        // "in brackets always add primary source": the release's own
-        // upstream link (server-resolved, never invented) always shows,
-        // first, unless the paragraph already cites it inline.
-        // Only cited sources show: the paragraph's own inline links, plus
-        // the primary source. Uncited pipeline sources are not appended -
-        // live runs returned junk there (an HTTPS explainer, Windows
-        // Bluetooth help) that would read as evidence.
-        const extra = c.primaryUrl && !answer.includes(c.primaryUrl)
-          ? bracketLink(`primary: ${sourceLabel({ url: c.primaryUrl })}`, c.primaryUrl) : "";
-        const written = c.summary.generatedAt ? new Date(c.summary.generatedAt) : null;
-        const writtenText = written && !Number.isNaN(written.getTime())
-          ? `<p class="tr-written">Written ${relativeAge(written)} (${fmtTime(written)})</p>` : "";
-        paragraph = `<div class="tr-paragraph">${mdLite(answer)} ${extra}</div>${writtenText}`;
-      } else {
-        // Pipeline abstain codes in plain words; anything else verbatim.
-        const reasons = {
-          no_evidence: "the pipeline found no supporting evidence, so it did not guess",
-          budget: "the run took too long",
-          "no answer": "the pipeline returned no answer",
-        };
-        const why = c.error ? (reasons[c.error] || c.error) : "";
-        paragraph = `<p class="tr-pending">${c.status === "failed"
-          ? `Summary unavailable right now${why ? `: ${uaEsc(why)}` : ""}. It is retried within the hour.`
-          : "Summary being prepared…"}</p>`;
+      const story = c.summary && c.summary.answer
+        ? renderStory(c.summary.answer, c.primaryUrl)
+        : `<p class="tr-story tr-pending">Summary being prepared…</p>`;
+      // Pipeline state for a component still showing the fact-based story
+      // ("update pipeline state while running it through the pipeline").
+      let state = "";
+      if (!c.summary || c.summary.kind !== "pipeline") {
+        const running = pipeline && pipeline.running && pipeline.running.name === c.name ? pipeline.running : null;
+        if (running) state = `<p class="tr-state">⚙️ The pipeline is writing a fuller summary: ${uaEsc(pipelinePhaseText(running))}…</p>`;
+        else if (pipeline && (pipeline.queued || []).includes(c.name)) state = `<p class="tr-state">Queued for the pipeline.</p>`;
       }
-      const versions = (c.versions || []).map(v => {
-        const links = [];
-        if (v.primaryUrl && v.primaryUrl !== v.commitUrl) links.push(bracketLink("release", v.primaryUrl));
-        if (v.commitUrl) links.push(bracketLink(v.commit, v.commitUrl));
-        links.push(bracketLink("ReleaseTrain", v.url));
-        return `<li><span class="tr-v">${uaEsc(v.version)}</span>` +
-          (typeof v.stability === "number" ? ` <span class="tr-vs ${stabBand(v.stability)}">${v.stability.toFixed(2)}</span>` : "") +
-          (v.date ? ` <span class="tr-vd">${fmtYmd(v.date)}</span>` : "") +
-          (v.notes ? ` <span class="tr-vn">${uaEsc(v.notes)}</span>` : "") +
-          ` ${links.join(" ")}</li>`;
-      }).join("");
-      const series = (c.versions || []).filter(v => typeof v.stability === "number").slice().reverse()
-        .map(v => ({ version: v.version, stability: v.stability }));
-      return `<li class="tr-item"><details class="tr-card">` +
-        `<summary class="tr-head"><span class="tr-rank">${c.rank}</span>` +
+      return `<li class="tr-item">` +
+        `<div class="tr-head"><span class="tr-rank">${c.rank}</span>` +
         `<span class="tr-name">${uaEsc(name)}</span>` +
-        `<span class="tr-score ${stabBand(c.stability)}">${Number(c.stability).toFixed(2)}</span></summary>` +
-        `<div class="tr-body"><p class="tr-why">${uaEsc(c.stabilityReasoning || "")}</p>${paragraph}` +
-        (versions ? `<ul class="tr-versions">${versions}</ul>` : "") +
-        stabilityChartSvg(series, c.version) + `</div></details></li>`;
+        `<span class="tr-score ${stabBand(c.stability)}" title="stability score">${Number(c.stability).toFixed(2)}</span></div>` +
+        story + state + `</li>`;
     }
 
     let topRiskRetries = 0;
@@ -310,7 +279,6 @@
         const data = await res.json();
         const comps = Array.isArray(data.components) ? data.components : [];
         if (!comps.length) { panel.hidden = true; return; }
-        const open = new Set(Array.from(list.querySelectorAll(".tr-card[open] .tr-name")).map(el => el.textContent));
         // Press-summary dateline: when the server pulled this data ("at the
         // top add date and time so it looks like press summary, from when
         // it was pulled", "and human readable"), in the viewer's time zone.
@@ -321,14 +289,26 @@
           dateline.textContent =
             `${pulled.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })} at ${fmtTime(pulled)} (${relativeAge(pulled)})`;
         }
-        list.innerHTML = comps.map(renderTopRiskItem).join("");
-        list.querySelectorAll(".tr-card").forEach(card => {
-          if (open.has(card.querySelector(".tr-name").textContent)) card.open = true;
-        });
+        const pipeline = data.pipeline || null;
+        list.innerHTML = comps.map(c => renderTopRiskItem(c, pipeline)).join("");
+        // One live line for the whole panel: which component is in the
+        // pipeline right now, its phase, and how many wait behind it.
+        const line = document.getElementById("topRiskPipeline");
+        const busy = !!(pipeline && (pipeline.running || (pipeline.queued || []).length));
+        if (line) {
+          line.hidden = !busy;
+          if (busy) {
+            const r = pipeline.running;
+            const q = (pipeline.queued || []).length;
+            line.textContent = (r ? `⚙️ Pipeline running for ${r.name}: ${pipelinePhaseText(r)}` : "⚙️ Pipeline starting")
+              + (q ? ` · ${q} queued` : "");
+          }
+        }
         panel.hidden = false;
-        if (comps.some(c => c.status === "pending") && topRiskRetries < 10) {
+        // Poll fast while the pipeline is working, stop once it is idle.
+        if (busy && topRiskRetries < 300) {
           topRiskRetries += 1;
-          setTimeout(loadTopRisk, 60000);
+          setTimeout(loadTopRisk, 4000);
         }
       } catch { /* best-effort: the feed works without this panel */ }
     }
