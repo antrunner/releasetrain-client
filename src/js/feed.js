@@ -252,8 +252,13 @@
       let paragraph;
       if (c.summary) {
         const answer = c.summary.answer || "";
-        const extra = (c.summary.sources || [])
-          .filter(s => s && s.url && !answer.includes(s.url))
+        // "in brackets always add primary source": the release's own
+        // upstream link (server-resolved, never invented) always shows,
+        // first, unless the paragraph already cites it inline.
+        const primary = c.primaryUrl && !answer.includes(c.primaryUrl)
+          ? bracketLink(`primary: ${sourceLabel({ url: c.primaryUrl })}`, c.primaryUrl) : "";
+        const extra = primary + " " + (c.summary.sources || [])
+          .filter(s => s && s.url && !answer.includes(s.url) && s.url !== c.primaryUrl)
           .slice(0, 4)
           .map(s => bracketLink(sourceLabel(s), s.url)).join(" ");
         const written = c.summary.generatedAt ? new Date(c.summary.generatedAt) : null;
@@ -273,8 +278,10 @@
           : "Summary being prepared…"}</p>`;
       }
       const versions = (c.versions || []).map(v => {
-        const links = [bracketLink("ReleaseTrain", v.url)];
+        const links = [];
+        if (v.primaryUrl && v.primaryUrl !== v.commitUrl) links.push(bracketLink("release", v.primaryUrl));
         if (v.commitUrl) links.push(bracketLink(v.commit, v.commitUrl));
+        links.push(bracketLink("ReleaseTrain", v.url));
         return `<li><span class="tr-v">${uaEsc(v.version)}</span>` +
           (typeof v.stability === "number" ? ` <span class="tr-vs ${stabBand(v.stability)}">${v.stability.toFixed(2)}</span>` : "") +
           (v.date ? ` <span class="tr-vd">${fmtYmd(v.date)}</span>` : "") +

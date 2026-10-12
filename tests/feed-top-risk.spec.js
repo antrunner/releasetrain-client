@@ -21,6 +21,7 @@ const DATA = {
       releaseDate: '20261011',
       stability: 0.35,
       stabilityReasoning: '0.35: patch version bump, known CVE CVE-2025-49844.',
+      primaryUrl: 'https://github.com/redis/redis/releases/tag/8.2.2',
       status: 'ready',
       summary: {
         answer:
@@ -58,6 +59,7 @@ const DATA = {
           url: 'https://releasetrain.io/api/v/b1',
           commit: null,
           commitUrl: null,
+          primaryUrl: 'https://github.com/redis/redis/releases/tag/8.2.1',
         },
       ],
     },
@@ -113,13 +115,21 @@ test('rows rank by risk; a card shows the paragraph with bracketed sources and o
   await page.locator('.tr-head').first().click();
   const card = page.locator('.tr-card').first();
   await expect(card.locator('.tr-paragraph')).toContainText('Lua use-after-free');
-  // the CVE link is already inline; only the extra web source is appended in brackets
-  await expect(card.locator('.tr-paragraph a.tr-src')).toHaveText(['[redis.io]']);
+  // the CVE link is already inline; the release's primary source always comes
+  // first in brackets ("in brackets always add primary source"), then the web one
+  await expect(card.locator('.tr-paragraph a.tr-src')).toHaveText([
+    '[primary: github.com]',
+    '[redis.io]',
+  ]);
   await expect(card.locator('.tr-written')).toContainText('Written');
   await expect(card.locator('.tr-versions li')).toHaveCount(2);
   await expect(card.locator('.tr-versions li').first().locator('a.tr-src')).toHaveText([
-    '[ReleaseTrain]',
     '[7939a8b]',
+    '[ReleaseTrain]',
+  ]);
+  await expect(card.locator('.tr-versions li').nth(1).locator('a.tr-src')).toHaveText([
+    '[release]',
+    '[ReleaseTrain]',
   ]);
   await expect(card.locator('.tr-versions li').first()).toContainText('Oct 11, 2026');
   await expect(card.locator('.vi-chart circle')).toHaveCount(2);
