@@ -261,8 +261,15 @@
           ? `<p class="tr-written">Written ${relativeAge(written)} (${fmtTime(written)})</p>` : "";
         paragraph = `<div class="tr-paragraph">${mdLite(answer)} ${extra}</div>${writtenText}`;
       } else {
+        // Pipeline abstain codes in plain words; anything else verbatim.
+        const reasons = {
+          no_evidence: "the pipeline found no supporting evidence, so it did not guess",
+          budget: "the run took too long",
+          "no answer": "the pipeline returned no answer",
+        };
+        const why = c.error ? (reasons[c.error] || c.error) : "";
         paragraph = `<p class="tr-pending">${c.status === "failed"
-          ? `Summary unavailable right now${c.error ? ` (${uaEsc(c.error)})` : ""}; it is retried within the hour.`
+          ? `Summary unavailable right now${why ? `: ${uaEsc(why)}` : ""}. It is retried within the hour.`
           : "Summary being prepared…"}</p>`;
       }
       const versions = (c.versions || []).map(v => {
