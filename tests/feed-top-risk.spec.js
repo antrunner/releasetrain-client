@@ -115,12 +115,10 @@ test('rows rank by risk; a card shows the paragraph with bracketed sources and o
   await page.locator('.tr-head').first().click();
   const card = page.locator('.tr-card').first();
   await expect(card.locator('.tr-paragraph')).toContainText('Lua use-after-free');
-  // the CVE link is already inline; the release's primary source always comes
-  // first in brackets ("in brackets always add primary source"), then the web one
-  await expect(card.locator('.tr-paragraph a.tr-src')).toHaveText([
-    '[primary: github.com]',
-    '[redis.io]',
-  ]);
+  // the CVE link is cited inline; the release's primary source is always
+  // appended in brackets; the uncited web source (redis.io) is not shown
+  await expect(card.locator('.tr-paragraph a.tr-src')).toHaveText(['[primary: github.com]']);
+  await expect(card.locator('.tr-paragraph')).not.toContainText('redis.io');
   await expect(card.locator('.tr-written')).toContainText('Written');
   await expect(card.locator('.tr-versions li')).toHaveCount(2);
   await expect(card.locator('.tr-versions li').first().locator('a.tr-src')).toHaveText([

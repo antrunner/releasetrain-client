@@ -255,12 +255,12 @@
         // "in brackets always add primary source": the release's own
         // upstream link (server-resolved, never invented) always shows,
         // first, unless the paragraph already cites it inline.
-        const primary = c.primaryUrl && !answer.includes(c.primaryUrl)
+        // Only cited sources show: the paragraph's own inline links, plus
+        // the primary source. Uncited pipeline sources are not appended -
+        // live runs returned junk there (an HTTPS explainer, Windows
+        // Bluetooth help) that would read as evidence.
+        const extra = c.primaryUrl && !answer.includes(c.primaryUrl)
           ? bracketLink(`primary: ${sourceLabel({ url: c.primaryUrl })}`, c.primaryUrl) : "";
-        const extra = primary + " " + (c.summary.sources || [])
-          .filter(s => s && s.url && !answer.includes(s.url) && s.url !== c.primaryUrl)
-          .slice(0, 4)
-          .map(s => bracketLink(sourceLabel(s), s.url)).join(" ");
         const written = c.summary.generatedAt ? new Date(c.summary.generatedAt) : null;
         const writtenText = written && !Number.isNaN(written.getTime())
           ? `<p class="tr-written">Written ${relativeAge(written)} (${fmtTime(written)})</p>` : "";
