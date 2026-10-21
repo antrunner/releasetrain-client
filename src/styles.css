@@ -3881,7 +3881,7 @@ button.auth-dot:focus-visible { outline: 2px solid var(--brand); outline-offset:
    flex-wrap): long URLs and assert values must never produce a sideways
    scroll on a phone. */
 .rg-wrap { width: 100%; max-width: none; margin: 0; padding: 20px 28px 60px; text-align: left; }
-.rg-intro { max-width: 90ch; line-height: 1.5; }
+.rg-intro { max-width: none; line-height: 1.5; }
 .rg-summary { font-weight: 600; margin: 12px 0; }
 .rg-case { border: 1px solid var(--border, #d4d4d8); border-radius: 10px; margin: 10px 0; background: var(--card-bg, #fff); overflow-wrap: anywhere; text-align: left; }
 /* The global `summary` rule (see its own comment near the feed cards)
