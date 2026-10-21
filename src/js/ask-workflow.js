@@ -931,6 +931,10 @@
     // answer claimed no artifact existed while php.net's own downloads
     // page hosts the fixed releases.
     const ASK_DISTRIBUTION_PATH_RE = /\/(downloads?|releases?)([/.?#]|$)/i;
+    // A proof-of-concept/exploit repo is never the product's own fix:
+    // don't offer the attack where the remedy belongs. Mirrors
+    // EXPLOIT_REPO_URL_RE in ask.js (server); keep both in sync.
+    const ASK_EXPLOIT_REPO_URL_RE = /github\.com\/[^/]+\/[^/?#]*(poc|proof[-_]?of[-_]?concept|exploit)/i;
     function askVendorDomainMatches(url, vendor) {
       if (!url || !vendor) return false;
       let host;
@@ -948,6 +952,7 @@
       // page turns out to be, including a genuine vendor installer or
       // app store link), so both need the same checks here.
       if (s.kind === "release" || s.kind === "web") {
+        if (ASK_EXPLOIT_REPO_URL_RE.test(s.url || "")) return null;
         if (/\/(commit|archive)\//.test(s.url || "")) return s.url;
         const headZip = githubHeadZipUrl(s.url);
         if (headZip) return headZip;
