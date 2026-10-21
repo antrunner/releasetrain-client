@@ -40,6 +40,7 @@ const VIEWS = [
   { view: 'changelog', selector: '#changelogView' },
   { view: 'credits', selector: '#ackView' },
   { view: 'account', selector: '#usersView' },
+  { view: 'regression', selector: '#regressionView' },
 ];
 
 for (const { view, selector } of VIEWS) {

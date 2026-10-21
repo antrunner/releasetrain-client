@@ -17,7 +17,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-P5E77Z7VG5"></script>
   
 
-  <link rel="stylesheet" href="styles.css?v=619005d4">
+  <link rel="stylesheet" href="styles.css?v=c135b3bc">
 </head>
 
 <body>
@@ -477,6 +477,7 @@
           <a id="evalRewriterLink" class="nav-link" href="#" title="Admin: compare Retriever evidence with vs without the Rewriter" hidden>🧪 Eval Rewriter</a>
           <a id="evalEvaluatorLink" class="nav-link" href="#" title="Admin: compare the Evaluator's raw verdict vs the deterministic override" hidden>🧪 Eval Evaluator</a>
           <a id="evalOrchestratorLink" class="nav-link" href="#" title="Admin: compare the Orchestrator's raw answer vs the corrected answer" hidden>🧪 Eval Orchestrator</a>
+          <a id="regressionLink" class="nav-link" href="#" title="Question-to-answer regression cases from real reported incidents, with deterministic pass/fail assertions and the latest live-run results">🧪 Regression</a>
           <a class="nav-link" href="https://github.com/SE4CPS/releasetrain-client"
             target="_blank" rel="noopener noreferrer">⭐ GitHub</a>
         </nav>
@@ -5975,6 +5976,25 @@ curl "https://releasetrain.io/api/reddit?fields=title,metadata.predicted.isUpdat
         </div>
       </div><!-- /#evalOrchestratorView -->
 
+      <!-- Regression view: the question-to-answer regression suite
+           (GET /api/ask/regression). Public read; running the live suite
+           (POST /api/ask/regression/run) is admin-only, enforced
+           server-side. Each case renders as its own <details>/<summary>
+           so the list stays scannable and a reader expands only the
+           case they care about. See js/regression.js. -->
+      <div id="regressionView" class="u-hide" >
+        <div class="eval-rewriter-wrap st-114">
+          <h2 class="st-115">🧪 Regression</h2>
+          <p class="rg-intro ask-muted">Question-to-answer regression cases, each collected from a real reported incident. Deterministic checks only, over a versioned golden dataset: the assertion format follows <a href="https://www.promptfoo.dev/docs/configuration/expected-outputs/" target="_blank" rel="noopener">promptfoo's deterministic assertion conventions</a> (contains / not-contains / equals, plus source and guardrail checks in the same shape). Offline unit checks gate every commit in <code class="inline">node --test</code>; the live asserts below run against the deployed Ask pipeline after a deploy.</p>
+          <div class="u-show-flex st-116">
+            <button type="button" id="rgRunBtn" class="btn btn-primary">▶ Run live suite</button>
+            <button type="button" id="rgRefreshBtn" class="btn btn-ghost">↻ Refresh</button>
+          </div>
+          <div id="rgStatus" class="ask-muted st-118"></div>
+          <div id="rgResults"></div>
+        </div>
+      </div><!-- /#regressionView -->
+
       <!-- Account / user management view -->
       <div id="usersView" class="u-hide" >
 
@@ -6628,22 +6648,23 @@ curl "https://releasetrain.io/api/reddit?fields=title,metadata.predicted.isUpdat
     <p class="st-181">Changing the PlantUML server updates where images are fetched from for this session.</p>
   </dialog>
 
-  <script src="js/core.js?v=da703380"></script>
+  <script src="js/core.js?v=76ff1657"></script>
   <script src="js/ask.js?v=5fdd2edc"></script>
-  <script src="js/ask-workflow.js?v=763959c2"></script>
+  <script src="js/ask-workflow.js?v=c9e43cd6"></script>
   <script src="js/ask-rail.js?v=609ec623"></script>
   <script src="js/helpers.js?v=0a9e3a66"></script>
-  <script src="js/graph.js?v=2fbaff69"></script>
-  <script src="js/arch.js?v=a0849527"></script>
-  <script src="js/docs.js?v=4b997f4f"></script>
-  <script src="js/eval.js?v=c35d3e4c"></script>
+  <script src="js/graph.js?v=112cdccf"></script>
+  <script src="js/arch.js?v=8cb5a53a"></script>
+  <script src="js/docs.js?v=86738136"></script>
+  <script src="js/eval.js?v=3d147971"></script>
+  <script src="js/regression.js?v=7cf8ec20"></script>
   <script src="js/feed.js?v=a4f9c689"></script>
-  <script src="js/cve.js?v=2f9eb8e1"></script>
-  <script src="js/risk.js?v=9e8b9d92"></script>
-  <script src="js/network.js?v=e9764b0a"></script>
+  <script src="js/cve.js?v=c6393e6f"></script>
+  <script src="js/risk.js?v=043ccbab"></script>
+  <script src="js/network.js?v=0ee3bf97"></script>
   <script src="js/account.js?v=67779fa0"></script>
-  <script src="js/inventory.js?v=40cfd340"></script>
-  <script src="js/main.js?v=a1663fa4"></script>
+  <script src="js/inventory.js?v=f6c0620e"></script>
+  <script src="js/main.js?v=a621d5da"></script>
 </body>
 
 </html>

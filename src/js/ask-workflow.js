@@ -921,7 +921,26 @@
     // that can be downloaded".
     const ASK_INSTALLER_EXT_RE = /\.(exe|dmg|pkg|msi|deb|rpm|apk|appimage)(?:[?#].*)?$/i;
     const ASK_APP_STORE_URL_RE = /^https?:\/\/(apps\.apple\.com|play\.google\.com|apps\.microsoft\.com)\//i;
-    function askArtifactUrl(s) {
+    // A vendor's OWN download/releases page is a real distribution point
+    // even when the url isn't itself an installer file (php.net/
+    // downloads.php, nginx.org/en/download.html). Structural, never an
+    // allowlist: the host must match the RESOLVED vendor's own domain AND
+    // the path must look like a distribution page. Mirrors
+    // hasRealArtifact/DISTRIBUTION_PATH_RE in ask.js (server); keep both
+    // in sync. Added with the cveFixVersionArtifact guardrail: a PHP CVE
+    // answer claimed no artifact existed while php.net's own downloads
+    // page hosts the fixed releases.
+    const ASK_DISTRIBUTION_PATH_RE = /\/(downloads?|releases?)([/.?#]|$)/i;
+    function askVendorDomainMatches(url, vendor) {
+      if (!url || !vendor) return false;
+      let host;
+      try {
+        host = new URL(url).hostname.toLowerCase().replace(/^www\./, "").replace(/[^a-z0-9.]/g, "");
+      } catch { return false; }
+      const v = String(vendor).toLowerCase().replace(/[^a-z0-9]/g, "");
+      return !!(host && v && host.includes(v));
+    }
+    function askArtifactUrl(s, vendor) {
       if (s.kind === "cve" && s.patchUrl) return s.patchUrl;
       // "release" is this system's own tracked release-notes documents;
       // "web" is whatever search_web itself finds on the server (every
@@ -933,10 +952,11 @@
         const headZip = githubHeadZipUrl(s.url);
         if (headZip) return headZip;
         if (ASK_INSTALLER_EXT_RE.test(s.url || "") || ASK_APP_STORE_URL_RE.test(s.url || "")) return s.url;
+        if (askVendorDomainMatches(s.url, vendor) && ASK_DISTRIBUTION_PATH_RE.test(s.url || "")) return s.url;
       }
       return null;
     }
-    function askRenderSources(sources, webEvidence, webSearchFallback) {
+    function askRenderSources(sources, webEvidence, webSearchFallback, vendor, fixArtifact) {
       const webVerifyHtml = askRenderWebVerification(webEvidence);
       const webFallbackHtml = askRenderWebSearchFallback(webSearchFallback);
       if (!sources || !sources.length) {
@@ -950,7 +970,7 @@
       // renderer just links whatever `.url` it's given.
       const artifactUrlBySource = new Map();
       for (const s of sources) {
-        const u = askArtifactUrl(s);
+        const u = askArtifactUrl(s, vendor);
         if (u) artifactUrlBySource.set(s, u);
       }
       const artifact = sources.filter(s => artifactUrlBySource.has(s)).map(s => ({ ...s, url: artifactUrlBySource.get(s) }));
@@ -969,8 +989,16 @@
       // simply missing on every run where nothing does, rather than as
       // "checked, and there's genuinely nothing here." The empty state
       // says so explicitly instead of silently omitting the heading.
-      const artifactHtml = artifact.length
-        ? `<div class="ask-source-group"><div class="ask-source-heading">Artifact</div>${askRenderSourceItems(artifact)}</div>`
+      // cveFixVersionArtifact guardrail (server, see ask.js): when the
+      // pipeline deterministically established the fix (versions extracted
+      // from the evidence + an HTTP-verified official download page), the
+      // Artifact section states it as its own line, rendered from the
+      // structured fixArtifact field rather than re-parsed from answer text.
+      const fixLine = (fixArtifact && Array.isArray(fixArtifact.versions) && fixArtifact.versions.length)
+        ? `<p class="ask-fix-line">🛠️ Fix version${fixArtifact.versions.length > 1 ? "s" : ""}: <strong>${uaEsc(fixArtifact.versions.join(", "))}</strong>${fixArtifact.url ? ` · <a href="${uaEsc(fixArtifact.url)}" target="_blank" rel="noopener">Official download</a>` : ""}</p>`
+        : "";
+      const artifactHtml = (artifact.length || fixLine)
+        ? `<div class="ask-source-group"><div class="ask-source-heading">Artifact</div>${fixLine}${artifact.length ? askRenderSourceItems(artifact) : ""}</div>`
         : `<div class="ask-source-group ask-source-group-empty"><div class="ask-source-heading">Artifact</div><p class="ask-muted">No verified artifact link (a specific commit, release archive, or patch link) was found among these sources, only a general reference page.</p></div>`;
       return webVerifyHtml + webFallbackHtml + artifactHtml + group("Documented", documented) + group("Discussion", discussion);
     }
@@ -1518,7 +1546,7 @@
           ${answerHtml}
         </div>
         <div class="ask-rail-panel" data-panel="sources" hidden>
-          ${askRenderSources(mergedSources, primary && primary.vendorWebEvidence, primary && primary.webSearchFallback)}
+          ${askRenderSources(mergedSources, primary && primary.vendorWebEvidence, primary && primary.webSearchFallback, primary && primary.vendor, primary && primary.fixArtifact)}
         </div>
         <div class="ask-rail-panel" data-panel="benchmark" hidden>
           <details class="ask-bm-legend-details">
@@ -1555,7 +1583,7 @@
         return `<div class="ask-answer-card ask-duo-card${r.abstained ? " ask-answer-abstained" : ""}" data-run-id="${uaEsc(r.runId || "")}">
           <div class="ask-answer-label">${label}${timing}</div>
           <div class="ask-answer-summary">${highlightAnswerTerm(mdLite(r.answer || ""), r.highlightTerm)}</div>
-          ${askRenderSources(r.sources, r.vendorWebEvidence, r.webSearchFallback)}
+          ${askRenderSources(r.sources, r.vendorWebEvidence, r.webSearchFallback, r.vendor, r.fixArtifact)}
           <div class="ask-rate-row">
             <button type="button" class="btn btn-ghost ask-rate-btn" data-rating="1" ${!r.runId ? "disabled" : ""}>&#128077; Helpful</button>
             <button type="button" class="btn btn-ghost ask-rate-btn" data-rating="-1" ${!r.runId ? "disabled" : ""}>&#128078; Not helpful</button>
@@ -1743,7 +1771,7 @@
           ${labelHtml}
           ${answerHtml}
           ${askRenderMetaChips(res)}
-          ${askRenderSources(res.sources, res.vendorWebEvidence, res.webSearchFallback)}
+          ${askRenderSources(res.sources, res.vendorWebEvidence, res.webSearchFallback, res.vendor, res.fixArtifact)}
           ${askRenderDetails(res)}
           ${askRenderModelVsRules(res)}
         </div>`;
@@ -1762,7 +1790,7 @@
         </div>
         <div class="ask-rail-panel" data-panel="sources" hidden>
           ${askRenderMetaChips(res)}
-          ${askRenderSources(res.sources, res.vendorWebEvidence, res.webSearchFallback)}
+          ${askRenderSources(res.sources, res.vendorWebEvidence, res.webSearchFallback, res.vendor, res.fixArtifact)}
           ${askRenderDetails(res)}
         </div>
       </div>`;

@@ -41,5 +41,10 @@ if (askGuardrailsDetailsEl && askGuardrailsDetailsEl.open) askLoadGuardrails();
       } else if (view === "eval-orchestrator") {
         const u = uaUser();
         if (u && u.role === "admin") activateEvalOrchestrator();
+      } else if (view === "regression") {
+        // Public view: the cases + stored results are readable by
+        // everyone; only the live Run button's POST is admin-gated,
+        // and the server enforces that, not this client.
+        activateRegression();
       }
     });

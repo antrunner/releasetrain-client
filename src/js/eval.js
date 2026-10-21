@@ -9,6 +9,7 @@
        itself uses, side by side, for a human to read directly. */
     let ER_ACTIVE = false;
     function activateEvalRewriter() {
+      if (RG_ACTIVE)  deactivateRegression();
       if (G_ACTIVE)   deactivateGraph();
       if (A_ACTIVE)   deactivateArch();
       if (CV_ACTIVE)  deactivateCve();
@@ -50,6 +51,7 @@
        See runEvaluatorEval's own comment in ask.js. */
     let EE_ACTIVE = false;
     function activateEvalEvaluator() {
+      if (RG_ACTIVE)  deactivateRegression();
       if (G_ACTIVE)   deactivateGraph();
       if (A_ACTIVE)   deactivateArch();
       if (CV_ACTIVE)  deactivateCve();
@@ -91,6 +93,7 @@
        own comment in ask.js. */
     let EO_ACTIVE = false;
     function activateEvalOrchestrator() {
+      if (RG_ACTIVE)  deactivateRegression();
       if (G_ACTIVE)   deactivateGraph();
       if (A_ACTIVE)   deactivateArch();
       if (CV_ACTIVE)  deactivateCve();

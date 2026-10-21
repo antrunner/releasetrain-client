@@ -205,6 +205,7 @@
     }
 
     function activateDocs() {
+      if (RG_ACTIVE)  deactivateRegression();
       if (ER_ACTIVE)  deactivateEvalRewriter();
       if (EE_ACTIVE)  deactivateEvalEvaluator();
       if (EO_ACTIVE)  deactivateEvalOrchestrator();
@@ -247,6 +248,7 @@
     let CL_ACTIVE = false;
 
     function activateChangelog() {
+      if (RG_ACTIVE)  deactivateRegression();
       if (ER_ACTIVE) deactivateEvalRewriter();
       if (EE_ACTIVE) deactivateEvalEvaluator();
       if (EO_ACTIVE) deactivateEvalOrchestrator();
@@ -287,6 +289,7 @@
     let ACK_ACTIVE = false;
 
     function activateAck() {
+      if (RG_ACTIVE)  deactivateRegression();
       if (ER_ACTIVE) deactivateEvalRewriter();
       if (EE_ACTIVE) deactivateEvalEvaluator();
       if (EO_ACTIVE) deactivateEvalOrchestrator();

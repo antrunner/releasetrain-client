@@ -953,6 +953,7 @@
 
     /* ── Arch view: show / hide ───────────────────────────────── */
     function activateArch() {
+      if (RG_ACTIVE)  deactivateRegression();
       aPopulateMachineStacks();
       if (ER_ACTIVE)  deactivateEvalRewriter();
       if (EE_ACTIVE)  deactivateEvalEvaluator();

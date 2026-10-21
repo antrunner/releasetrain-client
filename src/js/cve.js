@@ -589,6 +589,7 @@
     }
 
     function activateCve() {
+      if (RG_ACTIVE)  deactivateRegression();
       if (ER_ACTIVE)  deactivateEvalRewriter();
       if (EE_ACTIVE)  deactivateEvalEvaluator();
       if (EO_ACTIVE)  deactivateEvalOrchestrator();
