@@ -49,7 +49,7 @@
     });
 
     function rgAssertLabel(a) {
-      if (a.type === "equals") return `${a.value}`;
+      if (a.type === "equals") return `${a.path} = ${a.value}`;
       if (Array.isArray(a.value)) return `${a.type}: ${a.value.join(", ")}`;
       return `${a.type}: ${a.value ?? ""}`;
     }
