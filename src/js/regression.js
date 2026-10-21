@@ -58,7 +58,11 @@
     // chip, the case id, and the question; the body holds the incident
     // note, the offline unit-check names, the live asserts (each with
     // its own ✅/⛔ from the last run), and the last run's answer excerpt.
-    let RG_CASE_FILE_URL = null; // served by GET /api/ask/regression
+    // The site's own live copy (src/data/ is served at /data/) is the
+    // default; GET /api/ask/regression's caseFileUrl (the public GitHub
+    // blob of the same file) replaces it once loaded. The server repo is
+    // private, so the file's public home is this client repo.
+    let RG_CASE_FILE_URL = "data/regression-cases.json";
     function rgCaseLinks(c) {
       const gh = RG_CASE_FILE_URL
         ? `<a href="${uaEsc(RG_CASE_FILE_URL)}" target="_blank" rel="noopener">Case JSON (versioned file)</a>`
