@@ -3880,14 +3880,20 @@ button.auth-dot:focus-visible { outline: 2px solid var(--brand); outline-offset:
    tones; "not run" stays neutral. Everything wraps (overflow-wrap +
    flex-wrap): long URLs and assert values must never produce a sideways
    scroll on a phone. */
-.rg-intro { max-width: 70ch; line-height: 1.5; }
+.rg-wrap { width: 100%; max-width: none; margin: 0; padding: 20px 28px 60px; text-align: left; }
+.rg-intro { max-width: 90ch; line-height: 1.5; }
 .rg-summary { font-weight: 600; margin: 12px 0; }
-.rg-case { border: 1px solid var(--border, #d4d4d8); border-radius: 10px; margin: 10px 0; background: var(--card-bg, #fff); overflow-wrap: anywhere; }
-.rg-case > summary { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; cursor: pointer; padding: 10px 14px; list-style-position: inside; }
+.rg-case { border: 1px solid var(--border, #d4d4d8); border-radius: 10px; margin: 10px 0; background: var(--card-bg, #fff); overflow-wrap: anywhere; text-align: left; }
+/* The global `summary` rule (see its own comment near the feed cards)
+   sets flex-direction: column, 12px text, and a filled background -
+   right for the feed's stacked card headers, wrong here. Every one of
+   those properties is overridden explicitly, and the [open] state too
+   (`details[open] > summary` outranks a single-class selector). */
+.rg-case > summary { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; flex-wrap: wrap; cursor: pointer; padding: 10px 14px; font-size: 0.95rem; font-weight: 400; background: none; text-align: left; list-style-position: inside; }
 .rg-case > summary:hover { background: var(--chip-bg, #f4f4f5); border-radius: 10px; }
-.rg-case[open] > summary { border-bottom: 1px solid var(--border, #e4e4e7); }
+details[open].rg-case > summary { background: none; border-bottom: 1px solid var(--border, #e4e4e7); }
 .rg-id { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
-.rg-q { font-size: 0.92em; }
+.rg-q { font-size: 0.92em; flex: 1 1 auto; min-width: 200px; }
 .rg-chip { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 1.7; }
 .rg-chip-pass { background: var(--ok-bg); color: var(--ok-strong); border: 1px solid var(--ok); }
 .rg-chip-fail { background: var(--cve-bg); color: var(--cve); border: 1px solid var(--cve-soft); }

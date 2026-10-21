@@ -58,6 +58,14 @@
     // chip, the case id, and the question; the body holds the incident
     // note, the offline unit-check names, the live asserts (each with
     // its own ✅/⛔ from the last run), and the last run's answer excerpt.
+    let RG_CASE_FILE_URL = null; // served by GET /api/ask/regression
+    function rgCaseLinks(c) {
+      const gh = RG_CASE_FILE_URL
+        ? `<a href="${uaEsc(RG_CASE_FILE_URL)}" target="_blank" rel="noopener">Case JSON (versioned file)</a>`
+        : "";
+      const api = `<a href="${uaEsc(API_BASE + "ask/regression")}" target="_blank" rel="noopener">API</a>`;
+      return `<p class="rg-meta">${gh ? gh + " · " : ""}${api}</p>`;
+    }
     function rgRenderCase(c, lastResult, runMeta) {
       const chip = !lastResult
         ? '<span class="rg-chip rg-chip-none">not run</span>'
@@ -91,6 +99,7 @@
         </summary>
         <div class="rg-body">
           <p class="rg-meta ask-muted">Reported ${uaEsc(c.reported || "?")}${c.reportedBy ? ` · ${uaEsc(c.reportedBy)}` : ""}</p>
+          ${rgCaseLinks(c)}
           ${unitHtml}
           <div class="rg-section-label">Live asserts (deterministic, promptfoo-style)</div>
           <ul class="rg-assert-list">${asserts}</ul>
@@ -122,6 +131,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Request failed.");
         RG_LOADED = true;
+        if (data.caseFileUrl) RG_CASE_FILE_URL = data.caseFileUrl;
         status.textContent = "";
         rgRender(data);
       } catch (e) {
