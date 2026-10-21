@@ -58,17 +58,18 @@
     // chip, the case id, and the question; the body holds the incident
     // note, the offline unit-check names, the live asserts (each with
     // its own ✅/⛔ from the last run), and the last run's answer excerpt.
-    // The site's own live copy (src/data/ is served at /data/) is the
-    // default; GET /api/ask/regression's caseFileUrl (the public GitHub
-    // blob of the same file) replaces it once loaded. The server repo is
-    // private, so the file's public home is this client repo.
-    let RG_CASE_FILE_URL = "data/regression-cases.json";
+    // One versioned JSON file per case, named by the case's own id. The
+    // site's own live copies (src/data/ is served at /data/) are the
+    // default; GET /api/ask/regression's caseFileBaseUrl (the public
+    // GitHub tree of the same files) replaces the base once loaded. The
+    // server repo is private, so the files' public home is this client
+    // repo.
+    let RG_CASE_FILE_BASE = "data/regression-cases";
     function rgCaseLinks(c) {
-      const gh = RG_CASE_FILE_URL
-        ? `<a href="${uaEsc(RG_CASE_FILE_URL)}" target="_blank" rel="noopener">Case JSON (versioned file)</a>`
-        : "";
+      const file = `${RG_CASE_FILE_BASE}/${encodeURIComponent(c.id)}.json`;
+      const gh = `<a href="${uaEsc(file)}" target="_blank" rel="noopener">Case JSON: ${uaEsc(c.id)}.json</a>`;
       const api = `<a href="${uaEsc(API_BASE + "ask/regression")}" target="_blank" rel="noopener">API</a>`;
-      return `<p class="rg-meta">${gh ? gh + " · " : ""}${api}</p>`;
+      return `<p class="rg-meta">${gh} · ${api}</p>`;
     }
     function rgRenderCase(c, lastResult, runMeta) {
       const chip = !lastResult
@@ -135,7 +136,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Request failed.");
         RG_LOADED = true;
-        if (data.caseFileUrl) RG_CASE_FILE_URL = data.caseFileUrl;
+        if (data.caseFileBaseUrl) RG_CASE_FILE_BASE = data.caseFileBaseUrl;
         status.textContent = "";
         rgRender(data);
       } catch (e) {
